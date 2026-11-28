@@ -33,7 +33,7 @@ The work rewrites one paragraph of `skills/code-review/orchestration.md` (lines 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 7, with the version move (*Operational impact*) | `bin/test tests/skills/test_chain_check.py tests/text tests/behaviour tests/lib/test_core.py tests/hooks/test_core_start.py <each other test file that opens a file the phase changed> -q` passes, each other file named in the phase record; Scope item 4's case shown red with `f"^{base}"` taken out of `chain_check.py#follows`'s `rev-list`, and Scope item 5's sentence shown red with D1's command deleted from the paragraph, each as the phase record states; `uvx ruff check` and `uvx ruff format --check` over the two test files; `git show --stat` of the commit that adds `changelog.md` names `.claude-plugin/plugin.json`. The eval harness owns no file of the set (G20) | |
+| 1 | `frame/design.md` *Scope* items 1 to 7, with the version move (*Operational impact*) | `bin/test tests/skills/test_chain_check.py tests/text tests/behaviour tests/lib/test_core.py tests/hooks/test_core_start.py <each other test file that opens a file the phase changed> -q` passes, each other file named in the phase record; Scope item 4's case shown red with `f"^{base}"` taken out of `chain_check.py#follows`'s `rev-list`, and Scope item 5's sentence shown red with D1's command deleted from the paragraph, each as the phase record states; `uvx ruff check` and `uvx ruff format --check` over the two test files; `git show --stat` of the commit that adds `changelog.md` names `.claude-plugin/plugin.json`. The eval harness owns no file of the set (G20) | 1c332307 |
 
 ## Overlap with the release
 
