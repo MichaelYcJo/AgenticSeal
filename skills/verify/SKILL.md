@@ -72,10 +72,10 @@ cell in `frame/design.md` that rests on a search that keeps lines names
 the phase whose search it is, and runs no search of its own. The keep
 file holds each line the search is to print at the phase's close, written as
 `git grep` prints it with no line number, `path:content`, and sorted under
-`LC_ALL=C sort`. Those lines are the lines the design keeps and the lines
-a later phase changes or removes, so a line a later phase removes is a
-line of the keep file of each phase whose search prints it and that
-closes before the phase that removes it. Where an earlier phase runs the
+`LC_ALL=C sort`. That sentence is the one statement of which keep files
+hold a line, and every other sentence that says so cites it. By it, the
+lines the design keeps and the lines a later phase changes or removes
+stand in a keep file alike. Where an earlier phase runs the
 same search, a phase's own lines are the lines its keep file lacks and
 the earlier phase's keep file holds. Where the old spelling stands in a
 path, `frame/keep-<N>-paths.txt` holds, the same way, each path the path
@@ -114,10 +114,10 @@ the directory's path under that root.
 it in step with the kinds the design keeps.** The framer writes it from
 the commands' output at the commit `frame/design.md` `## Grounding`
 names. Where a phase rewrites a kept line, as a rewrap does, or writes a
-line that holds a kept kind, the builder writes the line into that phase's
-keep file and into the keep file of each later phase whose search prints
-it, in the same commit. A kept line the tree no longer holds leaves those
-keep files the same way.
+line that holds a kept kind, the builder writes the line, in the same
+commit, into each keep file of its own phase or a later one that holds the
+line by the statement of what a keep file holds, above. A kept line the
+tree no longer holds leaves those keep files the same way.
 A line of no kept kind goes into no keep file. A new kind is a departure
 from the frame: the builder names it in the phase record, and the framer
 folds it. The phase record names each line the phase added, changed or
