@@ -57,4 +57,4 @@ The spawn named two other open work items of the release, #1650 and #1659. Read 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | The pull request's title takes `fix:`. | The work repairs a release workflow that failed on a release shape the repository ships, and it renames nothing a user types, installs or keeps; the release pull request of 0.40.1 shows a settle-only release reached `main` with its note written by hand. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
