@@ -21,4 +21,4 @@ The owner answered question 1 of the routing question with `agentic` on 2026-11-
 - **Automation, yes:** no question the orchestrator foresees needs a person.
 - **Destination, open the pull request:** nothing in the issue or the request asks for the branch back.
 
-The base is the release branch for the patch. #1648, the release's other work item, carries the version move, and this item merges after it.
+The base is the release branch for the patch. The release's work item that carries the version move, #1648's, merges before this one, and `frame/plan.md` *Overlap with the release* names what else the release held when it was read.
