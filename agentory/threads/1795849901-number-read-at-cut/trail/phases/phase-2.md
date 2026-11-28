@@ -13,8 +13,8 @@ a line above the number it gives. Phase 1's rewrap of the comment above
 hunk, `@@ -180,3 +180,2 @@`), so it is no contradiction of a coordinate
 dated to `9d7a8fe2`. The phase 2 search of the *Verified by* cell printed
 20 lines opening `<` and none opening `>` at `1a6e790d`, as
-`frame/design.md` G16 says. Judged against `skills/implement/SKILL.md` *The frame is judged
-before it is built to*.
+`frame/design.md` G16 says. Judged against `skills/implement/SKILL.md`
+*The frame is judged before it is built to*.
 
 **Q1 is decided: `merged_pulls` asks `gh pr view` once for each pull
 request the range names.** The set is the numbers `lib/closing.py#MERGED_PR`
@@ -47,9 +47,10 @@ same list with `--limit 3` printed #1669, #1664 and #1661, in that order
 (executed, 2026-11-28). The tag is pushed at its release's merge, so its
 release pull request is the newest. A tag pushed by hand for a release
 more than that many release pull requests back finds none, and says so.
-A second shape was measured and not taken: `gh api repos/<repo>/commits/<sha>/pulls` returned #1664 for
-`v0.40.1^{commit}`, #1669 for `v0.41.0`, #1653 for `v0.39.4` and #1544 for
-`v0.38.0` (executed, 2026-11-28, a person's token). It needs no bound, but
+A second shape was measured and not taken:
+`gh api repos/<repo>/commits/<sha>/pulls` returned #1664 for
+`v0.40.1^{commit}`, #1669 for `v0.41.0`, #1653 for `v0.39.4` and #1544
+for `v0.38.0` (executed, 2026-11-28, a person's token). It needs no bound, but
 under the publish workflow's `permissions: contents: write` alone it is a
 REST read of pull requests that no step of that workflow makes today, and
 no run here can measure it. The list keeps the read the token is known to
@@ -131,9 +132,9 @@ which printed `41 failed, 103 passed`. Twenty-eight cases failed on
 the milestone read, the A1 case and the theme cases of `main` among them.
 Six of `Test_release_pull_body` failed on its old signature, and the two
 settles-alone cases on the stub's. The label case of `theme_of` failed on
-`'The notes come.' == 'Purpose: the notes come.'`. The mark's range assertion failed on `('example/repo',
-'1.2.3') != ('example/repo', 'v1.2.2..v1.2.3')`, and its refusal case on
-the old words. `test_the_list_is_the_pull_requests_the_range_names` failed
+`'The notes come.' == 'Purpose: the notes come.'`. The mark's range
+assertion failed on `('example/repo', '1.2.3') != ('example/repo',
+'v1.2.2..v1.2.3')`, and its refusal case on the old words. `test_the_list_is_the_pull_requests_the_range_names` failed
 on `ValueError` in the stub, since the old call was `gh pr list`.
 `test_a_gh_that_gave_no_answer_is_read_as_each_read_reads_a_failure`
 failed on its line, and under the old script its stub let the real
