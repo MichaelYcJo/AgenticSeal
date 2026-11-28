@@ -211,7 +211,7 @@ load. Each
 reading goes to the framer in one message, as a proposal with its grounds
 and coordinates and never as an instruction. The framer answers each with
 agree, agree with a change, or reject with grounds, folds what it agreed
-into its three files, and writes each rejected proposal as one row of
+into the frame's files, and writes each rejected proposal as one row of
 `plan.md`'s *Alternatives considered*; the orchestrator edits no frame file.
 One exchange is the bound: a disagreement left after it stands as the
 framer's judgment, which the orchestrator quotes in the work item's
@@ -485,6 +485,27 @@ the answer writes* above:
   that the build has to reveal first.
 - **Destination**: `open the pull request`, as under `complete`, unless the
   issue or the person's words in the batch ask for the branch back.
+
+**An issue's parts may be routed as separate work items, and that is
+weighed before `routing.md` is written.** The case to weigh is an issue
+whose parts differ in kind and each leave the tree whole at their own
+merge, such as a records migration, a rename, a loader and a docs rewrite.
+Every round reads its work item's frame and the records that state the
+present, and a finding round reads the whole range, so a split shrinks
+what each round of each part reads; a verifying round's cost runs close to
+a finding round's for the same reason (`skills/code-review/orchestration.md`
+*Orchestrator: the run ends with a verifying round*). Each extra work item
+costs a broad run, an inspection and a pull request, which a small part
+does not repay. The name families of one rename stay phases of one work
+item: the keep file of `skills/verify/SKILL.md` *An absence claim is only
+as good as the search behind it* and the suites of its *Scope: cheap and
+often, broad and once* find a rename's leftovers and a phase's failures at
+the phase boundary, before a round. Where the orchestrator splits, each
+part's `routing.md` *Why this way* names the issue and the other parts,
+each part but the one that finishes the issue carries `Part of #N` in its
+`pr.md` (`docs/releasing/branch-and-release.md`), and the parts merge in
+the order `skills/implement/merge-order.md` gives. This is a weighing, not
+a rule to split.
 
 **Three combinations do not stand, and every other one does.**
 
