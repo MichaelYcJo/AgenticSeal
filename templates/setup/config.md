@@ -363,7 +363,7 @@ it as meant. The value as meant removes the form the refusal names and
 nothing else, so a key that holds a second refused form, such as
 `` `bin/test -q` `` on `cmd.exe` in a repository that holds `bin/`, is
 refused for that one by name on the next run. Rewriting it is the person's
-act, and `/iadd:config` is the door to the key.
+act, and `/agentic:config` is the door to the key.
 
 **Everything else stays legal**, because the value is an arbitrary shell
 command line by design. A gate that could tell a status-discarding `;` from

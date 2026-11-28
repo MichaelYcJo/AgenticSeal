@@ -2116,7 +2116,7 @@ class Test_drawn_at_stop:
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "iadd:inspector"},
+            {"agent_id": "a-1", "agent_type": "agentic:inspector"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
         ],

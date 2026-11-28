@@ -4,7 +4,7 @@ name: publish the release note
 # consecutive releases shipped without one (#386) — the run that measured it
 # was the one that would have made it four.
 #
-# The note is read: `/iadd:update` reads the GitHub Releases, each published
+# The note is read: `/agentic:update` reads the GitHub Releases, each published
 # at its tag (`skills/update/SKILL.md` step 3), so a release without its tag
 # and note is one an updating user is told nothing about.
 #

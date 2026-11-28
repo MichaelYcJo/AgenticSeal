@@ -215,7 +215,7 @@ def base_project(item, branch, planning, implementation, extra_files=None):
 
 def orchestrate(agent, spawn, then):
     """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
-    return f"""You are the orchestrator of this repository. Spawn exactly one `iadd:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
+    return f"""You are the orchestrator of this repository. Spawn exactly one `agentic:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
 

@@ -339,7 +339,7 @@ disk is not an update that is in force until the session reloads, and
 reloading is the expensive part, not the install. Every place this repository
 tells a user what to do after an update names the reload command, says what a
 reload was measured to do, and says what nobody has measured about it.
-`/iadd:update` runs inside the session it updates and cannot type into
+`/agentic:update` runs inside the session it updates and cannot type into
 it, so it prints the reload for the user to type, and a notice that leaves
 the cost out reads as though there were none.
 check: tests/behaviour/test_release_hygiene.py

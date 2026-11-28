@@ -229,7 +229,7 @@ does not parse, an unordered pair and an open row are all shown.
    chose its rows, and each released commit whose trailer reads
    `IADD-Routing: no work item`, which `git log --grep` lists, with the
    grounds its body gives. A commit of a release before the one that
-   renamed the plugin IADD carries the trailer as `Seal-Routing: no work
+   carries #1651 holds the trailer as `Seal-Routing: no work
    item`, and `git log --grep` on that spelling lists those. A settle's
    commit carries `IADD-Routing: no work item`, or `Seal-Routing: no work
    item` in a release before that one, with no route chosen, and is not
@@ -367,7 +367,7 @@ document, the second question, and how a promoted row is written.
     requests carry.
   - **Notes are read only where the repository builds them from the
     fragments.** The release workflow that builds a note from the fragments
-    is IADD's own (`.github/scripts/publish_release_note.py`), and
+    is the plugin's own (`.github/scripts/publish_release_note.py`), and
     the plugin ships no copy, so a repository's notes may be written by
     hand or by another tool and say nothing of a fragment. The same list
     tells the two apart: where no published release holds a whole line

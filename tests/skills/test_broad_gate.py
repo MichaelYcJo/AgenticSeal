@@ -604,7 +604,7 @@ class Test_missing_row:
         said = missing_row_text()
         assert "not this session's to do" in said
         assert "the key is a thing a person wrote" in said
-        assert "/iadd:config" in said
+        assert "/agentic:config" in said
         assert "it shows every key and adds this one —" in said
         assert "with its section" not in said
         assert (
@@ -733,7 +733,7 @@ class Test_not_as_written:
             "write, and a value quietly fixed here would leave the file still "
             "wrong. `templates/setup/config.md` *Broad gate* lists what is "
             "refused and what stays allowed, with the reason for each, and "
-            "`/iadd:config` is the door to the key."
+            "`/agentic:config` is the door to the key."
         )
 
     @pytest.mark.parametrize(
@@ -2178,7 +2178,7 @@ def with_workflow(repo):
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
 # about a workflow: #1483 took the `CI also` row off with the gate's copy of
-# IADD's `release` steps, and the gate reads no workflow. #717 took
+# the plugin's `release` steps, and the gate reads no workflow. #717 took
 # `chain` off, because a drawn panel is green by construction and its title
 # already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
@@ -2388,7 +2388,7 @@ class Test_main:
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
         stderr names neither the workflow, nor the job, nor a step of it.
 
-        Seen red against the gate that kept a copy of IADD's `release`
+        Seen red against the gate that kept a copy of the plugin's `release`
         steps, which printed a `CI also` row and a line counting the steps for
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare

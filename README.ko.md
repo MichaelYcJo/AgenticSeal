@@ -3,15 +3,15 @@
        alt="IADD 의 문장. 작은 올빼미가 붉은 밀랍 인장에 찍혀 있다">
 </p>
 
-# IADD
+# agentic
 
-IADD(Independent AI-Driven Development): 에이전트들이 변경을 설계하고,
-만들고, 리뷰하고, 검수합니다. 어떤 에이전트도 자기 작업을 승인하지 않고,
-끝에는 커밋 하나에 묶인 검수가 남습니다.
+Independent AI-Driven Development, 곧 IADD 를 실행하는 플러그인입니다.
+에이전트들이 변경을 설계하고, 만들고, 리뷰하고, 검수합니다. 어떤 에이전트도
+자기 작업을 승인하지 않고, 실행은 커밋 하나에 묶인 검수로 끝납니다.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · [English](./README.md) · **한국어**
 
-IADD 는 Claude Code 플러그인입니다. 세션에 이슈 하나를 맡기면, 세션은
+agentic 은 Claude Code 플러그인입니다. 세션에 이슈 하나를 맡기면, 세션은
 시작할 때 이 작업을 어떤 길로 보낼지 묻습니다. 이것이 라우팅 질문입니다.
 세션이 권하는 답은 `agentic` 입니다. 이 답을 고르면 세션이 작업
 항목마다 어떤 에이전트가 필요한지와 실행 도중 사용자에게 물어도 되는지를
@@ -25,7 +25,7 @@ pull request 에서 끝납니다. 머지는 하지 않습니다. 머지는 사�
 
 라우팅 질문부터 최종 검수자(inspector)의 검수까지, 위에서 말한 일 전체를
 **IADD 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
-저장소에서 이 과정을 가리킬 때도 이 이름을 씁니다. 제품 이름이므로 번역하지
+저장소에서 이 과정을 가리킬 때도 이 이름을 씁니다. 방법론의 이름이므로 번역하지
 않습니다. 검수는 마지막 에이전트의 판정 하나만 뜻하고, 이 문서가 뒤에서 말하는
 도장은 그 검수를 터미널에 그린 그림입니다. 리뷰 체인은 이 프로세스 안의 리뷰
 회차만 가리킵니다.
@@ -48,7 +48,7 @@ flowchart LR
 ```bash
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
-> /plugin install iadd@iadd
+> /plugin install agentic@agenticseal
 ```
 
 `git` 2.30 이상과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이
@@ -63,7 +63,7 @@ Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으�
 
 설치는 이것으로 끝입니다. `CLAUDE.md` 에도 사용자 설정에도 아무것도 쓰지 않고,
 플러그인의 훅은 플러그인과 함께 들어옵니다(*내 컴퓨터에서 도는 것*).
-지우려면 `/plugin uninstall iadd` 를 실행합니다. 그 전에 따로 되돌릴 것은
+지우려면 `/plugin uninstall agentic` 을 실행합니다. 그 전에 따로 되돌릴 것은
 없습니다.
 
 IADD 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
@@ -81,7 +81,7 @@ independently of the others*).
 ### 업데이트
 
 ```
-/iadd:update
+/agentic:update
 ```
 
 이 명령은 갱신 명령 두 개를 맞는 순서로 돌린 뒤, 쓰던 버전과 새 버전 사이의
@@ -95,8 +95,8 @@ changelog 항목을 알려 줍니다. 동작이 바뀌는 항목과 사용자가
 손으로 하려면 같은 두 명령을 이 순서로 실행합니다.
 
 ```bash
-claude plugin marketplace update iadd
-claude plugin update iadd@iadd
+claude plugin marketplace update agenticseal
+claude plugin update agentic@agenticseal
 ```
 
 첫 명령이 마켓플레이스의 사본을 새로 받고, 둘째 명령이 그 사본에서
@@ -128,7 +128,7 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 세션이 어떤 저장소에서 처음 일할 때는 질문 네 개를 한꺼번에 먼저 묻습니다.
 기록을 어디에 둘지(아래 *shared 인가 local 인가*), broad gate 가 돌릴 명령,
 커밋과 pull request 를 쓸 언어, 기록을 쓸 언어입니다. 답은
-`agentory/config.json` 의 키가 되고, 나중에 `/iadd:config` 로 무엇이든 바꿀 수
+`agentory/config.json` 의 키가 되고, 나중에 `/agentic:config` 로 무엇이든 바꿀 수
 있습니다. 요청 하나에는 이슈를 몇 개 담든 첫 편집 전에 질문을 한 번에 모아
 묻습니다. 언어 키 둘 가운데 하나라도 빠져 있으면 그 묶음에서 두 키를 모두
 묻습니다. 라우팅 질문도 그 묶음에 들어갑니다. 오타 하나를 고칠 때도 요청마다
@@ -326,7 +326,7 @@ tracer 가 가져옵니다. 프레임은 옮기는 진입점마다 원본이 내
 적고, 리뷰는 원본에서 출발해 새 코드 쪽으로 따라가며 읽습니다. 그래서 원본은
 내보내는데 새 코드가 빠뜨린 항목은 설계가 이름을 적지 않았어도 지적이
 됩니다. 세션이 저장소를 처음 설정할 때 한 번 물어보고, 나중에
-정하려면 `/iadd:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
+정하려면 `/agentic:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
 커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.json` 에
 저장됩니다. 방법은 `skills/legacy-parity/SKILL.md` 에 있습니다.
 
@@ -403,7 +403,7 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|
-| `/iadd:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
+| `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` 가 마켓플레이스가 받아 둔 이 저장소의 사본을 새로 받고, `claude plugin update` 가 그 사본에서 설치한다. 그다음 토큰 없이 `curl` 을 한 번 보내, 그 사본을 받아 온 저장소의 릴리스 목록을 GitHub 공개 API 에서 읽는다 | 사용자가 명령을 실행할 때 |
 | `agentic cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 수치를 읽은 트랜스크립트는 하나하나 경로가 아니라 파일 이름으로만 적힌다. `--work-item` 을 붙이면 작업 항목의 디렉터리와 브랜치도 적히고, 세그먼트를 띄운 프롬프트가 함께 적은 다른 작업 항목의 디렉터리 이름도 적힌다. 다른 작업 항목은 기록 디렉터리와, 푸시했든 하지 않았든 모든 로컬 브랜치에서 읽는다. 명령의 글은 들어가지 않는다. 가장 오래 걸린 호출은 초와 종류로만 적힌다. `--work-item` 을 붙이면 올리든 올리지 않든 먼저 `gh api --paginate` 로 그 이슈의 댓글을 모두 읽는다. 이슈를 새로 열지는 않는다 | `--work-item` 을 붙여, 작업 항목의 실행이 끝날 때 orchestrator 가 돌린다. 릴리스 때도, 릴리스 pull request 가 머지되기 전에, 그 릴리스에 담긴 작업 항목마다 다시 돌린다. 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `--inspecting` 없이 돌리는 `chain_check.py`, 곧 orchestrator 와 proofer 가 `--worktree` 로 읽는 실행 ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `agentic gate` 는 이 검사를 `--inspecting` 을 붙여 돌리므로, pull request 의 상태를 읽지 않고 `gh` 에 아무것도 묻지 않는다 | 그런 실행이 GitHub Actions 밖에서 돌 때마다. `gh` 가 PATH 에 없으면 묻지 않는다 |
 | `agentic settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
@@ -433,9 +433,9 @@ pull request 의 글을 올립니다. 그 일을 하려고 있는 단계입니�
 | `agentic rules <doc>` · `agentic rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `agentic pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `agentic payload [--json] [--agent <name>] [--root <dir>]` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트로 재고, 토큰은 그 바이트에서 추정한다 (`skills/verify/scripts/payload_meter.py`) |
-| `/iadd:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
-| `/iadd:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `agentory/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
-| `/iadd:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
+| `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
+| `/agentic:config` | 이 저장소가 스스로 정한 것, 이를테면 두 언어, 기록이 사는 자리, broad gate 가 돌릴 명령을 담은 `agentory/config.json` 의 키를 모두 보여 주고, 무엇이든 바꾼다 (`skills/config/SKILL.md`) |
+| `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
 
 ## 한계
 

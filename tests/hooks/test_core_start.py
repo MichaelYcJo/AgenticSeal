@@ -66,7 +66,7 @@ def plugin(where, core="# scratch core\n\nA value — kept.\n"):
     with open(
         os.path.join(where, ".claude-plugin", "plugin.json"), "w", encoding="utf-8"
     ) as f:
-        json.dump({"name": "iadd", "version": "0.25.0"}, f)
+        json.dump({"name": "agentic", "version": "0.25.0"}, f)
     os.makedirs(os.path.join(where, "skills", "core"))
     with open(
         os.path.join(where, "skills", "core", "SKILL.md"),

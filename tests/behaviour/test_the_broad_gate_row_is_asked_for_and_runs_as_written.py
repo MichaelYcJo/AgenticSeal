@@ -116,8 +116,8 @@ def test_the_template_names_the_command_that_rewrites_a_refused_key():
     does. That the section says nothing is stripped is the proofer's to
     read."""
     body = unquoted_flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED))
-    # The command `/iadd:config`, which a person types to rewrite the key.
-    assert "/iadd:config" in body, (
+    # The command `/agentic:config`, which a person types to rewrite the key.
+    assert "/agentic:config" in body, (
         "the section does not say where a person rewrites the key"
     )
 
@@ -198,5 +198,5 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
     orchestrator = unquoted_flat(read(*GATE_TO_PR))
-    # The command `/iadd:config`, which the person runs to answer the key.
-    assert "/iadd:config" in orchestrator
+    # The command `/agentic:config`, which the person runs to answer the key.
+    assert "/agentic:config" in orchestrator

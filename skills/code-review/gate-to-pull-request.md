@@ -237,6 +237,6 @@ its key holds a command the gate would not run as the command it reads as.
 Neither is yours to settle, and no agent's: the key is the one value in this
 flow only a person may write, because there is no default and the broad run
 covers exactly what a person wrote. Put the gate's own sentence in front of
-whoever owns the repository, name `/iadd:config` as where they answer it, and
+whoever owns the repository, name `/agentic:config` as where they answer it, and
 open no pull request until they have. A key filled in to get past the
 refusal makes the broad run cover a command the person never saw.

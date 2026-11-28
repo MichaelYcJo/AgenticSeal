@@ -200,9 +200,9 @@ def test_the_decline_names_the_command_back_to_the_row():
     the command that fills the key in later; what the decline costs is the
     proofer's to read."""
     decline = paragraph(bootstrap(), "**Offer a decline, and say what it costs.**")
-    # The command `/iadd:config`, which a person who declined types to
+    # The command `/agentic:config`, which a person who declined types to
     # fill the `Broad gate` key in.
-    assert "/iadd:config" in decline, "the decline names no way back to the key"
+    assert "/agentic:config" in decline, "the decline names no way back to the key"
 
 
 def test_the_criterion_is_named_by_pointer():
@@ -216,7 +216,7 @@ def test_the_criterion_is_named_by_pointer():
 
 
 def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
-    """#1454. The `Broad gate` key lands the way `/iadd:config` step 3
+    """#1454. The `Broad gate` key lands the way `/agentic:config` step 3
     lands one: the key alone, since a JSON file carries no prose. The lists
     and the criterion stay in the plugin's template, which the paragraph
     names. When it lands and why no command writes it are the proofer's to

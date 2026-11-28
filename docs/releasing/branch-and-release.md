@@ -16,7 +16,7 @@ needs both, or the people already running the plugin are never told of it.
    what `claude plugin update` installs from the marketplace clone.
 2. **A `vX.Y.Z` git tag on the release commit**, which
    `.github/workflows/publish-release.yml` creates when the release reaches
-   `main`. `/iadd:update` reads the GitHub Releases, each published at
+   `main`. `/agentic:update` reads the GitHub Releases, each published at
    its tag (`skills/update/SKILL.md` step 3), so an untagged release carries
    no note there, and a user who updates is told nothing of what it brings.
 

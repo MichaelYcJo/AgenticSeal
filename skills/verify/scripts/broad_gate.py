@@ -635,7 +635,7 @@ def missing_row(home):
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Inspection Test*): a session that picks a "
         "command here checks its own choice.\n"
-        "Take it to whoever owns the repository. `/iadd:config` is where "
+        "Take it to whoever owns the repository. `/agentic:config` is where "
         "they answer it — it shows every key and adds this one — and "
         "`templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
@@ -903,7 +903,7 @@ def not_as_written(home, command, root, windows=None, comspec=None):
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/iadd:config` is the door to the key."
+        "`/agentic:config` is the door to the key."
     ) + (f"\n{unread}" if unread else "")
 
 

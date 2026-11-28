@@ -1,3 +1,6 @@
+.claude-plugin/marketplace.json:      "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit."
+.claude-plugin/marketplace.json:  "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit.",
+.claude-plugin/plugin.json:  "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit.",
 .github/scripts/release_mark.py:    `iadd` block that does not parse; a block out of its place; a finding
 CLAUDE.md:`IADD core from` opens `skills/core/SKILL.md` once. This file
 CLAUDE.md:efficient development through the IADD process* states. The core is
@@ -7,6 +10,7 @@ README.ko.md:       alt="IADD 의 문장. 작은 올빼미가 붉은 밀랍 인�
 README.ko.md:**IADD 프로세스**라고 부릅니다. 아래 그림이 그 흐름입니다. 다른
 README.ko.md:IADD 라는 이름과 올빼미 문장, 그 인장 그림은 MIT 라이선스를 따르지
 README.ko.md:IADD 프로세스는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과
+README.ko.md:Independent AI-Driven Development, 곧 IADD 를 실행하는 플러그인입니다.
 README.ko.md:`CLAUDE.md` 를 따릅니다. IADD 프로세스가 사용자 저장소에 쓰는 커밋, pull
 README.ko.md:| IADD 프로세스 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, GitHub Actions 워크플로 실행을 시작하기도 한다. 커밋하기 전에, 그리고 언어를 묻는 두 질문 옆에 보여 주려고 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 README.ko.md:닿습니다. IADD 프로세스의 단계는 그 저장소에 브랜치를 코드째 push 하고
@@ -17,6 +21,7 @@ README.md:       alt="The IADD emblem: a little owl pressed into a red wax seal"
 README.md:IADD process this repository runs on itself applies to one.
 README.md:The IADD name, the owl emblem and its seal drawings are not under
 README.md:The IADD process differs from asking one agent to review its own
+README.md:The plugin that runs IADD, Independent AI-Driven Development: agents frame,
 README.md:is outside the IADD process.
 README.md:login reaches the repository you work in and no other. The IADD
 README.md:pull requests and records the IADD process writes in your repository

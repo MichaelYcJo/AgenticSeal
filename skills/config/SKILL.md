@@ -4,7 +4,7 @@ description: Show what this repository decided for itself and change any of it, 
 disable-model-invocation: true
 ---
 
-# /iadd:config, what this repository decided and how to decide otherwise
+# /agentic:config, what this repository decided and how to decide otherwise
 
 `agentory/config.json` holds what a repository says about itself, one JSON
 object with one key per item. Four keys have no default, the two language

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run an IADD script on an interpreter at or above the plugin's floor.
+"""Run an agentic script on an interpreter at or above the plugin's floor.
 
 Every `bin/` wrapper but `bin/test`, and its `.cmd` twin, runs its script
 through this file:

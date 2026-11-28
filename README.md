@@ -3,15 +3,15 @@
        alt="The IADD emblem: a little owl pressed into a red wax seal">
 </p>
 
-# IADD
+# agentic
 
-IADD, Independent AI-Driven Development: agents frame, build, review and
-inspect a change, no agent approves its own work, and it ends in an
-inspection bound to a commit.
+The plugin that runs IADD, Independent AI-Driven Development: agents frame,
+build, review and inspect a change, no agent approves its own work, and the
+run ends in an inspection bound to a commit.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · **English** · [한국어](./README.ko.md)
 
-IADD is a Claude Code plugin. You hand the session an issue, and at
+agentic is a Claude Code plugin. You hand the session an issue, and at
 the start it asks you how the work should be routed. Answer
 `agentic`, the answer it marks, and the session decides for each item which
 agents it needs and whether the run may stop to ask you. Where an item needs
@@ -23,7 +23,7 @@ tree at one commit. It never merges. Merging is yours.
 
 Everything above, from the routing question to the final inspector's
 verdict, is **the IADD process**, and the diagram below draws it.
-Point at it by that name from another repository. It is a product name and
+Point at it by that name from another repository. It is the method's name and
 is not translated. *Inspection* keeps one meaning, the last agent's verdict on the
 work, and the stamp further down is a drawing of it. *The review chain* names only the
 review rounds inside the process.
@@ -46,7 +46,7 @@ flowchart LR
 ```bash
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
-> /plugin install iadd@iadd
+> /plugin install agentic@agenticseal
 ```
 
 You need `git` 2.30 or newer, and Python 3.12 or newer answering to `python3`
@@ -58,7 +58,7 @@ no `python3`, `agentic.cmd` runs `py -3`, and the plugin's hooks fall back to it
 
 That is the whole install. Nothing is written into your `CLAUDE.md` or your
 settings, and the plugin's hooks come with it (*What runs on your
-machine*). To uninstall, run `/plugin uninstall iadd`; nothing needs
+machine*). To uninstall, run `/plugin uninstall agentic`; nothing needs
 undoing first.
 
 The IADD process differs from asking one agent to review its own
@@ -76,7 +76,7 @@ is never reported as passing.
 ### Updating
 
 ```
-/iadd:update
+/agentic:update
 ```
 
 It runs the two update commands in the right order, then names the
@@ -90,8 +90,8 @@ what it was measured to reload.
 By hand, the same two commands, in this order:
 
 ```bash
-claude plugin marketplace update iadd
-claude plugin update iadd@iadd
+claude plugin marketplace update agenticseal
+claude plugin update agentic@agenticseal
 ```
 
 The first refreshes the marketplace's copy and the second installs from it.
@@ -124,7 +124,7 @@ The first time a session works in a repository, it asks four questions in
 one go: where the records should live (*Shared or local*, below), the
 command the broad gate runs, the language of commits and pull requests, and
 the language of the records. The answers become keys of `agentory/config.json`,
-and `/iadd:config` changes any of them later. For each request you make,
+and `/agentic:config` changes any of them later. For each request you make,
 whatever number of issues it names, the session asks one batch of questions
 before the first edit. Where either language key is missing, the batch asks
 for both. The batch also holds the routing question, asked on every request
@@ -324,7 +324,7 @@ fetches the original's facts. The frame lists what the original sends from
 each entry point the work ports, and the review walks from the original to
 the port, so an item the original sends and the port leaves out is a
 finding even where the design never named it. Your session asks about it
-once, the first time it sets up a repository, and `/iadd:parity-setup`
+once, the first time it sets up a repository, and `/agentic:parity-setup`
 decides it later.
 Your checkout path of the original stays out of the committed file, in
 `~/.claude/agentic/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
@@ -405,7 +405,7 @@ it, or, in the last row, in your CI on a pull request.
 
 | What | Reaches | Sends | When |
 |---|---|---|---|
-| `/iadd:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
+| `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
 | `agentic cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
 | `chain_check.py` run without `--inspecting`, as the orchestrator's and the proofer's `--worktree` reads run it ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, to learn whether the branch's pull request is a draft. `agentic gate` runs the check with `--inspecting`, which reads no pull request's state and asks `gh` nothing | each such run outside GitHub Actions, where `gh` is on the PATH |
 | `agentic settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
@@ -436,9 +436,9 @@ after `!` in a session, or ask the session to run it.
 | `agentic rules <doc>` · `agentic rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `agentic pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `agentic payload [--json] [--agent <name>] [--root <dir>]` | measures what a session's and each agent's startup context is made of, in bytes, with the tokens estimated from the bytes (`skills/verify/scripts/payload_meter.py`) |
-| `/iadd:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
-| `/iadd:config` | shows every key of `agentory/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
-| `/iadd:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
+| `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
+| `/agentic:config` | shows every key of `agentory/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
+| `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
 

@@ -4,7 +4,7 @@
 A release note left to a person is a habit and nothing else: a checklist
 that walks to the tag and stops leaves it to nobody, and **three consecutive
 releases shipped without one**. The note is read:
-`/iadd:update` reads the GitHub Releases (`skills/update/SKILL.md` step 3),
+`/agentic:update` reads the GitHub Releases (`skills/update/SKILL.md` step 3),
 so a release without one is one an updating user is told nothing about.
 
 So this reads the tag instead of asking anybody to remember. It runs in the
@@ -816,7 +816,7 @@ def release_body(theme, rendered, pulls, owner):
         UPDATE_HEADING,
         "",
         "```",
-        "/iadd:update",
+        "/agentic:update",
         "```",
         "",
         "Then start a new session: the one you are in keeps the version it "

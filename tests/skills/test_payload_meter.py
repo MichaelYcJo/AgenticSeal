@@ -114,7 +114,7 @@ def a_core(root):
     a frontmatter the hook leaves out and one accent so bytes ≠ chars."""
     write(
         str(root / ".claude-plugin" / "plugin.json"),
-        '{"name": "iadd", "version": "9.9.9"}\n',
+        '{"name": "agentic", "version": "9.9.9"}\n',
     )
     write(
         str(root / "skills" / "core" / "SKILL.md"),

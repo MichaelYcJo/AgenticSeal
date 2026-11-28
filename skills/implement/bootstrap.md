@@ -129,7 +129,7 @@ carries the `Broad gate` question and the two language questions.
    **Offer a decline, and say what it costs.** *Not yet* is a real answer:
    one written to get past a question is worse than none. The cost is one
    sentence: the first `agentic gate` run refuses with nothing run, and that
-   refusal lands after the review rounds have settled. `/iadd:config`
+   refusal lands after the review rounds have settled. `/agentic:config`
    fills the key in at any point before then.
 
    **The third and fourth questions are the two language keys, with the
@@ -163,7 +163,7 @@ carries the `Broad gate` question and the two language questions.
 
    **Then the `Broad gate` key, where a command was chosen.** The file
    holds `Mode` and the two language keys, so the orchestrator adds the
-   `Broad gate` key the way `/iadd:config` step 3 adds one: the key
+   `Broad gate` key the way `/agentic:config` step 3 adds one: the key
    alone, `"Broad gate": "<command>"`. A JSON file carries no prose, so the
    two lists and the criterion are read in
    `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *Broad gate* and never
@@ -192,7 +192,7 @@ carries the `Broad gate` question and the two language questions.
    - **No**: the orchestrator continues and never raises it again. Bootstrap
      does not re-run, so the question does not either.
 
-Nothing else is asked. **`/iadd:config` is how any of it is changed
+Nothing else is asked. **`/agentic:config` is how any of it is changed
 later**: it shows every key with its value and routes a change to whatever
 owns that key. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.

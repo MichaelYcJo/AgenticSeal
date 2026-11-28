@@ -1,4 +1,4 @@
-# Contributing to IADD
+# Contributing to agentic
 
 ## Opening a pull request
 

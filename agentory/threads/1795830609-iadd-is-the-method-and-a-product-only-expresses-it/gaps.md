@@ -7,6 +7,8 @@
 | The broad gate over phase 1's commits: the full suite, the repository-wide lint and the format check of `agentory/config.json`'s `Broad gate` key. The crafter ran the phase-boundary set, which left out the test files `trail/phases/phase-1.md` lists as reading no path the phase changed, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 | The broad gate over phase 2's commits. The crafter ran the phase-boundary set, every test file but `tests/github/test_durations_union.py`, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 | The broad gate over phase 3's commits. The crafter ran the phase-boundary set, every test file `git ls-files 'tests/*test_*.py'` lists, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
+| The broad gate over phase 4's commits. The crafter ran the phase-boundary set, every test file `git ls-files 'tests/*test_*.py'` lists, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
+| Whether `/plugin install agentic@agenticseal`, `/agentic:update` and the `agentic:` agent types work in a real session once the release that carries this work is installed. No case runs the harness against the renamed manifest and marketplace | the orchestrator, after the release is installed |
 
 ## Not done
 

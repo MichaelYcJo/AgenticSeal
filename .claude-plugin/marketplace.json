@@ -1,14 +1,14 @@
 {
-  "name": "iadd",
-  "description": "IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and it ends in an inspection bound to a commit.",
+  "name": "agenticseal",
+  "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit.",
   "owner": {
     "name": "MichaelYcJo"
   },
   "plugins": [
     {
-      "name": "iadd",
+      "name": "agentic",
       "source": "./",
-      "description": "IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and it ends in an inspection bound to a commit."
+      "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit."
     }
   ]
 }

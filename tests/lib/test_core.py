@@ -30,7 +30,7 @@ def write(path, text):
     return path
 
 
-def plugin(where, name="iadd", version="0.25.0", core="# plugin core\n"):
+def plugin(where, name="agentic", version="0.25.0", core="# plugin core\n"):
     """A scratch plugin root at WHERE: its manifest, and its core where CORE
     is not None. A manifest field given as None is left out."""
     fields = {k: v for k, v in (("name", name), ("version", version)) if v}
@@ -54,14 +54,14 @@ class Test_manifest:
     def test_accepts_the_object_the_manifest_holds(self, tmp_path):
         core = core_module()
         root = plugin(tmp_path / "plugin", version="1.2.3")
-        assert core.manifest(root) == {"name": "iadd", "version": "1.2.3"}
+        assert core.manifest(root) == {"name": "agentic", "version": "1.2.3"}
 
     def test_refuses_a_manifest_that_is_absent_unreadable_or_not_an_object(
         self, tmp_path
     ):
         core = core_module()
         assert core.manifest(str(tmp_path / "none")) == {}
-        for n, text in enumerate(("{not json", "[1, 2]", '"iadd"')):
+        for n, text in enumerate(("{not json", "[1, 2]", '"agentic"')):
             root = tmp_path / f"p{n}"
             write(os.path.join(root, ".claude-plugin", "plugin.json"), text)
             assert core.manifest(str(root)) == {}, text
@@ -167,7 +167,7 @@ class Test_closing:
         """A core at another path is closed by the two files named relative
         to the plugin's root, then one sentence naming that root, absolute."""
         core = core_module()
-        root = "/Users/x/plugins/iadd/0.25.0"
+        root = "/Users/x/plugins/agentic/0.25.0"
         closing = core.closing(root)
         assert closing == (
             core.START
@@ -209,7 +209,7 @@ class Test_whole:
     def test_refuses_the_plugins_own_sentence_where_a_root_is_given(self):
         core = core_module()
         path = "/Users/x/tree/skills/core/SKILL.md"
-        root = "/Users/x/plugins/iadd/0.25.0"
+        root = "/Users/x/plugins/agentic/0.25.0"
         out = core.whole("# The core\n", path, "1.2.3", root)
         assert out == core.header(path, "1.2.3") + "\n# The core\n\n" + core.closing(
             root

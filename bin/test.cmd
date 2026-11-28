@@ -7,7 +7,7 @@ set "here=%~dp0"
 set "script=%here%..\tests\run_tests.py"
 
 if not exist "%script%" (
-  echo bin/test runs IADD's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of MichaelYcJo/AgenticSeal. 1>&2
+  echo bin/test runs the plugin's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of MichaelYcJo/AgenticSeal. 1>&2
   exit /b 2
 )
 

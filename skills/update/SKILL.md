@@ -4,7 +4,7 @@ description: Update the plugin to the newest release and say what changed. Runs 
 disable-model-invocation: true
 ---
 
-# /iadd:update, take the release and see what is in it
+# /agentic:update, take the release and see what is in it
 
 The user runs this command; the session running it follows the procedure
 below and reports to the user. Two commands run in a fixed order, and neither
@@ -27,8 +27,8 @@ session actually loaded, which is the one the user is comparing against.
 **2. Refresh the marketplace, then install.**
 
 ```bash
-claude plugin marketplace update iadd
-claude plugin update iadd@iadd
+claude plugin marketplace update agenticseal
+claude plugin update agentic@agenticseal
 ```
 
 Both, in that order. The first pulls the marketplace clone; the second
@@ -51,7 +51,7 @@ one path the installer records, then the `version` of the
 `.claude-plugin/plugin.json` in it, and compare:
 
 ```bash
-p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['iadd@iadd'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
 python3 -c "import json,sys;print(json.load(open(sys.argv[1]+'/.claude-plugin/plugin.json',encoding='utf-8'))['version'])" "$p"   # must be the version step 2 reported
 ```
 
@@ -71,8 +71,8 @@ fails, the block prints nothing and exits non-zero, which is the table's
 last row:
 
 ```bash
-p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['iadd@iadd'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
-printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/iadd/" "$p/" "$p/.in_use"
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
+printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/" "$p/.in_use"
 ```
 
 Two cautions. `.in_use/` under a version directory holds PID files, because a
@@ -91,7 +91,7 @@ and only the span is printed. Set `old` to the version step 1 recorded and
 `new` to the one step 2 reported, then run:
 
 ```bash
-repo=$(git -C "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/iadd" remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
+repo=$(git -C "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal" remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
 f=$(mktemp)
 curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o "$f"; echo "curl exit $?"
 python3 -c '

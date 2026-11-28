@@ -1,4 +1,4 @@
-"""`/iadd:config` — the door to `agentory/config.json`.
+"""`/agentic:config` — the door to `agentory/config.json`.
 
 Issue #105. Three settings existed when this module was written (#113), and
 the only way to see them was to open a file nobody had a reason to open. The
@@ -78,7 +78,7 @@ def test_the_bootstrap_names_the_way_back_to_its_own_questions():
     """S7. A person who answers a question in a batch has no reason to expect
     a way back to it, so the batch has to say there is one."""
     # The command a person types to change an answer later.
-    assert "/iadd:config" in flat(*BOOTSTRAP), (
+    assert "/agentic:config" in flat(*BOOTSTRAP), (
         "first setup asks three questions and names nothing that changes the "
         "answers later"
     )
@@ -103,4 +103,4 @@ def test_the_skill_says_how_a_quote_or_a_backslash_is_written():
 def test_both_readmes_list_it(parts):
     """A door nobody is told about is the file all over again."""
     # The command a reader of the README types.
-    assert "/iadd:config" in read(*parts), f"{parts[0]} does not list it"
+    assert "/agentic:config" in read(*parts), f"{parts[0]} does not list it"

@@ -51,20 +51,20 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row():
-    """`templates/setup/config.md` documents the `Pact` key and `/iadd:config`
+    """`templates/setup/config.md` documents the `Pact` key and `/agentic:config`
     shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
     # The key `PACT_KEY` in the template's bold lead, which a person writing
     # `agentory/config.json` copies and `lib/config.py#pact_declaration` matches.
     assert f"**`{config.PACT_KEY}`**" in template
-    # The same key in the skill's table row, which `/iadd:config` shows.
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.PACT_KEY}` |" in skill
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
     """S7. `templates/setup/config.md` *Pact* documents the `Pact signers`
-    key the pact's repository lists its signers in, and `/iadd:config`
+    key the pact's repository lists its signers in, and `/agentic:config`
     shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
@@ -72,7 +72,7 @@ def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
     # writing the pact's repository's `agentory/config.json` copies and
     # `lib/config.py#signer_declaration` matches.
     assert f"**`{config.SIGNERS_KEY}`**" in template
-    # The same key in the skill's table row, which `/iadd:config` shows.
+    # The same key in the skill's table row, which `/agentic:config` shows.
     assert f"| `{config.SIGNERS_KEY}` |" in skill
 
 
