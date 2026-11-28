@@ -5,7 +5,7 @@
 | Item | Who must answer |
 |---|---|
 | The broad gate: the full suite, the repository-wide lint and the format check, which no agent runs (contract rule 2) | the orchestrator |
-| Whether an orchestrator follows the paragraphs on merging the base that `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* now holds: the reading of the merge commit, the round it owes, the stand-in's three conditions, the ancestry read at the hand-over and the *Judgments of the run* row. The owner case holds the commands the orchestrator types, `git show --remerge-diff` and `gh pr checks <N>`, and the exception of the `agentic pr-wait` table's exit 0 row, and not the act each one leads to; no case or eval run holds an agent's reading of a rule (`frame/design.md` S1 to S3, S5 and S8) | the proofer's rounds |
+| Whether an orchestrator follows the paragraphs on merging the base that `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* now holds: the reading of the merge commit, the round it owes, the stand-in's three conditions, the ancestry read at the hand-over and the *Judgments of the run* row. The owner case holds the commands the orchestrator types, `git show --remerge-diff` and `gh pr checks <N>`, and the citation of that section in the `agentic pr-wait` table's exit 0 row, and not the act each one leads to; no case or eval run holds an agent's reading of a rule (`frame/design.md` S1 to S3, S5 and S8) | the proofer's rounds |
 
 ## Not done
 

@@ -608,10 +608,11 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     #1631 have the orchestrator read what a merge's resolution changed
     from the merge commit, by a command any later reader re-runs on it,
     and the case holds that command; what each reading owes is the
-    proofer's to read. Round 1 of that work item adds the read that shows
-    the job standing in for the broad run passed rather than skipped, and
-    the exit 0 row's exception after such a merge, and the case holds
-    both."""
+    proofer's to read. The first review round of #1583 and #1631 adds the
+    read that shows the job standing in for the broad run passed rather
+    than skipped, and the exit 0 row's citation of the section that gives
+    that stand-in's conditions, and the case holds the command and the
+    citation."""
     text = flat(*ORCH)
     owner = text[
         text.index(
@@ -659,15 +660,19 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         # The read that shows each job standing in for the broad run passed
         # and was not skipped, since the wait's exit 0 counts a skipped check.
         "`gh pr checks <N>`",
-        # The exit 0 row's act after such a merge, which sends the orchestrator
-        # to the stand-in's conditions before it treats the pull request as
-        # checked.
-        "treats the pull request as checked at HEAD, except after a merge whose "
-        "broad run the pull request's checks stood in for, where it first takes "
-        "the conditions `skills/code-review/orchestration.md` *Orchestrator: the "
-        "pull request opens once the work item is cleared* gives that stand-in",
     ):
         assert said in section, f"the owner section no longer says {said!r}"
+    # The exit 0 row's act after a merge whose broad run the pull request's
+    # checks stood in for sends the orchestrator to the owner section, where
+    # the stand-in's conditions stand. The case holds that citation in the
+    # row; the row's words are the proofer's to read.
+    passed = steps[
+        steps.index(f"| {wait.PASSED} |") : steps.index(f"| {wait.FAILED} |")
+    ]
+    assert (
+        "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
+        "opens once the work item is cleared*" in passed
+    ), "the exit 0 row no longer cites the section that gives the stand-in's conditions"
 
 
 def the_order():
