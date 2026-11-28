@@ -9,8 +9,7 @@ description: |
   Use when: writing a review comment, PR body, investigation report, a reply
   to another team, an answer to the user in conversation, or text an agent or
   a check reads (a skill, an agent definition, a template, a frame).
-  NOT for: code comments/docstrings; commit, PR-title and branch format
-  (commit-pr-convention).
+  NOT for: commit, PR-title and branch format (commit-pr-convention).
 ---
 
 # writing-style — 리뷰·PR·리포트·대화

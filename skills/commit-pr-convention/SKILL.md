@@ -8,8 +8,7 @@ description: |
   Use when: writing a commit message, opening a pull request, naming a
   branch, or titling either.
   NOT for: the prose and structure of a PR body or review comment
-  (writing-style), code comments and docstrings, a project's response
-  language.
+  (writing-style).
 ---
 
 # commit-pr-convention, the format of commits, pull requests and branches
