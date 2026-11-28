@@ -40,6 +40,12 @@ and `agentic pr-wait` exits 0 at HEAD with the job that stands in passed, not sk
 
 The snippet assumes no OS boundary. `gh pr checks <N>` reads the pull request's head, which equals HEAD wherever the wait has exited 0, since the wait ends at exit 3 once the head leaves HEAD.
 
+```iadd
+verdict: fixed dcfbfbc8
+answer: The stand-in's third condition in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* now also asks `gh pr checks <N>` to list as passed, not skipped, each job the orchestrator judged to run the `Broad gate` command's checks, in the snippet's words, and the paragraph on a merge after the verdict spawns the inspector "once its conditions above hold at HEAD" in place of "after `agentic pr-wait <N>` exits 0", as the fold at `ca3a10bc` states D6. `changelog.md:4` and the second process row carry the condition. The framer folded D4, S1, the *Removes* row, A1, *Technical context*, *The failure direction* and *Operational impact* at `ca3a10bc`. The owner case `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge` pins `` `gh pr checks <N>` `` by contract rule 14: red before the fix ("the owner section no longer says '`gh pr checks <N>`'"), and `red` under `agentic mutate` with the paragraph's `` `gh pr checks <N>` `` replaced at `dcfbfbc8`. The evidence's `git grep -n -F 'pr-wait'`, run again at `dcfbfbc8` over the same paths, prints these lines that do not carry the condition, each of which stands: `skills/core/SKILL.md:109`, whose *Held by* cell names `agentic pr-wait` as the holder, not the conditions, and has no room under `lib/core.py#CAP` (`gaps.md` `## Not done`); `changelog.md:5`, which describes that row; `trail/phases/phase-1.md:7`, which quotes the row at `1c332307`; `frame/plan.md:30`, A10, which is about the base commit; `frame/questions.md:16` and `pr.md:7`, Q2's option (a) and its quote, which name the holder; and `gaps.md:8`, which names the stand-in's three conditions, still three. The narrow set `bin/test tests/skills/test_chain_check.py tests/text tests/behaviour tests/lib/test_core.py tests/hooks/test_core_start.py tests/github/test_release_report.py tests/skills/test_pr_wait.py tests/skills/test_pr_body.py tests/skills/test_settle.py -q` printed 1554 passed, 10 skipped, with `uvx ruff check` and `uvx ruff format --check` over the test file clean; every file of it is the `bin/test` suite's, which phase 1's *Verified by* cell names.
+location: `tests/text/test_the_rules_have_one_owner.py`
+```
+
 ### 2. The exit 0 row of the step file has the orchestrator treat the pull request as checked without the ancestry read D5 sets before that act
 
 ```iadd
@@ -59,6 +65,12 @@ Why it matters: the D5 paragraph says "before the orchestrator treats the pull r
 ```
 
 Rule 14 and *Scope* are the fix pass's to weigh: the row is a sentence an agent acts on. The owner case `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge` already reads this file's steps beside the owner section, so the fix pass can pin the citation there. The *Scope* list then names the row.
+
+```iadd
+verdict: fixed dcfbfbc8
+answer: Built to `frame/design.md` *Scope* item 9, which the fold at `ca3a10bc` added, and to its *Out of scope* bullet rewritten there. The exit 0 row of `skills/code-review/gate-to-pull-request.md`'s `agentic pr-wait` table now reads "treats the pull request as checked at HEAD, except after a merge whose broad run the pull request's checks stood in for, where it first takes the conditions `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives that stand-in". It says "the conditions" where the paste-ready fix says "the read of the base", because *Scope* item 9 sends the orchestrator to the conditions D4 and D5 give, and finding 1's added condition is one of them. `changelog.md:4` names the row. The owner case pins the row's exception by contract rule 14: `agentic mutate` at `dcfbfbc8`, with the exception taken out so the row reads as it stood at the round's target, printed `red`, failing at the row's assertion. The evidence's `git grep -n -F 'treats the pull request as checked'`, run again at `dcfbfbc8`, prints the row, `skills/code-review/orchestration.md:356` (D5's paragraph), and in the records `changelog.md:4`, `frame/design.md:70` (S8) and `frame/design.md:81` (D5), each of which says what the paragraph says.
+location: `tests/text/test_the_rules_have_one_owner.py`, `agentory/threads/1795849900-merge-owes-what-it-can-catch/changelog.md`
+```
 
 ### 3. R1's `to` says that everything a merge owes is read from what its resolution changed, while only the round is
 
@@ -86,6 +98,11 @@ Why it matters: the settle writes R1's `to` into `docs/releasing/branch-and-rele
 
 G25 records that `rule_changes.py#parse` read R1 as written on 2026-11-28. The fix pass runs that parse again over the amended `to`.
 
+```iadd
+verdict: fixed ca3a10bc
+answer: The framer folded it: `ca3a10bc` rewrote R1's `to` in `frame/design.md` `## Rule changes` as the paste-ready fix gives it, and G25 records its parse at `1ff9417e`. This pass ran `skills/settle/scripts/rule_changes.py#parse` again over `frame/design.md` at `dcfbfbc8` with the policy root `docs`: it printed one `change` for `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* with the new `to`, `errors=[]` and `unread=[]`. The evidence's `git grep -n -F "read from what the merge's" -- agentory docs skills`, run again at `dcfbfbc8` outside this record, prints nothing.
+```
+
 ### 4. `gaps.md` and the phase record say *Scope* item 2 asks for the sentence the fold at `41455989` took out of it
 
 ```iadd
@@ -102,6 +119,11 @@ The row *No inspection without the broad run* of `skills/core/SKILL.md` *Judgmen
 
 <!-- trail/phases/phase-1.md:7, the bold heading -->
 **Departure: the core's row says the merge's part in fewer words than *Scope* item 2 asked at `e22357f1`.**
+```
+
+```iadd
+verdict: fixed dcfbfbc8
+answer: Both lines now read as the paste-ready fix gives them: `gaps.md:12` says what *Scope* item 2 asked "before the fold at `41455989`", and the heading of `trail/phases/phase-1.md:7` says "asked at `e22357f1`". The same commit rewrote `gaps.md:8`, whose "The owner case holds the reading's command alone" finding 1's and finding 2's pins made false; it now names the two commands and the exit 0 row's exception the case holds. The evidence's `git grep -n -F "Scope* item 2 asks" -- agentory/threads/1795849900-merge-owes-what-it-can-catch`, run again at `dcfbfbc8` outside this record, prints nothing. Read of the range: `agentic range agentory/threads/1795849900-merge-owes-what-it-can-catch --from 561bc67a --out <scratchpad>/1795849900-merge-owes-what-it-can-catch/fix-1/range.txt` printed `agentic range: 561bc67a2a6acce79a7f6f6289a35ce8dad3ae28..dcfbfbc89ce21cda21815518bf7a372fa52a71ab` and wrote 719 lines, read to the last; it left no statement HEAD contradicts in a file this pass writes.
 ```
 
 ## Confirmations
