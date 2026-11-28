@@ -140,10 +140,10 @@ Each reader G11 found, and what this work does with it.
     `.github/scripts/release_completeness_check.py`'s docstring,
     `tests/github/test_release_completeness_check.py` and
     `tests/behaviour/test_the_release_check_watches_what_ships.py`, and
-    keeps every case as it stands, so no case is rebuilt. No `check:` line and no line of `docs/` names the file,
-    so no rule change follows it, which is why `frame/plan.md` A10's ground
-    for keeping the script's name does not reach it. Every phase had closed
-    when this item was framed, so the fix pass of round 1 builds it.
+    keeps every case as it stands, so no case is rebuilt. No `check:` line
+    and no line of `docs/` names the file, so no rule change follows it,
+    which is why `frame/plan.md` A10's ground for keeping the script's name
+    does not reach it. Phase 3 builds it.
 
 **Out of scope.**
 
