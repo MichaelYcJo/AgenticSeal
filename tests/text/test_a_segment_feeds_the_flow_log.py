@@ -198,7 +198,7 @@ def labelled(fragment):
 
 def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     """Round 1's finding 3. The row split `ledger` from `record` and the share
-    row counted only `iadd/threads/**`, where the review chain's own definition
+    row counted only `agentory/threads/**`, where the review chain's own definition
     puts a work item's documents, the ledger and its fragments in ONE bucket:
     a finding in any of them is about the run's paperwork rather than about
     the tool. Two definitions of one word made the same run's share row read
@@ -212,7 +212,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     _label, source = labelled("Findings by `Location`")
     # The path the row names as a record path, which the orchestrator sorts
     # each finding's `Location` by.
-    for path in ("`iadd/threads/`",):
+    for path in ("`agentory/threads/`",):
         assert path in source, (
             f"the `Location` row no longer names {path} as a record path, so "
             "a finding about the run's own paperwork lands in the code bucket"

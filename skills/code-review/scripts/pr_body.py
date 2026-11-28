@@ -19,7 +19,7 @@ not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict: the inspection mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the changelog's section where `iadd/config.json`'s
+between `HEADING` and the changelog's section where `agentory/config.json`'s
 `Pull request inspection mark` key reads `yes` and the work item's `inspection.md`
 reads `cleared` at HEAD, as `inspection_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
@@ -34,7 +34,7 @@ a manifest the address cannot be built from are named on one line opening
 
 The body opens with the orchestrator's part, its files written as their
 bytes stand, and `HEADING` follows it on its own line. The part is
-composed from `iadd/config.json`'s `Commit and pull request language` and
+composed from `agentory/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
 one file matching `pr.*.md` beside `pr.md`, its renderings in the commit
@@ -137,7 +137,7 @@ Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
 opens with `refused:` naming the body file by its name, or a record, the
-work item's directory or `config.json` by its path under the `iadd/`
+work item's directory or `config.json` by its path under the `agentory/`
 root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
@@ -190,7 +190,7 @@ except ImportError:
 # whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of an `iadd/config.json` key, and
+# `lib/config.py`, the one reader of an `agentory/config.json` key, and
 # `lib/closing.py`, whose `keywords_in` is the one reader of a closing
 # keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
 # a command, a module that raises while it loads ends the run at exit 2;
@@ -355,7 +355,7 @@ TOO_LONG = (
 )
 
 # The inspection mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `iadd/config.json`'s `MARK_KEY` turns it on
+# `FOLD`, written where `agentory/config.json`'s `MARK_KEY` turns it on
 # (`lib/config.py#switch`) and the work item is cleared at HEAD
 # (`inspection_mark`). Its address is built from the plugin's manifest, which
 # stands three levels above HERE, at the plugin's root, and which this reads

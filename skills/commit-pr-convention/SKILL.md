@@ -2,7 +2,7 @@
 name: commit-pr-convention
 description: |
   Format rules for commit messages, PR titles, PR bodies and branch names:
-  the prefix vocabulary, the language the repository states in `iadd/config.json`,
+  the prefix vocabulary, the language the repository states in `agentory/config.json`,
   where a translated body lives, and how to check a title against the
   repository's own history.
   Use when: writing a commit message, opening a pull request, naming a
@@ -190,10 +190,10 @@ so the two cannot be in different languages without one of them being wrong
 at the merge. That is why one key answers for all four surfaces rather than
 one key each.
 
-**A session's commit in a repository whose root is shared (`<repo>/iadd/`)
+**A session's commit in a repository whose root is shared (`<repo>/agentory/`)
 ends with one `IADD-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
-directory's name under `iadd/threads/`, the one the branch's `routing.md` sits
+directory's name under `agentory/threads/`, the one the branch's `routing.md` sits
 in; `no work item` is the value a commit carries where it belongs to no
 work item, as under the routing answer `direct`. The trailer stands in the
 message's last paragraph, beside any other trailer, so git's trailer parser

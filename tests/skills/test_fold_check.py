@@ -56,12 +56,14 @@ INDEX = "| File | The question it answers |\n|---|---|\n"
 
 
 def config_root(tmp_path, rows, policy="docs"):
-    """A planted repository whose `iadd/config.json` holds `rows` as its
+    """A planted repository whose `agentory/config.json` holds `rows` as its
     keys, with one short document under the policy root."""
     (tmp_path / policy).mkdir()
     (tmp_path / policy / "a.md").write_text("# A\n", encoding="utf-8")
-    mark_root(tmp_path / "iadd")
-    (tmp_path / "iadd" / "config.json").write_text(config_json(*rows), encoding="utf-8")
+    mark_root(tmp_path / "agentory")
+    (tmp_path / "agentory" / "config.json").write_text(
+        config_json(*rows), encoding="utf-8"
+    )
     return str(tmp_path)
 
 
@@ -174,7 +176,7 @@ class Test_main:
         names the row and the file it was looked for in (contract rule 14)."""
         root = config_root(tmp_path, [("Mode", "shared")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 0, (out, err)
         assert out == (
             f"iadd fold: `Document token ceiling` is not declared in {config}, and "
@@ -199,7 +201,7 @@ class Test_main:
             f"{INDEX}| `docs/a.md` | a |\n", encoding="utf-8"
         )
         code, out, _ = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 0, out
         assert out == (
             f"iadd fold: `Document token ceiling` is not declared in {config}, so "
@@ -239,7 +241,7 @@ class Test_main:
         """S5, its message pinned (contract rule 14)."""
         root = config_root(tmp_path, [(row, value)])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 2 and not out, (out, err)
         assert err == f"iadd fold: in {config}, {says} — nothing was checked\n", err
 
@@ -250,7 +252,7 @@ class Test_main:
         the count, and nothing is checked."""
         root = config_root(tmp_path, [(row, "10"), (row, "20")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "iadd", "config.json")
+        config = os.path.join(root, "agentory", "config.json")
         assert code == 2 and not out, (out, err)
         assert err == (
             f"iadd fold: in {config}, `{row}` appears 2 times — one value — nothing "
@@ -272,7 +274,7 @@ class Test_main:
         that is there and will not read or parse is refused at exit 2 naming
         the path, never read as no key, and nothing is checked."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
-        config = tmp_path / "iadd" / "config.json"
+        config = tmp_path / "agentory" / "config.json"
         config.unlink()
         if shape == "directory":
             config.mkdir()
@@ -292,9 +294,9 @@ class Test_main:
         assert code == 0 and "docs/long.md is about 11 tokens" in out, out
         code, out, _ = command("--root", root, "--ceiling", "11")
         assert code == 0 and "docs/long.md is about" not in out, out
-        assert (tmp_path / "iadd" / "config.json").read_text(encoding="utf-8").count(
-            '"Document token ceiling": "10"'
-        ) == 1
+        assert (tmp_path / "agentory" / "config.json").read_text(
+            encoding="utf-8"
+        ).count('"Document token ceiling": "10"') == 1
 
     def test_the_command_typed_in_a_subdirectory_reads_the_repository(self, tmp_path):
         """Round 1, finding 1: typed in `docs/`, the rows and the documents are the
@@ -313,7 +315,7 @@ class Test_main:
         assert "docs/long.md is about 11 tokens, past the ceiling of 10" in done.stdout
 
     def test_an_opted_out_repository_is_told_it_opted_out(self, tmp_path):
-        """Round 1, finding 3: it has a root, so "no iadd/ root" would be false.
+        """Round 1, finding 3: it has a root, so "no agentory/ root" would be false.
         Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         git_init(root)
@@ -323,7 +325,7 @@ class Test_main:
         assert out == (
             f"iadd fold: `Document token ceiling` is not declared in {root}, which "
             "has opted out — `iadd-scratch` is under its git directory, so its "
-            "iadd/config.json is not read, and there is no docs/README.md, so nothing "
+            "agentory/config.json is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out
 
@@ -334,7 +336,7 @@ class Test_main:
         assert code == 0, (out, err)
         assert out == (
             f"iadd fold: `Document token ceiling` is not declared in {tmp_path}, "
-            "which has no iadd/ root at either place, and there is no "
+            "which has no agentory/ root at either place, and there is no "
             "docs/README.md, so nothing was checked\n"
         ), out
 

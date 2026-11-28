@@ -162,7 +162,7 @@ From `changelog.md`.
 - 본문의 사실은 기록에서 옵니다.
 
 <details>
-<summary>Copied from the records in iadd/threads/1799000000-a-body/ by iadd pr-body.</summary>
+<summary>Copied from the records in agentory/threads/1799000000-a-body/ by iadd pr-body.</summary>
 
 ## How it was built
 
@@ -276,7 +276,7 @@ def item_of(tmp_path, records, own=OWN, rows=LANGUAGES, translations=None):
     TRANSLATIONS, `{name: text}`, beside it. The repository has no commit:
     `iadd pr-body` reads the keys of the root its work item stands in, so a
     case reads its own keys and not the checkout the suite runs in."""
-    home = mark_root(tmp_path / "iadd")
+    home = mark_root(tmp_path / "agentory")
     write(home, "config.json", config_json(*rows))
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     item = home / "threads" / NAME
@@ -298,7 +298,7 @@ def unsourced(text, texts):
     demoted = {"#" + line for line in lines}
     paths = {*texts, *RECORDS, "trail/phases/", "trail/rounds/"}
     fixed = {
-        line.format(home="iadd", name=NAME, path=path)
+        line.format(home="agentory", name=NAME, path=path)
         for line in PR.FIXED
         for path in paths
     }
@@ -330,9 +330,9 @@ FOLDED_NOT_VERIFIED = (
 # The length of the body S5's case refuses, with every section a fold shortens
 # folded: its `pr.md`, the heading line, and the copy under it with the room
 # of the fixture's mark. `## Broad gate`, `## Not verified` and `## Not done`
-# stay whole there, since each one's fold line is longer than its copy;
-# folding them as well would give 71,382.
-LENGTH = 71263
+# stay whole there, since each one's fold line is longer than its copy, so
+# folding them as well would lengthen the body.
+LENGTH = 71267
 
 
 def units(text):
@@ -408,7 +408,7 @@ def cleared_item(repo, row=ROW, verdict=CLEARED, base="feature/x"):
     where VERDICT is given, an `inspection.md` whose one block names that
     commit against BASE with VERDICT, committed after it, as the
     orchestrator commits the inspector's verdict."""
-    home = mark_root(repo / "iadd")
+    home = mark_root(repo / "agentory")
     write(home, "config.json", config_json(*LANGUAGES, *(row or [])))
     item = home / "threads" / NAME
     for rel, text in RECORDS.items():
@@ -1106,7 +1106,9 @@ class Test_main:
         read in the work item's own checkout, so the body carries the mark
         as it does when run from the worktree. Seen red with the root read
         from the working directory alone, as it was: no mark."""
-        write(mark_root(repo / "iadd"), "config.json", config_json(*LANGUAGES, *ROW))
+        write(
+            mark_root(repo / "agentory"), "config.json", config_json(*LANGUAGES, *ROW)
+        )
         git_in(repo, "add", "-A")
         git_in(repo, "commit", "-qm", "the row")
         worktree = tmp_path / "worktree"
@@ -1130,7 +1132,7 @@ class Test_main:
         base and HEAD are read in the working directory's checkout, and an
         inspection cleared at its HEAD carries the mark. Seen red with that fallback alone
         removed: no mark."""
-        home = mark_root(repo / ".git" / "iadd")
+        home = mark_root(repo / ".git" / "agentory")
         write(home, "config.json", config_json(*LANGUAGES, *ROW))
         item = home / "threads" / NAME
         for rel, text in RECORDS.items():
@@ -1274,7 +1276,7 @@ class Test_main:
     def test_refuses_a_work_item_with_no_pr_md(self, tmp_path, capsys, check):
         """The scenario *A work item with no `pr.md` is refused*. Either form
         exits 1 on one `refused:` line naming `pr.md` by its path under the
-        `iadd/` root and the repair, and leaves the body file as it stood.
+        `agentory/` root and the repair, and leaves the body file as it stood.
         Seen red against `pr_body.py` as 0.33.0 shipped it, where both forms
         exited 0."""
         item = item_of(tmp_path, RECORDS, own=None)
@@ -1284,7 +1286,7 @@ class Test_main:
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
         assert capsys.readouterr().out == (
-            f"refused: iadd/threads/{NAME}/pr.md: is not there; the orchestrator "
+            f"refused: agentory/threads/{NAME}/pr.md: is not there; the orchestrator "
             "writes it before the first round\n"
         )
         assert body.read_bytes() == EXPECTED.encode("utf-8")
@@ -1307,7 +1309,7 @@ class Test_main:
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
         assert capsys.readouterr().out == (
-            f"refused: iadd/threads/{NAME}/pr.md:1: quotes words `frame/plan.md` "
+            f"refused: agentory/threads/{NAME}/pr.md:1: quotes words `frame/plan.md` "
             "does not hold, with runs of whitespace collapsed; the orchestrator "
             "rewrites the quote from the record as it stands\n"
         )
@@ -1355,7 +1357,7 @@ class Test_main:
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
         assert capsys.readouterr().out == (
-            f"refused: iadd/threads/{NAME}/pr.md:1: names `{path}`, which is not "
+            f"refused: agentory/threads/{NAME}/pr.md:1: names `{path}`, which is not "
             "a file of the work item's directory\n"
         )
 
@@ -1370,7 +1372,7 @@ class Test_main:
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body)]) == 1
         assert capsys.readouterr().out.startswith(
-            f"refused: iadd/threads/{NAME}/pr.md:1: names `frame/design.md`, "
+            f"refused: agentory/threads/{NAME}/pr.md:1: names `frame/design.md`, "
             "which cannot be read as UTF-8 text ("
         )
 
@@ -1442,7 +1444,7 @@ class Test_main:
         without a row*. Either form exits 1, leaves the body file as it
         stood, and prints one `refused:` line for each key that names no
         language, absent or empty, naming `config.json` by its path under the
-        `iadd/` root, the key, and the section of the template that says
+        `agentory/` root, the key, and the section of the template that says
         what it governs. Seen red against `pr_body.py` as the merged base
         left it, where both forms exited 0."""
         item = item_of(tmp_path, RECORDS, rows=rows)
@@ -1452,7 +1454,7 @@ class Test_main:
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
         assert capsys.readouterr().out == "".join(
-            f"refused: iadd/config.json: names no language in a `{row}` key; "
+            f"refused: agentory/config.json: names no language in a `{row}` key; "
             f"`templates/setup/config.md` *{row}* says what the key governs, "
             "and the orchestrator asks for it before the first edit\n"
             for row in missing
@@ -1481,13 +1483,13 @@ class Test_main:
         """#1453, *Data & interfaces*: a `config.json` that will not read or
         parse, and a key written twice, reach the command as a refusal at
         `config.json`, in `lib/config.py`'s sentence. The file is named once,
-        by its path under the `iadd/` root and not by the machine's, since
+        by its path under the `agentory/` root and not by the machine's, since
         the inspector copies the line into a committed `inspection.md`. Seen red
         against `pr_body.py` as the merged base left it, where the command
         exited 0."""
         rows = [*LANGUAGES, ("Record language", "English")]
         item = item_of(tmp_path, RECORDS, rows=rows)
-        config = tmp_path / "iadd" / "config.json"
+        config = tmp_path / "agentory" / "config.json"
         if unread == "directory":
             config.unlink()
             config.mkdir()
@@ -1497,7 +1499,7 @@ class Test_main:
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body)]) == 1
         [line] = capsys.readouterr().out.splitlines()
-        assert line.startswith(f"refused: iadd/config.json: {said}"), line
+        assert line.startswith(f"refused: agentory/config.json: {said}"), line
         assert str(tmp_path) not in line
 
     @pytest.mark.parametrize(
@@ -1589,7 +1591,7 @@ class Test_main:
         capsys.readouterr()
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
-        assert capsys.readouterr().out == f"refused: iadd/threads/{NAME}: {said}\n"
+        assert capsys.readouterr().out == f"refused: agentory/threads/{NAME}: {said}\n"
         assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
 
     @pytest.mark.parametrize(
@@ -1669,7 +1671,7 @@ class Test_main:
         body.write_bytes((OWN + stale).encode("utf-8"))
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
-        summary = PR.SUMMARY.format(home="iadd", name=NAME)
+        summary = PR.SUMMARY.format(home="agentory", name=NAME)
         assert capsys.readouterr().out == (
             f"refused: pr-body.md:5: reads ``, then `<details>`, then `{summary}`, "
             "which the records do not give\n"
@@ -1726,7 +1728,7 @@ class Test_main:
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
         """The inspector copies the first `refused:` line into a committed
         `inspection.md`, so the line names the body file by its name and a
-        record by its path under the `iadd/` root, whatever absolute paths
+        record by its path under the `agentory/` root, whatever absolute paths
         the command was given."""
         item = item_of(
             tmp_path,
@@ -1743,7 +1745,7 @@ class Test_main:
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
         assert out.startswith(
-            f"refused: iadd/threads/{NAME}/trail/rounds/round-1.md:20: "
+            f"refused: agentory/threads/{NAME}/trail/rounds/round-1.md:20: "
         )
         assert str(tmp_path) not in out
 
@@ -1791,7 +1793,7 @@ class Test_main:
         body.write_bytes(b"as it stood\n")
         translation = units(TRANSLATION) + 1
         said = (
-            f"refused: iadd/threads/{NAME}: the body, counted with room for the "
+            f"refused: agentory/threads/{NAME}: the body, counted with room for the "
             "inspection mark's line whether or not it is written, would be "
             f"{LENGTH + translation:,} characters with every section after "
             "`## What changed` folded that a fold shortens, past GitHub's "

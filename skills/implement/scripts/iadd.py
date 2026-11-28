@@ -33,7 +33,7 @@ says it:
   iadd pr-checks              whether .github/workflows/hygiene.yml is this
                               plugin's, and the release it pins; writes nothing
   iadd pr-checks install      write it pinned to this release, and stage it;
-                              refused unless iadd/ is in the tree
+                              refused unless agentory/ is in the tree
   iadd pr-checks remove       take out the file this plugin wrote, from the
                               working tree and the index; where HEAD carries
                               it, the deletion is staged for you to commit
@@ -83,7 +83,7 @@ work away.
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
 its directory `threads/<id>/`. A root-level file, any file the root holds
-outside `threads/` (`docs/layout/the-record-layout.md` *iadd/* names each), is NOT
+outside `threads/` (`docs/layout/the-record-layout.md` *agentory/* names each), is NOT
 counted, because the line says *work items* and this command does not get to
 widen it. So a release whose only change was to `follow-up.md` reports 0.
 
@@ -337,7 +337,7 @@ def resolve(cwd):
 
     Every path comes from `optin`: `home_at` says which root is in force and
     `home_paths` says where each mode's root would be, so nothing here spells
-    `<repo>/iadd` or `.git/iadd` for itself.
+    `<repo>/agentory` or `.git/agentory` for itself.
 
     The repository is `optin.toplevel`'s, so a git that did not answer ends
     the command with the runner's line (`lib/gitcmd.py#Failed`) and is not
@@ -517,9 +517,9 @@ def unused(directory, stem, suffix):
 
 
 def zip_stem(repo, when):
-    """`iadd-<repo>-<date>` — the name a person recognises on a USB stick."""
+    """`agentory-<repo>-<date>` — the name a person recognises on a USB stick."""
     base = UNSAFE_IN_A_NAME.sub("-", os.path.basename(repo.rstrip(os.sep))) or "repo"
-    return f"iadd-{base}-{when}"
+    return f"{optin.HOME}-{base}-{when}"
 
 
 def write_zip(path, home, files, manifest):
@@ -529,7 +529,7 @@ def write_zip(path, home, files, manifest):
     discover on the machine that has nothing else.
 
     `lexists` and then `O_EXCL`, in that order and for two different reasons.
-    This name is predictable — `iadd-<repo>-<date>.zip.partial`, beside the
+    This name is predictable — `agentory-<repo>-<date>.zip.partial`, beside the
     clone, which is where the default export writes — and with no check, a
     broken link planted there puts the manifest and every record outside the
     clone at exit 0, printing `wrote <path>` for a path that is the link.
@@ -695,7 +695,7 @@ def no_root(repo, shared, local):
     # nothing anywhere. What all three subcommands share is that the root is
     # what they work on, and the two places printed are the ones
     # `optin.home_paths` gives: the shared place and the local place.
-    print("no iadd/ here, so there is nothing to work with. It is looked for at:")
+    print("no agentory/ here, so there is nothing to work with. It is looked for at:")
     print(f"  {shared}   (shared mode)")
     print(f"  {local}   (local mode)")
     print(
@@ -772,7 +772,7 @@ def unsafe(info):
         under a shortened name inside the root rather than being refused;
       - a symbolic link entry. A link written into the root is a way to reach
         outside it on the NEXT export, which is the loop this closes;
-      - anything not under `iadd/` and not the manifest. A member this build
+      - anything not under `agentory/` and not the manifest. A member this build
         has no place for is a zip it does not understand, and writing the
         parts it does understand is guessing.
     """
@@ -813,7 +813,7 @@ def linked_path(into, archive):
     from a member's name and writes a link entry as an ordinary file, so
     those are not what a member can escape through. A path in the
     DESTINATION that is a symbolic link is: `extractall` follows it, and so
-    does the plain `open()` this module writes with. `iadd/threads` pointed
+    does the plain `open()` this module writes with. `agentory/threads` pointed
     elsewhere puts every work item there.
 
     The leaf counts, not only the directories above it. A link named
@@ -851,7 +851,7 @@ def blocked_path(into, archive):
     `write_members` calls `os.makedirs(exist_ok=True)`, which raises
     `FileExistsError` when the name exists and is not a directory — uncaught,
     mid-write, with the records before it already on disk. Unchecked, a zip
-    holding `iadd/a` and `iadd/a/b.md` leaves two records written, loses the
+    holding `agentory/a` and `agentory/a/b.md` leaves two records written, loses the
     one after them, and prints a traceback with no line of this command's
     own.
 
@@ -872,7 +872,7 @@ def blocked_path(into, archive):
             here = os.path.join(into, *prefix)
             # `isfile` is not the question `makedirs` answers. It is False for
             # a FIFO, a socket and a device node, and `makedirs(exist_ok=True)`
-            # raises on all three: unchecked, a FIFO at `iadd/a` leaves one
+            # raises on all three: unchecked, a FIFO at `agentory/a` leaves one
             # record on disk and loses the rest. `lexists and not
             # isdir` is the condition `makedirs` itself checks.
             if prefix in members or (os.path.lexists(here) and not os.path.isdir(here)):
@@ -989,7 +989,7 @@ def destination_root(repo, home, shared, local, into):
             return "", (
                 f"{shared} is the project's own and not a root: it is no "
                 "directory whose README.md opens with the marker, and nothing "
-                "here writes into it. A repository that keeps an `iadd/` of its "
+                "here writes into it. A repository that keeps an `agentory/` of its "
                 "own keeps its root in local mode: run this again with "
                 "`--into local`."
             )
@@ -1100,7 +1100,7 @@ def import_(args, cwd):
         # The names AFTER the format, because a later format is exactly what
         # moves the names this checks. Checked first, the names would answer
         # a zip declaring format 2 with its records under `records/` with "is
-        # not under iadd/", which reads as a malformed zip where the truth is
+        # not under agentory/", which reads as a malformed zip where the truth is
         # a build too old — and that field exists for no other day.
         refusals = [reason for info in members if (reason := unsafe(info))]
         if refusals:
@@ -1287,7 +1287,7 @@ def import_(args, cwd):
 
 
 def write_members(archive, into):
-    """Write every `iadd/…` member under `into`. Names are already checked.
+    """Write every `agentory/…` member under `into`. Names are already checked.
 
     The path is rebuilt from segments rather than joined from the member's
     name, so nothing the archive wrote reaches the filesystem as a path.
@@ -1298,7 +1298,7 @@ def write_members(archive, into):
         name = info.filename
         if info.is_dir() or name == MANIFEST:
             continue
-        parts = [p for p in name.split("/") if p][1:]  # drop the `iadd/` prefix
+        parts = [p for p in name.split("/") if p][1:]  # drop the `agentory/` prefix
         if not parts:
             continue
         destination = os.path.join(into, *parts)
@@ -1600,7 +1600,7 @@ def other_worktrees(repo):
     """Every other worktree of this clone, by path.
 
     Switching shared → local from one worktree leaves every other one
-    holding the committed `<repo>/iadd/` on its own branch, so the two read
+    holding the committed `<repo>/agentory/` on its own branch, so the two read
     two different roots until the commit reaches both. It heals itself and
     loses nothing, so it is named rather than refused.
 
@@ -1741,14 +1741,14 @@ def install_workflow(repo):
 
     Refused where the shared place `optin.home_paths` gives is not the root,
     a directory whose README opens with the marker, because the checks read
-    committed records and only a root in the tree is committed; an `iadd/`
+    committed records and only a root in the tree is committed; an `agentory/`
     the project keeps for itself holds none of them. Never overwrites: this
     plugin's own file already there is reported with the release it pins,
     and anybody else's is left alone.
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):
-        # The shared place by its own name. A project's own `iadd/` can
+        # The shared place by its own name. A project's own `agentory/` can
         # stand there, so the line says no root stands at it, which is true
         # there too, and not that nothing does.
         name = display(repo, shared) or optin.HOME
@@ -2352,7 +2352,7 @@ def switch(args, repo, home, shared, local, current, wanted):
         # The return code, not the call. `git()` reads a failure as "" — and
         # `git add` exits non-zero for an ignore rule matching the root, or a
         # held `index.lock`. Read through `git()`, the root moves into the
-        # tree, nothing is staged, and the command prints `staged iadd/` and
+        # tree, nothing is staged, and the command prints `staged agentory/` and
         # `Now commit`. The local direction reads its return code the same
         # way.
         try:
@@ -2412,7 +2412,7 @@ def mode(args, cwd):
             # review-chain step either (`docs/checks/the-pull-request-check.md`
             # *What the check reads at the pull request*), and this one has
             # nothing to add to that.
-            print("no iadd/ here, so nothing is declared and nothing can disagree.")
+            print("no agentory/ here, so nothing is declared and nothing can disagree.")
             return 0
         return no_root(repo, shared, local)
 
@@ -2521,9 +2521,8 @@ def main(argv=None, cwd=None):
     if argv and argv[0] in TOOLS:
         return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
-        # exempt from root_name: the command's own name, which names no directory
         prog="iadd",
-        description="the plugin's commands: where this repository's iadd/ "
+        description="the plugin's commands: where this repository's agentory/ "
         "root lives, how a copy of it travels between clones, and one "
         "subcommand for each tool",
     )

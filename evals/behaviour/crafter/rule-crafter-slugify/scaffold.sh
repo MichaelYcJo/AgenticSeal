@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'IADD_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 IADD_EOF
-mkdir -p "$(dirname 'iadd/README.md')"
-cat > 'iadd/README.md' <<'IADD_EOF'
-# What IADD keeps in iadd/
+mkdir -p "$(dirname 'agentory/README.md')"
+cat > 'agentory/README.md' <<'IADD_EOF'
+# What IADD keeps in agentory/
 IADD_EOF
-mkdir -p "$(dirname 'iadd/config.json')"
-cat > 'iadd/config.json' <<'IADD_EOF'
+mkdir -p "$(dirname 'agentory/config.json')"
+cat > 'agentory/config.json' <<'IADD_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 IADD_EOF
-mkdir -p "$(dirname 'iadd/threads/1790000011-slugify/routing.md')"
-cat > 'iadd/threads/1790000011-slugify/routing.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000011-slugify/routing.md')"
+cat > 'agentory/threads/1790000011-slugify/routing.md' <<'IADD_EOF'
 # Routing: 1790000011-slugify
 
 | Axis | Answer |
@@ -69,8 +69,8 @@ IADD_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/slugify
-mkdir -p "$(dirname 'iadd/threads/1790000011-slugify/frame/design.md')"
-cat > 'iadd/threads/1790000011-slugify/frame/design.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000011-slugify/frame/design.md')"
+cat > 'agentory/threads/1790000011-slugify/frame/design.md' <<'IADD_EOF'
 # Design: slugify
 
 ## Scope
@@ -85,8 +85,8 @@ cat > 'iadd/threads/1790000011-slugify/frame/design.md' <<'IADD_EOF'
 
 Framed 2026-10-14 by framer, before the build.
 IADD_EOF
-mkdir -p "$(dirname 'iadd/threads/1790000011-slugify/frame/plan.md')"
-cat > 'iadd/threads/1790000011-slugify/frame/plan.md' <<'IADD_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000011-slugify/frame/plan.md')"
+cat > 'agentory/threads/1790000011-slugify/frame/plan.md' <<'IADD_EOF'
 # Implementation Plan: slugify
 
 ## Phases

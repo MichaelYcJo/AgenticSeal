@@ -576,7 +576,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     Three exemptions, each argued where it is declared rather than here:
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
-      `iadd/threads/` is outside the scanned set entirely.
+      `agentory/threads/` is outside the scanned set entirely.
       `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
@@ -1175,7 +1175,7 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
     import glob
 
     for path in sorted(
-        glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "pr.ko.md"))
+        glob.glob(os.path.join(ROOT, "agentory", "threads", "*", "pr.ko.md"))
     ):
         text = open(path, encoding="utf-8").read()
         # `docs/layout/the-record-layout.md` *A fact of a work item has one
@@ -1321,10 +1321,10 @@ LEDGER_PATHS = ("ledger.md", "ledger", "releases")
 
 
 def ledger_leftovers(records_root):
-    """Each ledger path under the `iadd/` root RECORDS_ROOT that exists, as
-    `iadd/<name>`, in `LEDGER_PATHS` order."""
+    """Each ledger path under the `agentory/` root RECORDS_ROOT that exists, as
+    `agentory/<name>`, in `LEDGER_PATHS` order."""
     return [
-        f"iadd/{name}"
+        f"agentory/{name}"
         for name in LEDGER_PATHS
         if os.path.exists(os.path.join(records_root, name))
     ]
@@ -1335,9 +1335,9 @@ def test_a_planted_ledger_file_is_named(tmp_path):
     back to, so the tree case below cannot pass by reading nothing."""
     assert ledger_leftovers(str(tmp_path)) == []
     for rel, named in (
-        (("ledger", "x.md"), "iadd/ledger"),
-        (("ledger.md",), "iadd/ledger.md"),
-        (("releases", "x.md"), "iadd/releases"),
+        (("ledger", "x.md"), "agentory/ledger"),
+        (("ledger.md",), "agentory/ledger.md"),
+        (("releases", "x.md"), "agentory/releases"),
     ):
         records_root = tmp_path / named.replace("/", "_")
         path = records_root.joinpath(*rel)
@@ -1355,7 +1355,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
 
     S7 of #944: the evidence ledger does not come back. A rule is held by the
     test its `check:` line names, and nothing reads a ledger file."""
-    records_root = os.path.join(ROOT, "iadd")
+    records_root = os.path.join(ROOT, "agentory")
     for rel in ("README.md", "follow-up.md"):
         assert os.path.isfile(os.path.join(records_root, rel)), rel
     leftovers = ledger_leftovers(records_root)
@@ -1363,10 +1363,10 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
         f"the ledger is back at {', '.join(leftovers)}. It left the tree in "
         "#944 and nothing reads it; a rule names the test that holds it instead"
     )
-    # `iadd/threads/` is absent after a complete fold, because git keeps no
+    # `agentory/threads/` is absent after a complete fold, because git keeps no
     # empty directory, and that is the laid-out state. `assert items` stood here — some work item carries a routing.md
     # — and it was a floor of one (#517); what it was about holds at any
-    # size and is stronger: every entry under `iadd/threads/` is a work item,
+    # size and is stronger: every entry under `agentory/threads/` is a work item,
     # whole, which starts with the declaration written before its first edit.
     specs = os.path.join(records_root, "threads")
     if os.path.isdir(specs):
@@ -1376,11 +1376,11 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
             if not os.path.isfile(os.path.join(specs, n, "routing.md"))
         ]
         assert not loose, (
-            f"iadd/threads/ holds something that is not a work item: {loose}"
+            f"agentory/threads/ holds something that is not a work item: {loose}"
         )
     for old in (".specseal", "specs"):
         assert not os.path.exists(os.path.join(ROOT, old)), (
-            f"{old}/ is back. Nothing reads it since 0.4.0; move it into iadd/"
+            f"{old}/ is back. Nothing reads it since 0.4.0; move it into agentory/"
         )
 
 

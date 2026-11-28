@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'iadd/threads/1790000025-sharp-s/frame/design.md'}
+target: {source: 'file', path: 'agentory/threads/1790000025-sharp-s/frame/design.md'}
 pattern: '^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*STRASSE).*'
 flags: 'm'
 ---

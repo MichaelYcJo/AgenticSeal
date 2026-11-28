@@ -65,7 +65,7 @@ merges it.
 ## The names
 
 **The product is IADD, and `iadd` is the name of each of its parts**:
-the root `iadd/`, the command line, the plugin's `name`, the prefix of
+the root `agentory/`, the command line, the plugin's `name`, the prefix of
 every agent and skill, and the marketplace. Every identifier is lowercase
 with no separator, and `IADD` is written only where a person reads the
 brand.
@@ -74,9 +74,9 @@ brand.
 |---|---|
 | IADD | the plugin, whose one sentence is the first line of `README.md` under its title, and the `description` of `.claude-plugin/plugin.json`; *the IADD process* is what it does with one issue, from the routing question to the final inspector's verdict |
 | `iadd` | the command line, the plugin's `name`, the prefix `iadd:` of every agent and skill, and the marketplace's name |
-| `iadd/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open; where it stands in each mode is the opening paragraph of `skills/core/SKILL.md` |
+| `agentory/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open; where it stands in each mode is the opening paragraph of `skills/core/SKILL.md` |
 | the thread | one work item: one issue, one branch and one pull request, with one directory that holds its records until the settle after its release |
-| `iadd/threads/<id>/` | a thread's directory, with `frame/` for the design before the build, `trail/` for what passed between the parties, and the other records at its top, each placed by what it is and never by which agent wrote it |
+| `agentory/threads/<id>/` | a thread's directory, with `frame/` for the design before the build, `trail/` for what passed between the parties, and the other records at its top, each placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, inspector, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 | the inspection | the inspector's verdict on the work at one commit, and its record `inspection.md`; the stamp and the inspection mark are drawings of it |
 | cleared, lapsed, not cleared | the three states of a work item's inspection, which `docs/forms/the-inspection.md` *The three states* defines |
@@ -101,11 +101,11 @@ English.
 ## The record forms
 
 Each record of a work item has one document that owns its form.
-`docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/* lists
+`docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/* lists
 every file of a work item's directory and the question each answers.
 
 | Record | The document that owns its form |
 |---|---|
 | `trail/rounds/round-N.md` | `docs/forms/the-round-record.md` *The round record* |
 | `inspection.md` | `docs/forms/the-inspection.md` *The inspection* |
-| each other file of a work item's directory | `docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/* |
+| each other file of a work item's directory | `docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/* |

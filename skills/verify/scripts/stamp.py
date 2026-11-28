@@ -1276,7 +1276,7 @@ def queue_for_written_inspection(path, now=None):
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/inspection.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
-    `written_root`): `<repo>/iadd/` in shared mode, and `<common>/iadd/` in
+    `written_root`): `<repo>/agentory/` in shared mode, and `<common>/agentory/` in
     local mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them,

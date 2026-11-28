@@ -3,7 +3,7 @@
 are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
-the `iadd/threads/<id>/routing.md` naming the pull request's branch and every
+the `agentory/threads/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
 judged (`carried_by`). The arms are nine:
@@ -56,7 +56,7 @@ judged (`carried_by`). The arms are nine:
                 inspector reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      where git carries `iadd/parity.json` at HEAD and the pull
+  original      where git carries `agentory/parity.json` at HEAD and the pull
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
                 commit` key names a SHA (`lib/config.py#baseline_commit`),
@@ -291,7 +291,7 @@ try:
     # `lib/gitcmd.py`, which starts every git and `gh` command this check
     # runs and spells a path as git does.
     GITCMD = sibling.load("lib/gitcmd.py")
-    # `lib/optin.py`, which finds the repository and its `iadd/` root.
+    # `lib/optin.py`, which finds the repository and its `agentory/` root.
     OPTIN = sibling.load("lib/optin.py")
     # `lib/console.py`, whose `annotate` prints a line about a file.
     CONSOLE = sibling.load("lib/console.py")
@@ -1351,7 +1351,7 @@ def rule_changes_reader():
 
 def policy_root(root):
     """The policy root of the repository at ROOT: `lib/config.py#policy_root`
-    of the `iadd/` root `lib/optin.py#home_at` resolves there."""
+    of the `agentory/` root `lib/optin.py#home_at` resolves there."""
     config = sibling.load("lib/config.py")
     return config.policy_root(OPTIN.home_at(root, OPTIN.git_common_dir(root)))
 

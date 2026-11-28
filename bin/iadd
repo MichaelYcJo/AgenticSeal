@@ -9,12 +9,12 @@
 # Resolves the script relative to this file, not the caller's cwd, so it works
 # from any directory. Arguments pass straight through:
 #   iadd export                   iadd export --check
-#   iadd export --output ~/keys   iadd import iadd-repo-2026-09-03.zip
+#   iadd export --output ~/keys   iadd import agentory-repo-2026-09-03.zip
 #   iadd mode                     iadd mode --check
 #   iadd mode local               iadd mode shared
 #   iadd pr-checks                iadd pr-checks install
 #   iadd pr-checks remove
-#   iadd gate --base origin/main --record iadd/threads/<work-item-id>
+#   iadd gate --base origin/main --record agentory/threads/<work-item-id>
 #   iadd fold --ceiling 1000      iadd rules --check
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../lib/launch.py" "$here/../skills/implement/scripts/iadd.py" "$@"

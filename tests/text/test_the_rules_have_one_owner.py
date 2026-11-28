@@ -246,8 +246,8 @@ RULES = {
         (
             # The two places, in the order the gates read them, which an
             # agent opens or runs.
-            "`<repo>/iadd/`",
-            "`$(git rev-parse --git-common-dir)/iadd/`",
+            "`<repo>/agentory/`",
+            "`$(git rev-parse --git-common-dir)/agentory/`",
             # The function that reads them, which a reader resolves for the
             # order.
             "`lib/optin.py#home_at`",

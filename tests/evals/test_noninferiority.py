@@ -956,7 +956,10 @@ RECORD_TRUTH = {
     "type": "regex",
     "weight": 1,
     "config": {
-        "target": {"source": "file", "path": "iadd/threads/i/trail/rounds/round-1.md"},
+        "target": {
+            "source": "file",
+            "path": "agentory/threads/i/trail/rounds/round-1.md",
+        },
         "pattern": TRUTH,
         "flags": "m",
         "match": "contains",

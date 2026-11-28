@@ -1,5 +1,5 @@
 """The settle's documents: the cases read the skill, both editions of the
-README and of the `iadd/` README, the framer's definition and the release
+README and of the `agentory/` README, the framer's definition and the release
 checklist. #458, closing #83.
 
 The cases that run the command or call
@@ -17,7 +17,7 @@ import pytest
 from conftest import ROOT, load_module
 from conftest import flattened as flat
 
-# No TARGET: its cases hold the settle across its skill, both editions of the README and of the `iadd/` README, the framer's definition and the release checklist.
+# No TARGET: its cases hold the settle across its skill, both editions of the README and of the `agentory/` README, the framer's definition and the release checklist.
 
 # The chain check, whose `TRAILER` and `NO_WORK_ITEM` spell the trailer a
 # settle's commits carry.
@@ -59,9 +59,9 @@ def test_the_skill_states_the_settling_sessions_procedure():
     read."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
-    # The path `iadd/follow-up.md`, where the settling session writes the
+    # The path `agentory/follow-up.md`, where the settling session writes the
     # row for a measurement nobody has taken (`questions.md` Q1's default).
-    assert "`iadd/follow-up.md` row" in procedure
+    assert "`agentory/follow-up.md` row" in procedure
 
 
 def test_the_skill_names_how_a_settle_commits():
@@ -83,9 +83,9 @@ def document(*parts):
 
 
 @pytest.mark.parametrize(
-    "parts", [("iadd", "README.md"), ("templates", "setup", "iadd-README.md")]
+    "parts", [("agentory", "README.md"), ("templates", "setup", "agentory-README.md")]
 )
-def test_the_iadd_readme_says_the_step_exists(parts):
+def test_the_agentory_readme_says_the_step_exists(parts):
     """Both editions of the same file, which
     `tests/behaviour/test_first_setup_asks_once.py` holds byte for byte. Each
     names the step's command and the skill it is read from, so a reader who
@@ -157,7 +157,7 @@ def test_the_local_mode_section_names_what_a_local_settle_reads():
     for fact in (
         # The path a work item's directory has in local mode, which the
         # settling session opens.
-        "`<git-common-dir>/iadd/threads/<id>/`",
+        "`<git-common-dir>/agentory/threads/<id>/`",
         # The flag the settling session passes the release on.
         "`--released-at`",
         # The two commands the release is read with.

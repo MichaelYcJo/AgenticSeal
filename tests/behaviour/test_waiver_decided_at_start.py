@@ -9,7 +9,7 @@ box table the person is asked, and the citations between the files. The
 rule's sentences are the proofer's to read.
 
 The rule: how a work item is routed is asked in one batch before the first
-edit, and the answer goes into `iadd/threads/<work-item-id>/routing.md`
+edit, and the answer goes into `agentory/threads/<work-item-id>/routing.md`
 rather than being re-derived at every commit.
 
 The second axis is not decoration. Opening a pull request is an outward-facing
@@ -90,7 +90,7 @@ def in_force(rel, section):
     assert span, f"{rel}: {why}"
     lines = rules.reader().gfm_lines(text)
     body = flattened("\n".join(lines[span[0] - 1 : span[1]]))
-    home = os.path.join(ROOT, "iadd")
+    home = os.path.join(ROOT, "agentory")
     policy = config.policy_root(home)
     for op, _item in rules.pending(home, policy):
         if op.file != rel or op.section != section:
@@ -726,7 +726,7 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
     import glob
 
     for path in sorted(
-        glob.glob(os.path.join(ROOT, "iadd", "threads", "*", "routing.md"))
+        glob.glob(os.path.join(ROOT, "agentory", "threads", "*", "routing.md"))
     ):
         with open(path, encoding="utf-8") as f:
             for line in f:
@@ -762,7 +762,7 @@ def test_the_skill_names_where_the_answer_is_written():
     # The path the orchestrator writes the answer to, under the file name
     # `lib/routing.py#FILENAME` reads, and the template it copies, which it
     # opens.
-    assert f"iadd/threads/<work-item-id>/{routing.FILENAME}" in skill
+    assert f"agentory/threads/<work-item-id>/{routing.FILENAME}" in skill
     assert "templates/records/sdd-routing.md" in skill
 
 
@@ -797,7 +797,7 @@ def test_the_skill_names_where_a_late_finding_goes():
     skill = read(*ORCH)
     # The two paths and the closing memo's `## Not done` section, which the
     # session resolves to write a late finding down.
-    for destination in ("questions.md", "iadd/follow-up.md", "Not done"):
+    for destination in ("questions.md", "agentory/follow-up.md", "Not done"):
         assert destination in skill, (
             f"the skill lost `{destination}` as somewhere a late finding goes"
         )

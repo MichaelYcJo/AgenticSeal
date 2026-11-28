@@ -23,7 +23,7 @@ from conftest import flattened, local_home, read, section, shell_probe
 
 # No TARGET: its cases hold where the root lives across the bootstrap, the orchestrator's half of the implement skill, the config skill, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
 
-COMMON_DIR = "$(git rev-parse --git-common-dir)/iadd/"
+COMMON_DIR = "$(git rev-parse --git-common-dir)/agentory/"
 
 
 def paragraph(text, opening):
@@ -74,9 +74,9 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     records = paragraph(boot, RECORDS_ONLY)
     checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
-    # The path `<repo>/iadd/`, where the orchestrator creates the shared
+    # The path `<repo>/agentory/`, where the orchestrator creates the shared
     # root and where `lib/optin.py` looks for it first.
-    assert "creates `<repo>/iadd/`" in records
+    assert "creates `<repo>/agentory/`" in records
     # The command `iadd pr-checks install`, which the orchestrator runs
     # under this option.
     assert "`iadd pr-checks install`" in checks, checks
@@ -94,7 +94,7 @@ def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
     # option: the path is spelled through the common git directory rather
     # than through `.git`, which is a file in a linked worktree. The path is
     # one the orchestrator would create.
-    assert "`.git/iadd/`" not in bootstrap()
+    assert "`.git/agentory/`" not in bootstrap()
 
 
 def test_the_parity_question_follows_the_mode_question():
@@ -230,18 +230,18 @@ def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
     assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in landing
 
 
-OWN_IADD = "**An `<repo>/iadd/` whose `README.md` does not open with the marker"
+OWN_AGENTORY = "**An `<repo>/agentory/` whose `README.md` does not open with the marker"
 
 
-def test_a_projects_own_iadd_names_the_marker_template_and_the_git_dir_root():
-    """First setup meeting an `iadd/` the project keeps for itself names the
+def test_a_projects_own_agentory_names_the_marker_template_and_the_git_dir_root():
+    """First setup meeting an `agentory/` the project keeps for itself names the
     template whose first line is the marker, and the path under the git
     directory where the root goes in its stead (#1651). That it writes
     nothing into the project's own is the proofer's to read."""
-    own = paragraph(bootstrap(), OWN_IADD)
+    own = paragraph(bootstrap(), OWN_AGENTORY)
     # The path of the template whose first line is the marker, which the
-    # orchestrator opens to tell a project's own `iadd/` from a root.
-    assert "`templates/setup/iadd-README.md`" in own, own
+    # orchestrator opens to tell a project's own `agentory/` from a root.
+    assert "`templates/setup/agentory-README.md`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
 
@@ -322,7 +322,7 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     through a work item, and names the checks' command, the way back before
     the commit to shared, the workflow a move to local leaves, and the pair
     that works between two machines. The two by-hand moves left both
-    editions in #1102 for the template every root's `iadd/README.md` is, and
+    editions in #1102 for the template every root's `agentory/README.md` is, and
     `switch_block` reads them there."""
     text = read(readme)
     first_run, subsection = READMES[readme]
@@ -384,7 +384,7 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     body = flattened(section(skill, "## " + SHARED_HEADING))
     for said in (
         # The two commands a person runs to walk the switch back.
-        "`git reset -- :/iadd`",
+        "`git reset -- :/agentory`",
         "`iadd mode local`",
         # The citation of the rule, which a reader resolves: the path and the
         # heading in italics.
@@ -397,17 +397,17 @@ TO_SHARED, TO_LOCAL = "From local to shared:", "From shared to local:"
 
 
 def switch_block():
-    """The two by-hand moves `templates/setup/iadd-README.md` gives, local →
+    """The two by-hand moves `templates/setup/agentory-README.md` gives, local →
     shared and then shared → local, each as one command line.
 
     Each move is the code spans after its lead, to the end of the paragraph,
-    joined with `&&`. The template is every root's own `iadd/README.md`, and
+    joined with `&&`. The template is every root's own `agentory/README.md`, and
     the README links it for the moves rather than restating them (#1102). A
     paragraph that stopped carrying two spans after each lead fails here,
     which is the point: those lines are what `iadd mode`'s move has to keep
     doing, and this is where they are run from a subdirectory.
     """
-    text = read("templates", "setup", "iadd-README.md")
+    text = read("templates", "setup", "agentory-README.md")
     assert TO_SHARED in text, f"no paragraph gives the move {TO_SHARED!r}"
     paragraph = flattened(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
     assert TO_LOCAL in paragraph, f"the paragraph gives no move {TO_LOCAL!r}"
@@ -430,11 +430,11 @@ def porcelain(repo):
 def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(repo):
     """Round 1 of #80, 🟡 3. The two moves were spelled relative to the
     working directory: run from `src/`, `git rev-parse --git-common-dir`
-    answers `../.git` and `mv … iadd && git add iadd` created and staged
-    `src/iadd/`, after which neither place held a root and the repository
+    answers `../.git` and `mv … agentory && git add agentory` created and staged
+    `src/agentory/`, after which neither place held a root and the repository
     was opted OUT. Both paths are asked of git now, so the two moves read out
     of the template and run from a subdirectory land the root at
-    `<repo>/iadd/` one way and back under the common directory the other.
+    `<repo>/agentory/` one way and back under the common directory the other.
 
     Each move is run under `bash -c`; the precondition is executed, not
     assumed (`shell_probe`, for the reason its docstring gives).
@@ -451,18 +451,18 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
 
     r = subprocess.run(["bash", "-c", to_shared], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
-    assert (repo / "iadd" / "ledger" / "f.md").is_file(), porcelain(repo)
-    assert not (sub / "iadd").exists(), "the root landed under the subdirectory"
+    assert (repo / "agentory" / "ledger" / "f.md").is_file(), porcelain(repo)
+    assert not (sub / "agentory").exists(), "the root landed under the subdirectory"
     assert not home.exists(), "the local root was copied, not moved"
-    assert porcelain(repo) == ["A  iadd/README.md", "A  iadd/ledger/f.md"], porcelain(
-        repo
+    assert porcelain(repo) == ["A  agentory/README.md", "A  agentory/ledger/f.md"], (
+        porcelain(repo)
     )
 
     r = subprocess.run(["bash", "-c", to_local], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
     assert (home / "ledger" / "f.md").is_file(), porcelain(repo)
-    assert not (repo / "iadd").exists()
-    assert not (sub / "iadd").exists()
+    assert not (repo / "agentory").exists()
+    assert not (sub / "agentory").exists()
     assert porcelain(repo) == [], porcelain(repo)
 
 
@@ -470,9 +470,9 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
 
 
 @pytest.mark.parametrize(
-    "parts", [("iadd", "README.md"), ("templates", "setup", "iadd-README.md")]
+    "parts", [("agentory", "README.md"), ("templates", "setup", "agentory-README.md")]
 )
-def test_the_iadd_readme_names_the_command_that_finds_the_local_root(parts):
+def test_the_agentory_readme_names_the_command_that_finds_the_local_root(parts):
     text = read(*parts)
     # The command a person runs to find the root in local mode.
     assert "git rev-parse --git-common-dir" in text, "/".join(parts)
@@ -481,22 +481,22 @@ def test_the_iadd_readme_names_the_command_that_finds_the_local_root(parts):
 MARKER_SAID = "**The first line of this file is the marker.**"
 
 
-def test_the_iadd_readme_cites_the_marker_constant():
+def test_the_agentory_readme_cites_the_marker_constant():
     """The root's own README tells a person not to edit the line the gates
-    read, and cites the constant that holds it. What an `iadd/` without the
+    read, and cites the constant that holds it. What an `agentory/` without the
     line is, is the proofer's to read."""
-    text = read("templates", "setup", "iadd-README.md")
+    text = read("templates", "setup", "agentory-README.md")
     said = paragraph(text, MARKER_SAID)
     # The citation `lib/optin.py#MARKER`, which a person resolves to
     # the one spelling of the line the gates read.
     assert "`lib/optin.py#MARKER`" in said, said
 
 
-def test_the_iadd_readme_points_at_the_drain():
+def test_the_agentory_readme_points_at_the_drain():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
     and where each goes is `skills/implement/orchestration.md`'s drain
     section's alone, and the README names the section."""
-    text = read("templates", "setup", "iadd-README.md")
+    text = read("templates", "setup", "agentory-README.md")
     rules = flattened(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = (
         "## Orchestrator: drain the rows before the broad run, and keep the records"
@@ -545,8 +545,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 #
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
-# there. A session is told to write `iadd/threads/<id>/routing.md` before the
-# first edit, and that write creates `iadd/`, which opts the repository in.
+# there. A session is told to write `agentory/threads/<id>/routing.md` before the
+# first edit, and that write creates `agentory/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
 # project on the machine. The block is retired; the core, which the plugin's
 # `SessionStart` hook prints into a session, names the routing section

@@ -14,7 +14,7 @@ records and the findings format. The orchestrator reads both. The proofer
 opens that one at its first step and never opens this one.
 
 A session orchestrating a review run holds the core once, from the plugin's
-`SessionStart` hook where its repository holds an `iadd/` root, and opens
+`SessionStart` hook where its repository holds an `agentory/` root, and opens
 `skills/core/SKILL.md` once where no output opening `IADD core from`
 stands in its context.
 
@@ -198,7 +198,7 @@ other finding takes a home that costs no round: rung 2, 3 or 4 of the homes
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
 to skip a party* gives to the inspector. Rung 3 is such a home as a new issue,
-and as an `iadd/follow-up.md` row only where a round is still to come after
+and as an `agentory/follow-up.md` row only where a round is still to come after
 the row's commit, because its commit after the last round costs a round
 (`skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records*). A later row spends no round on
@@ -320,7 +320,7 @@ runs the broad gate again, commits its record, runs `iadd pr-body` on the
 body file again and spawns the inspector again.
 
 **A commit after the newest broad run that changes only files under
-`iadd/threads/<work-item-id>/` owes no broad run.** Where such a commit
+`agentory/threads/<work-item-id>/` owes no broad run.** Where such a commit
 changes a record other than `trail/gate.md` and `inspection.md` after the
 inspector has written its verdict, it owes `iadd pr-body` on the body file
 again and the inspector again, and the inspector reads every record at HEAD.

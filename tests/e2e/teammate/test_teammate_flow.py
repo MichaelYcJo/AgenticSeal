@@ -85,18 +85,18 @@ target: 1a2b3c4 against main
 none
 """
 
-ITEM = f"iadd/threads/{WORK}"
+ITEM = f"agentory/threads/{WORK}"
 OPEN_ROW_AND_ROUND = "a work item with an open row and a round record"
 BASES = {
     "no root": {},
-    "a root holding only its config": {"iadd/config.json": CONFIG},
+    "a root holding only its config": {"agentory/config.json": CONFIG},
     "a work item with no overview": {
-        "iadd/config.json": CONFIG,
+        "agentory/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
     },
     OPEN_ROW_AND_ROUND: {
-        "iadd/config.json": CONFIG,
+        "agentory/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
         f"{ITEM}/gaps.md": OVERVIEW,
@@ -147,8 +147,8 @@ def base_repository(tmp_path, files, checks=False):
     write(d, "README.md", "# a project\n")
     for rel, text in files.items():
         write(d, rel, text)
-    if (d / "iadd").is_dir():
-        mark_root(d / "iadd")
+    if (d / "agentory").is_dir():
+        mark_root(d / "agentory")
     if checks:
         iadd(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")
@@ -176,7 +176,7 @@ def switching_repository(tmp_path):
     iadd(d, "mode", "local")
     commit_everything_as_e(d, "the switch to local")
     common = git(d, "rev-parse", "--path-format=absolute", "--git-common-dir")
-    os.rename(os.path.join(common.stdout.strip(), "iadd"), tmp_path / "local-root")
+    os.rename(os.path.join(common.stdout.strip(), "agentory"), tmp_path / "local-root")
     return d
 
 
@@ -261,7 +261,7 @@ class Test_a_pull_request_that_declares_nothing_owes_nothing:
         """Round 1 of #952, finding 1: the switch deletes every `routing.md`
         with the root, and with no root at HEAD nothing is declared."""
         repo = switching_repository(tmp_path)
-        assert not (repo / "iadd").exists()
+        assert not (repo / "agentory").exists()
         failed = failed_steps(repo, runner_env(tmp_path, SWITCH))
         assert not failed, "\n\n".join(failed)
 

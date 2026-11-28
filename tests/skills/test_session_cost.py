@@ -502,10 +502,10 @@ def orchestrator(tmp_path):
     and that dropping the spawn from the walk would shorten."""
     lines = []
     lines += call("a", 0, 10, "git status --short")
-    lines += call("b", 15, 18, "cat iadd/threads/x/frame/plan.md")
+    lines += call("b", 15, 18, "cat agentory/threads/x/frame/plan.md")
     lines += spawn("A", 25, 625, "iadd:crafter", "Build phase 1")
     lines += call("c", 640, 643, "git log --oneline -5")
-    lines += call("d", 650, 651, "cat iadd/threads/x/frame/design.md")
+    lines += call("d", 650, 651, "cat agentory/threads/x/frame/design.md")
     lines += spawn("B", 660, 1860, "iadd:proofer", "Review round 1")
     lines += call("e", 1870, 1880, "./bin/test tests/test_x.py -q")
     path = tmp_path / "orchestrator.jsonl"
@@ -3278,7 +3278,7 @@ class Test_main:
         lines += spawn("A", 5, 7, "iadd:crafter")
         # 300s of silence: the agent running, well under the 900s ceiling.
         lines += call("b", 307, 310, "git log --oneline -5")
-        lines += call("c", 315, 317, "cat iadd/threads/x/frame/design.md")
+        lines += call("c", 315, 317, "cat agentory/threads/x/frame/design.md")
         path = tmp_path / "accepted.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         rows = spawns_of(path)["rows"]
@@ -5356,7 +5356,7 @@ class Test_work_item:
         """The work item directory, with the config directory set beside it."""
         monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
         return self.declare(
-            tmp_path / "repo" / "iadd" / "threads" / self.NAME, self.BRANCH
+            tmp_path / "repo" / "agentory" / "threads" / self.NAME, self.BRANCH
         )
 
     def sibling(self, item):
@@ -5425,7 +5425,7 @@ class Test_work_item:
 
     def by_dir_and_by_branch(self, tmp_path):
         """Two agents: one prompt names the directory, one names the branch."""
-        self.agent(tmp_path, "agent-a", f"Records: iadd/threads/{self.NAME}/\n")
+        self.agent(tmp_path, "agent-a", f"Records: agentory/threads/{self.NAME}/\n")
         self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
 
     def test_accepts_both_segments_and_posts_them_in_one_comment(
@@ -5468,7 +5468,7 @@ class Test_work_item:
         that spawned nothing is not named."""
         self.by_dir_and_by_branch(tmp_path)
         spawned = self.agent(
-            tmp_path, "agent-c", f"Records: iadd/threads/{self.NAME}/", "s3"
+            tmp_path, "agent-c", f"Records: agentory/threads/{self.NAME}/", "s3"
         )
         with open(spawned, "a", encoding="utf-8") as handle:
             handle.write("\n".join(spawn("N", 20, 40, "general-purpose")) + "\n")
@@ -5553,10 +5553,10 @@ class Test_work_item:
         a longer directory name that starts with the key names neither, and a
         key in a later entry than the first `type: user` one is not the spawn
         prompt."""
-        self.agent(tmp_path, "agent-a", f"Records: iadd/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-a", f"Records: agentory/threads/{self.NAME}/")
         self.agent(tmp_path, "agent-c", f"Branch {self.BRANCH}-b, not ours.")
-        self.agent(tmp_path, "agent-d", f"iadd/threads/{self.NAME}-two/")
-        self.agent(tmp_path, "agent-f", f"iadd/threads/2{self.NAME}/")
+        self.agent(tmp_path, "agent-d", f"agentory/threads/{self.NAME}-two/")
+        self.agent(tmp_path, "agent-f", f"agentory/threads/2{self.NAME}/")
         later = self.agent(tmp_path, "agent-e", "Build something else.")
         with open(later, "a", encoding="utf-8") as handle:
             handle.write(
@@ -5584,7 +5584,7 @@ class Test_work_item:
         """`--work-item .` from inside the directory, or `..` from a
         subdirectory, keys on the directory's own name. Keyed on `.` or `..`,
         a prompt holding `./bin/test` or `../` would name the work item."""
-        self.agent(tmp_path, "agent-a", f"Records: iadd/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-a", f"Records: agentory/threads/{self.NAME}/")
         self.agent(tmp_path, "agent-x", "Run ./bin/test, then read ../README.md.")
         (item / inside).mkdir(exist_ok=True)
         monkeypatch.chdir(item / inside)
@@ -5626,7 +5626,7 @@ class Test_work_item:
         self.agent(
             tmp_path,
             "agent-a",
-            f"Frame iadd/threads/{self.NAME}/ beside iadd/threads/{self.OTHER}/.",
+            f"Frame agentory/threads/{self.NAME}/ beside agentory/threads/{self.OTHER}/.",
         )
         self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
         module = _cost()
@@ -5657,7 +5657,7 @@ class Test_work_item:
         self.agent(
             tmp_path,
             "agent-a",
-            f"Frame iadd/threads/{self.NAME}/ beside iadd/threads/{self.OTHER}/.",
+            f"Frame agentory/threads/{self.NAME}/ beside agentory/threads/{self.OTHER}/.",
         )
         module = _cost()
         page = json.dumps([self.comment("# agent-a.jsonl")])
@@ -5700,7 +5700,7 @@ class Test_work_item:
         self.agent(
             tmp_path,
             "agent-a",
-            f"Records: iadd/threads/{self.NAME}/. {self.OTHER_BRANCH} and "
+            f"Records: agentory/threads/{self.NAME}/. {self.OTHER_BRANCH} and "
             f"{third_branch} run beside.",
         )
         module = _cost()
@@ -5742,7 +5742,7 @@ class Test_work_item:
         know `GIT_NO_LAZY_FETCH`, because the read fetches there."""
         monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
         source = tmp_path / "source"
-        self.declare(source / "iadd" / "threads" / self.NAME, self.BRANCH)
+        self.declare(source / "agentory" / "threads" / self.NAME, self.BRANCH)
         git(source, "init", "-q")
         git(source, "config", "user.email", "t@t")
         git(source, "config", "user.name", "t")
@@ -5750,11 +5750,11 @@ class Test_work_item:
         git(source, "add", "-A")
         git(source, "commit", "-qm", "this item")
         git(source, "checkout", "-q", "-b", "other")
-        self.declare(source / "iadd" / "threads" / self.OTHER, self.OTHER_BRANCH)
+        self.declare(source / "agentory" / "threads" / self.OTHER, self.OTHER_BRANCH)
         git(source, "add", "-A")
         git(source, "commit", "-qm", "the other item")
         blob = git(
-            source, "rev-parse", f"other:iadd/threads/{self.OTHER}/routing.md"
+            source, "rev-parse", f"other:agentory/threads/{self.OTHER}/routing.md"
         ).stdout.strip()
         git(source, "checkout", "-q", "-")
         repo = tmp_path / "repo"
@@ -5772,11 +5772,11 @@ class Test_work_item:
                 "this git fetched a blob with GIT_NO_LAZY_FETCH set, so it does "
                 "not know the variable, and the branch read fetches there"
             )
-        item = repo / "iadd" / "threads" / self.NAME
+        item = repo / "agentory" / "threads" / self.NAME
         self.agent(
             tmp_path,
             "agent-a",
-            f"Records: iadd/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
+            f"Records: agentory/threads/{self.NAME}/. {self.OTHER_BRANCH} runs beside.",
         )
         module = _cost()
         self.gh(monkeypatch, module, _listing((42, "OPEN")))
@@ -5810,14 +5810,14 @@ class Test_work_item:
         git(repo, "config", "user.name", "t")
         git(repo, "add", "-A")
         git(repo, "commit", "-qm", "a directory at the root")
-        threads = repo / ".git" / "iadd" / "threads"
+        threads = repo / ".git" / "agentory" / "threads"
         item = self.declare(threads / self.NAME, self.BRANCH)
         third, third_branch = "1790000002-a-third-item", "feat/14-a-third-item"
         self.declare(threads / third, third_branch)
         self.agent(
             tmp_path,
             "agent-a",
-            f"Records: iadd/threads/{self.NAME}/, beside {self.OTHER_BRANCH} "
+            f"Records: agentory/threads/{self.NAME}/, beside {self.OTHER_BRANCH} "
             f"and {third_branch}.",
         )
         module = _cost()
@@ -5836,7 +5836,7 @@ class Test_work_item:
         self.agent(
             tmp_path,
             "agent-a",
-            f"Frame iadd/threads/{self.NAME}/ beside iadd/threads/{self.OTHER}/.",
+            f"Frame agentory/threads/{self.NAME}/ beside agentory/threads/{self.OTHER}/.",
         )
         module = _cost()
         self.gh(monkeypatch, module, _listing((42, "OPEN")))

@@ -11,7 +11,7 @@ import os
 import pytest
 from conftest import ROOT
 
-# No TARGET: its cases hold iadd export and iadd import across the READMEs and the `iadd/` README with its template.
+# No TARGET: its cases hold iadd export and iadd import across the READMEs and the `agentory/` README with its template.
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])
@@ -36,7 +36,10 @@ def test_the_root_readme_and_its_template_say_it_too():
     """The template is what a first setup bootstraps a user's root from, and
     `tests/behaviour/test_first_setup_asks_once.py` asserts the two are byte-identical —
     so the rule lands in every repository that opts in, not only this one."""
-    for parts in (("iadd", "README.md"), ("templates", "setup", "iadd-README.md")):
+    for parts in (
+        ("agentory", "README.md"),
+        ("templates", "setup", "agentory-README.md"),
+    ):
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
             text = handle.read()
         # The two commands a reader runs.

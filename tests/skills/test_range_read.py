@@ -32,7 +32,7 @@ TARGET = "skills/implement/scripts/range_read.py"
 
 RANGE = load_module(os.path.join(ROOT, *TARGET.split("/")), "range_read_under_test")
 
-ITEM = "iadd/threads/1700000000-a-work-item"
+ITEM = "agentory/threads/1700000000-a-work-item"
 DOC = "docs/a-document.md"
 
 # A configuration that would put text into what `git diff` prints, or take a
@@ -73,7 +73,7 @@ def built(tmp_path, files):
     for key, value in HOSTILE:
         git(repo, "config", key, value)
     write(repo, ".gitattributes", "* diff=hostile\n")
-    mark_root(repo / "iadd")
+    mark_root(repo / "agentory")
     write(repo, f"{ITEM}/routing.md", "# Routing\n")
     for rel, text in files.items():
         write(repo, rel, text)
@@ -535,7 +535,7 @@ class Test_main:
         assert why in err
         assert not out.exists()
 
-    @pytest.mark.parametrize("where", ["docs", "iadd", "iadd/threads"])
+    @pytest.mark.parametrize("where", ["docs", "agentory", "agentory/threads"])
     def test_refuses_a_directory_that_is_no_work_items(
         self, tmp_path, monkeypatch, capsys, where
     ):

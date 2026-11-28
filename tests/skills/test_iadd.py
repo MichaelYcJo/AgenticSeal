@@ -2,7 +2,7 @@
 
 Rebuilt by #942's phase 5 from `tests/text/test_the_records_can_be_carried_out_and_in.py`
 and `tests/text/test_the_mode_is_a_row_and_a_command.py`. `iadd` carries a clone's
-`iadd/` root to another clone (`export`, `import`), moves it between the
+`agentory/` root to another clone (`export`, `import`), moves it between the
 two places it can live (`mode`), and writes or removes the pull-request
 checks (`pr-checks`).
 
@@ -34,7 +34,7 @@ import's world carries. A switch whose fact is a line it prints or a move it
 makes, and not what its guards read from the index, takes
 `guards_answered`, and starts git only to stage.
 
-The cases that run the commands beside a project's own `iadd/` package,
+The cases that run the commands beside a project's own `agentory/` package,
 whose root is then the local one (#1651), build `tests/conftest.py`'s
 `package` repository where they need its history: `iadd export` and
 `iadd import` across a clone, and first setup. A case that needs no history
@@ -100,7 +100,7 @@ RECORDS = {
     f"threads/{ITEM}/routing.md": "# routing\n",
     f"threads/{ITEM}/design.md": "# spec\n",
 }
-MEMBERS = ["manifest.json", *(f"iadd/{rel}" for rel in sorted(RECORDS))]
+MEMBERS = ["manifest.json", *(f"agentory/{rel}" for rel in sorted(RECORDS))]
 # The import's last line: a collided pair is a reading for a person.
 CLOSING = (
     "Which of a collided pair is right is a reading, not a merge — this "
@@ -185,10 +185,10 @@ def _worlds(tmp_path_factory):
     plain = clone_at(base / "plain")
     holding(roots(copied(plain, base / "local", SSH))[1])
     shared = copied(plain, base / "shared")
-    holding(shared / "iadd")
+    holding(shared / "agentory")
     commit_as_e(shared, "the root")
     mark_root(roots(copied(plain, base / "other", HTTPS))[1])
-    gitlink_at(copied(shared, base / "under"), "iadd/vendor", SHA)
+    gitlink_at(copied(shared, base / "under"), "agentory/vendor", SHA)
     gitlink_at(copied(shared, base / "beside"), "vendor", SHA)
     unborn = base / "unborn"
     unborn.mkdir()
@@ -257,7 +257,7 @@ def guards_answered(monkeypatch):
 
 def beside_the_package(repo):
     """REPO with the files of `tests/conftest.py#PACKAGE` written and not
-    committed: a project's own `iadd/` package, which `optin`'s readers of
+    committed: a project's own `agentory/` package, which `optin`'s readers of
     the root in force pass over. Where `.git` is a directory those readers
     read the disk alone, so a case whose fact is what a command does beside
     the package reads it here with no history of its own; a case that needs
@@ -662,7 +662,7 @@ class Test_resolve:
     def test_accepts_a_root_in_force_and_names_its_mode(self, _worlds, mode):
         repo, home, shared, local, found = IADD.resolve(str(_worlds / mode))
         assert same(repo, _worlds / mode)
-        assert same(shared, _worlds / mode / "iadd")
+        assert same(shared, _worlds / mode / "agentory")
         assert same(home, shared if mode == "shared" else local)
         assert found == mode
 
@@ -790,38 +790,38 @@ class Test_manifest_of:
 
 class Test_unused:
     def test_accepts_the_first_name_nothing_holds(self, tmp_path):
-        assert IADD.unused(str(tmp_path), "iadd-x", ".zip") == str(
-            tmp_path / "iadd-x.zip"
+        assert IADD.unused(str(tmp_path), "agentory-x", ".zip") == str(
+            tmp_path / "agentory-x.zip"
         )
-        write(tmp_path, "iadd-x.zip", "")
-        assert IADD.unused(str(tmp_path), "iadd-x", ".zip") == str(
-            tmp_path / "iadd-x-2.zip"
+        write(tmp_path, "agentory-x.zip", "")
+        assert IADD.unused(str(tmp_path), "agentory-x", ".zip") == str(
+            tmp_path / "agentory-x-2.zip"
         )
 
     def test_refuses_a_broken_link_and_a_directory_with_every_name_taken(
         self, tmp_path, monkeypatch
     ):
-        symlink_or_skip(str(tmp_path / "nowhere"), str(tmp_path / "iadd-y.zip"))
-        assert IADD.unused(str(tmp_path), "iadd-y", ".zip") == str(
-            tmp_path / "iadd-y-2.zip"
+        symlink_or_skip(str(tmp_path / "nowhere"), str(tmp_path / "agentory-y.zip"))
+        assert IADD.unused(str(tmp_path), "agentory-y", ".zip") == str(
+            tmp_path / "agentory-y-2.zip"
         )
         taken = types.SimpleNamespace(
             path=types.SimpleNamespace(join=os.path.join, lexists=lambda p: True)
         )
         monkeypatch.setattr(IADD, "os", taken)
-        assert IADD.unused(str(tmp_path), "iadd-z", ".zip") == ""
+        assert IADD.unused(str(tmp_path), "agentory-z", ".zip") == ""
 
 
 class Test_zip_stem:
     def test_accepts_the_clones_name_and_the_date(self, tmp_path):
         repo = os.path.join(str(tmp_path), "repo")
-        assert IADD.zip_stem(repo, "2026-09-03") == "iadd-repo-2026-09-03"
-        assert IADD.zip_stem(repo + os.sep, "2026-09-03") == "iadd-repo-2026-09-03"
+        assert IADD.zip_stem(repo, "2026-09-03") == "agentory-repo-2026-09-03"
+        assert IADD.zip_stem(repo + os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
 
     def test_refuses_a_character_a_name_should_not_carry(self, tmp_path):
         repo = os.path.join(str(tmp_path), "my repo!")
-        assert IADD.zip_stem(repo, "2026-09-03") == "iadd-my-repo--2026-09-03"
-        assert IADD.zip_stem(os.sep, "2026-09-03") == "iadd-repo-2026-09-03"
+        assert IADD.zip_stem(repo, "2026-09-03") == "agentory-my-repo--2026-09-03"
+        assert IADD.zip_stem(os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
 
 
 class Test_write_zip:
@@ -834,7 +834,7 @@ class Test_write_zip:
         target = str(tmp_path / "out.zip")
         IADD.write_zip(target, home, files, {"format": 1})
         with zipfile.ZipFile(target) as archive:
-            assert archive.namelist() == ["manifest.json", "iadd/a.md"]
+            assert archive.namelist() == ["manifest.json", "agentory/a.md"]
             assert json.loads(archive.read("manifest.json")) == {"format": 1}
         assert not os.path.lexists(target + ".partial")
 
@@ -891,7 +891,7 @@ class Test_export:
         code, out = said(capsys, repo, "export")
         assert code == 0, out
         written = only_zip(tmp_path)
-        assert os.path.basename(written).startswith("iadd-local-")
+        assert os.path.basename(written).startswith("agentory-local-")
         with zipfile.ZipFile(written) as archive:
             assert archive.namelist() == MEMBERS
         manifest = manifest_in(written)
@@ -900,7 +900,7 @@ class Test_export:
         assert status(repo) == [], "the export dirtied the working tree"
         assert out.startswith("wrote "), out
         assert (
-            f"{os.path.basename(written)}\n  5 files from .git/iadd, 1 work item\n"
+            f"{os.path.basename(written)}\n  5 files from .git/agentory, 1 work item\n"
         ) in out
         assert out.endswith(f"  iadd import {os.path.basename(written)}\n"), out
         assert "was left out" not in out
@@ -930,7 +930,8 @@ class Test_export:
         code, out = said(capsys, repo, "export")
         assert code == 0, out
         assert (
-            "  skipped the symbolic link iadd/leak.md — links are not followed\n" in out
+            "  skipped the symbolic link agentory/leak.md — links are not followed\n"
+            in out
         )
         with zipfile.ZipFile(only_zip(tmp_path)) as archive:
             assert archive.namelist() == MEMBERS
@@ -979,8 +980,8 @@ class Test_export:
     ):
         code, out = said(capsys, at_top(take("shared")), "export")
         assert code == 1
-        assert out.startswith("shared mode: the records are committed at iadd/")
-        assert '"$(git rev-parse --git-common-dir)/iadd"' in out
+        assert out.startswith("shared mode: the records are committed at agentory/")
+        assert '"$(git rev-parse --git-common-dir)/agentory"' in out
         assert not [p for p in os.listdir(tmp_path) if p.endswith(".zip")]
 
     def test_refuses_without_a_root_or_in_a_throwaway_clone(self, take, at_top, capsys):
@@ -988,7 +989,10 @@ class Test_export:
         code, out = said(capsys, plain, "export")
         assert code == 1
         assert "(shared mode)" in out and "(local mode)" in out
-        assert not (plain / "iadd").exists() and not (plain / ".git" / "iadd").exists()
+        assert (
+            not (plain / "agentory").exists()
+            and not (plain / ".git" / "agentory").exists()
+        )
         local = at_top(take("local"), SSH)
         write(local / ".git", "iadd-scratch", "")
         code, out = said(capsys, local, "export")
@@ -1044,13 +1048,17 @@ class Test_export:
         monkeypatch.setattr(IADD, "unused", lambda *a: "")
         code, out = said(capsys, repo, "export")
         assert code == 1
-        assert out.startswith("no free name for iadd-local-") and "pass --output" in out
+        assert (
+            out.startswith("no free name for agentory-local-")
+            and "pass --output" in out
+        )
 
 
 class Test_display:
     def test_accepts_a_path_inside_as_slash_joined_and_relative(self, tmp_path):
         assert (
-            IADD.display(str(tmp_path), str(tmp_path / ".git" / "iadd")) == ".git/iadd"
+            IADD.display(str(tmp_path), str(tmp_path / ".git" / "agentory"))
+            == ".git/agentory"
         )
 
     def test_refuses_to_shorten_a_path_outside_or_nothing(self, tmp_path):
@@ -1140,10 +1148,10 @@ class Test_unsafe:
     @pytest.mark.parametrize(
         "info",
         [
-            member("iadd/threads/x/design.md"),
+            member("agentory/threads/x/design.md"),
             member("manifest.json"),
             member("manifest.json/"),
-            member("iadd/a.md", IADD.MEMBER_LIMIT),
+            member("agentory/a.md", IADD.MEMBER_LIMIT),
         ],
         ids=["a record", "the manifest", "the manifest with a slash", "at the limit"],
     )
@@ -1154,14 +1162,20 @@ class Test_unsafe:
         "info, why",
         [
             (member(""), "a member with no name"),
-            (member("iadd/a\\..\\..\\b.md"), "holds a backslash"),
+            (member("agentory/a\\..\\..\\b.md"), "holds a backslash"),
             (member("/etc/passwd"), "is an absolute path"),
             (member("C:x.md"), "is an absolute path"),
-            (member("iadd/a\0b.md"), "holds a NUL"),
-            (member("iadd/nested/../../out.md"), "climbs out of the root with `..`"),
-            (member("iadd/leak.md", link=True), "is a symbolic link"),
-            (member("elsewhere/x.md"), "is not under iadd/ and is not the manifest"),
-            (member("iadd/a.md", IADD.MEMBER_LIMIT + 1), "one record may hold"),
+            (member("agentory/a\0b.md"), "holds a NUL"),
+            (
+                member("agentory/nested/../../out.md"),
+                "climbs out of the root with `..`",
+            ),
+            (member("agentory/leak.md", link=True), "is a symbolic link"),
+            (
+                member("elsewhere/x.md"),
+                "is not under agentory/ and is not the manifest",
+            ),
+            (member("agentory/a.md", IADD.MEMBER_LIMIT + 1), "one record may hold"),
         ],
         ids=[
             "no name",
@@ -1188,7 +1202,7 @@ class Test_linked_path:
         return zipped(
             tmp_path / "z.zip",
             {"format": 1},
-            [("iadd/threads/w/design.md", "w"), ("iadd/follow-up.md", "f")],
+            [("agentory/threads/w/design.md", "w"), ("agentory/follow-up.md", "f")],
         )
 
     def test_accepts_a_root_no_member_reaches_through_a_link(self, tmp_path):
@@ -1211,7 +1225,7 @@ class Test_blocked_path:
     def test_accepts_a_member_whose_directories_are_free(self, tmp_path):
         into = tmp_path / "root"
         (into / "a").mkdir(parents=True)
-        z = zipped(tmp_path / "z.zip", {"format": 1}, [("iadd/a/b.md", "b")])
+        z = zipped(tmp_path / "z.zip", {"format": 1}, [("agentory/a/b.md", "b")])
         with opened(z) as archive:
             assert IADD.blocked_path(str(into), archive) == ""
 
@@ -1219,9 +1233,9 @@ class Test_blocked_path:
     def test_refuses_a_directory_name_a_file_holds(self, tmp_path, held):
         into = tmp_path / "root"
         into.mkdir()
-        members = [("iadd/a/b.md", "b")]
+        members = [("agentory/a/b.md", "b")]
         if held == "in the zip":
-            members.insert(0, ("iadd/a", "a file"))
+            members.insert(0, ("agentory/a", "a file"))
         elif held == "a file here":
             write(into, "a", "already a file\n")
         else:
@@ -1251,7 +1265,7 @@ class Test_read_manifest:
     def test_refuses_a_manifest_this_build_cannot_place_records_by(
         self, tmp_path, manifest, why
     ):
-        z = zipped(tmp_path / "z.zip", manifest, [("iadd/a.md", "a")])
+        z = zipped(tmp_path / "z.zip", manifest, [("agentory/a.md", "a")])
         with opened(z) as archive:
             found, said_why = IADD.read_manifest(archive, "z")
         assert found is None
@@ -1305,31 +1319,31 @@ class Test_destination_root:
             mark_root(tmp_path / name)
         return str(tmp_path / "shared"), str(tmp_path / "local")
 
-    def test_accepts_a_projects_own_iadd_beside_the_local_root_as_one_root(
+    def test_accepts_a_projects_own_agentory_beside_the_local_root_as_one_root(
         self, tmp_path
     ):
-        """An `<repo>/iadd/` whose README does not open with the marker is the
+        """An `<repo>/agentory/` whose README does not open with the marker is the
         project's own, so beside a local root it is no second root, and the
         copy lands in the local one."""
         shared, local = self.dirs(tmp_path, "local")
-        write(tmp_path, "shared/README.md", "# iadd\n\nThis package's notes.\n")
+        write(tmp_path, "shared/README.md", "# agentory\n\nThis package's notes.\n")
         assert IADD.destination_root("", local, shared, local, None) == (local, "")
 
     @pytest.mark.parametrize("held", ["a package", "a file"])
-    def test_refuses_a_projects_own_iadd_as_the_shared_root(self, tmp_path, held):
+    def test_refuses_a_projects_own_agentory_as_the_shared_root(self, tmp_path, held):
         """#1651: `--into shared` where something of the project's own stands
         at the shared place writes nothing, since that place is the only one a
         shared root has; the line sends the copy to the local root."""
         shared, local = self.dirs(tmp_path)
         if held == "a package":
-            write(tmp_path, "shared/README.md", "# iadd\n\nThis package's notes.\n")
+            write(tmp_path, "shared/README.md", "# agentory\n\nThis package's notes.\n")
         else:
             write(tmp_path, "shared", "a file\n")
         assert IADD.destination_root("", "", shared, local, "shared") == (
             "",
             f"{shared} is the project's own and not a root: it is no directory "
             "whose README.md opens with the marker, and nothing here writes "
-            "into it. A repository that keeps an `iadd/` of its own keeps its "
+            "into it. A repository that keeps an `agentory/` of its own keeps its "
             "root in local mode: run this again with `--into local`.",
         )
 
@@ -1390,7 +1404,7 @@ class Test_import_:
         assert listed(roots(other)[1]) == sorted(RECORDS)
         # The README every root opens with is the one record already there.
         assert out.startswith(
-            "imported into .git/iadd\n  4 files added\n"
+            "imported into .git/agentory\n  4 files added\n"
             "  1 file already here, byte for byte\n"
             "  0 files landed beside an existing one\n"
         ), out
@@ -1462,7 +1476,7 @@ class Test_import_:
         quiet = zipped(
             tmp_path / "empty-remote.zip",
             {"format": 1, "remote": ""},
-            [("iadd/a.md", "a")],
+            [("agentory/a.md", "a")],
         )
         code, out = said(capsys, other, "import", str(quiet))
         assert code == 0, out
@@ -1475,7 +1489,7 @@ class Test_import_:
         foreign = zipped(
             tmp_path / "foreign.zip",
             {"format": 1, "remote": ELSEWHERE},
-            [("iadd/follow-up.md", "# theirs\n")],
+            [("agentory/follow-up.md", "# theirs\n")],
         )
         code, out = said(capsys, other, "import", str(foreign), "--allow-other-repo")
         assert code == 0, out
@@ -1527,7 +1541,7 @@ class Test_import_:
         z = zipped(
             tmp_path / "z.zip",
             {"format": 1, "remote": "", **fields},
-            [("iadd/threads/w/design.md", "# w\n")],
+            [("agentory/threads/w/design.md", "# w\n")],
         )
         code, out = said(capsys, other, "import", str(z), *flags)
         assert code == 0, out
@@ -1598,12 +1612,14 @@ class Test_import_:
         before = tree(other)
         z = tmp_path / "big.zip"
         if bound == "members":
-            many = [(f"iadd/m{n}.md", "") for n in range(IADD.MEMBER_COUNT_LIMIT + 1)]
+            many = [
+                (f"agentory/m{n}.md", "") for n in range(IADD.MEMBER_COUNT_LIMIT + 1)
+            ]
             zipped(z, {"format": 1, "remote": ""}, many)
             want = "more than the 20000 this command will write."
         elif bound == "bytes":
-            zipped(z, {"format": 1, "remote": ""}, [("iadd/m.md", "m")])
-            declare(z, "iadd/m.md", IADD.ARCHIVE_LIMIT + 1)
+            zipped(z, {"format": 1, "remote": ""}, [("agentory/m.md", "m")])
+            declare(z, "agentory/m.md", IADD.ARCHIVE_LIMIT + 1)
             want = f"more than the {IADD.ARCHIVE_LIMIT} this command will read."
         else:
             name = (
@@ -1615,7 +1631,7 @@ class Test_import_:
                 archive.writestr(
                     "manifest.json", json.dumps({"format": 1, "remote": ""})
                 )
-                archive.writestr("iadd/m.md", "m")
+                archive.writestr("agentory/m.md", "m")
             declare(z, name, IADD.MEMBER_LIMIT + 1)
             want = f"bytes for manifest.json, more than the {IADD.MEMBER_LIMIT} a manifest may hold."
         code, out = said(capsys, other, "import", str(z))
@@ -1638,8 +1654,8 @@ class Test_import_:
             archive.writestr(
                 "manifest.json", json.dumps({"format": 1, "remote": "MARKER"})
             )
-            archive.writestr("iadd/first.md", "first\n")
-            archive.writestr("iadd/second.md", "second\n")
+            archive.writestr("agentory/first.md", "first\n")
+            archive.writestr("agentory/second.md", "second\n")
         raw = bytearray(z.read_bytes())
         if damage == "a method with no decompressor":
             for signature, at in ((b"PK\x03\x04", 8), (b"PK\x01\x02", 10)):
@@ -1672,7 +1688,7 @@ class Test_import_:
     ):
         other = at_top(take("other"), HTTPS)
         before = tree(other)
-        z = zipped(tmp_path / "odd.zip", manifest, [("iadd/follow-up.md", "x")])
+        z = zipped(tmp_path / "odd.zip", manifest, [("agentory/follow-up.md", "x")])
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
         assert want in out, out
@@ -1693,12 +1709,12 @@ class Test_import_:
     @pytest.mark.parametrize(
         "name",
         [
-            "iadd/../../escape.md",
+            "agentory/../../escape.md",
             "/etc/passwd",
-            "iadd/a\\..\\..\\b.md",
-            "iadd/nested/../../../out.md",
+            "agentory/a\\..\\..\\b.md",
+            "agentory/nested/../../../out.md",
             "elsewhere/x.md",
-            "iadd/leak.md",
+            "agentory/leak.md",
         ],
     )
     def test_refuses_a_member_it_has_no_place_for_and_writes_none(
@@ -1709,9 +1725,9 @@ class Test_import_:
         hostile = tmp_path / "hostile.zip"
         with zipfile.ZipFile(hostile, "w") as archive:
             archive.writestr("manifest.json", json.dumps({"format": 1, "remote": ""}))
-            archive.writestr("iadd/first.md", "first\n")
+            archive.writestr("agentory/first.md", "first\n")
             info = zipfile.ZipInfo(name)
-            if name == "iadd/leak.md":
+            if name == "agentory/leak.md":
                 info.external_attr = (0o120777 << 16) | 0o200000
             archive.writestr(info, "../iadd-last-export.json")
         code, out = said(capsys, other, "import", str(hostile))
@@ -1747,7 +1763,7 @@ class Test_import_:
                 manifest["remote"] = None
             elif side == "the zip, as a number":
                 manifest["remote"] = 42
-            path = zipped(tmp_path / "silent.zip", manifest, [("iadd/a.md", "a")])
+            path = zipped(tmp_path / "silent.zip", manifest, [("agentory/a.md", "a")])
         if side.startswith("this clone") or side == "both":
             unanswered(
                 monkeypatch, CONFIG_GET_REMOTE, (128, "", "fatal: bad config line 9\n")
@@ -1795,7 +1811,7 @@ class Test_import_:
         self, take, at_top, exported, capsys, into
     ):
         other = at_top(take("other"), HTTPS)
-        mark_root(other / "iadd")
+        mark_root(other / "agentory")
         before = tree(other)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 1, out
@@ -1813,7 +1829,7 @@ class Test_import_:
         symlink_or_skip(str(target), os.path.join(roots(other)[1], name))
         code, out = said(capsys, other, "import", str(exported))
         assert code == 1, out
-        assert out.startswith(f"iadd/{name} in this clone is a symbolic link, and ")
+        assert out.startswith(f"agentory/{name} in this clone is a symbolic link, and ")
         assert list(outside.iterdir()) == []
 
     def test_accepts_a_broken_link_at_the_fallback_name_by_taking_the_next(
@@ -1837,9 +1853,9 @@ class Test_import_:
     ):
         other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
-        members = [("iadd/a/b.md", "under it\n"), ("iadd/zzz.md", "after it\n")]
+        members = [("agentory/a/b.md", "under it\n"), ("agentory/zzz.md", "after it\n")]
         if held == "in the zip":
-            members.insert(0, ("iadd/a", "a file\n"))
+            members.insert(0, ("agentory/a", "a file\n"))
         elif held == "a file here":
             write(local, "a", "already a file\n")
         else:
@@ -1849,10 +1865,10 @@ class Test_import_:
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
         if held == "in the zip":
-            assert "names iadd/a as a file" in out
+            assert "names agentory/a as a file" in out
             assert "Ask the machine that exported it for another zip." in out
         else:
-            assert out.startswith("iadd/a in this clone is not a directory")
+            assert out.startswith("agentory/a in this clone is not a directory")
         assert tree(other) == before
 
     def test_refuses_a_directory_it_cannot_write_into_with_a_line_of_its_own(
@@ -1864,7 +1880,7 @@ class Test_import_:
         z = zipped(
             tmp_path / "into.zip",
             {"format": 1, "remote": ""},
-            [("iadd/threads/x.md", "x")],
+            [("agentory/threads/x.md", "x")],
         )
         os.chmod(shut, 0o555)
         try:
@@ -1877,12 +1893,12 @@ class Test_import_:
         assert out.startswith("the copy stopped part-way: ")
         assert "run this again" in out
 
-    def test_s6_a_copy_travels_as_iadd_and_lands_in_the_local_root_beside_the_package(
+    def test_s6_a_copy_travels_as_agentory_and_lands_in_the_local_root_beside_the_package(
         self, package, capsys, tmp_path
     ):
-        """`iadd export` from the local root writes members named `iadd/…`, the
+        """`iadd export` from the local root writes members named `agentory/…`, the
         archive's own name. In a fresh clone `iadd import --into shared` writes
-        nothing into the package's `iadd/` (#1651), and `iadd import` writes
+        nothing into the package's `agentory/` (#1651), and `iadd import` writes
         them under the local root, leaving the package as it was."""
         # The bytes as `write` put them on disk, with this platform's line ends,
         # which the export and the import must carry unchanged.
@@ -1897,25 +1913,25 @@ class Test_import_:
         assert names == sorted(
             [
                 "manifest.json",
-                "iadd/README.md",
-                *(f"iadd/{rel}" for rel in ROOT_RECORDS),
+                "agentory/README.md",
+                *(f"agentory/{rel}" for rel in ROOT_RECORDS),
             ]
         )
 
         clone = tmp_path / "clone"
         git(tmp_path, "clone", "-q", str(package), str(clone))
         git(clone, "remote", "set-url", "origin", REMOTE)
-        before = files_under(clone / "iadd")
+        before = files_under(clone / "agentory")
         code, out = said(capsys, clone, "import", str(archive), "--into", "shared")
         assert code == 1, out
         assert "is the project's own and not a root" in out, out
-        assert files_under(clone / "iadd") == before
+        assert files_under(clone / "agentory") == before
         code, out = said(capsys, clone, "import", str(archive))
         assert code == 0, out
-        landed = files_under(clone / ".git" / "iadd")
+        landed = files_under(clone / ".git" / "agentory")
         for rel in ROOT_RECORDS:
             assert landed[rel] == written[rel], rel
-        assert files_under(clone / "iadd") == before
+        assert files_under(clone / "agentory") == before
 
 
 class Test_write_members:
@@ -1925,9 +1941,9 @@ class Test_write_members:
         z = tmp_path / "z.zip"
         with zipfile.ZipFile(z, "w") as archive:
             archive.writestr("manifest.json", "{}")
-            archive.writestr(zipfile.ZipInfo("iadd/threads/"), "")
-            archive.writestr("iadd/threads/w/design.md", "w\n")
-            archive.writestr("iadd/follow-up.md", "theirs\n")
+            archive.writestr(zipfile.ZipInfo("agentory/threads/"), "")
+            archive.writestr("agentory/threads/w/design.md", "w\n")
+            archive.writestr("agentory/follow-up.md", "theirs\n")
         with opened(z) as archive:
             counts, collisions, refused = IADD.write_members(archive, str(into))
         assert counts == {"added": 1, "identical": 0, "collided": 1}
@@ -1953,7 +1969,9 @@ class Test_write_members:
             IADD, "place", lambda destination, data: (destination, IADD.ADDED)
         )
         without_o_excl(monkeypatch)
-        z = zipped(tmp_path / "z.zip", None, [("iadd/follow-up.md", "FROM THE ZIP")])
+        z = zipped(
+            tmp_path / "z.zip", None, [("agentory/follow-up.md", "FROM THE ZIP")]
+        )
         with opened(z) as archive:
             counts, collisions, refused = IADD.write_members(archive, str(into))
         assert list(outside.iterdir()) == []
@@ -2106,19 +2124,19 @@ class Test_write_mode:
 class Test_porcelain:
     def test_accepts_a_tree_as_the_lines_under_the_paths_asked(self, take):
         repo = take("shared")
-        write(repo, "iadd/follow-up.md", "# changed\n")
+        write(repo, "agentory/follow-up.md", "# changed\n")
         write(repo, "f2.txt", "outside\n")
-        assert IADD.porcelain(str(repo), "iadd") == [" M iadd/follow-up.md"]
+        assert IADD.porcelain(str(repo), "agentory") == [" M agentory/follow-up.md"]
         assert IADD.porcelain(str(repo), "f.txt") == []
 
     def test_refuses_a_git_that_cannot_answer_as_a_line_of_its_own(
         self, tmp_path, monkeypatch
     ):
-        (line,) = IADD.porcelain(str(tmp_path), "iadd")
+        (line,) = IADD.porcelain(str(tmp_path), "agentory")
         assert line.startswith("fatal: ")
-        unanswered(monkeypatch, ["--", "iadd"], OSError("boom"))
-        assert IADD.porcelain(str(tmp_path), "iadd") == [
-            "`git status --porcelain -- iadd` could not be run: boom"
+        unanswered(monkeypatch, ["--", "agentory"], OSError("boom"))
+        assert IADD.porcelain(str(tmp_path), "agentory") == [
+            "`git status --porcelain -- agentory` could not be run: boom"
         ]
 
 
@@ -2126,10 +2144,10 @@ class Test_indexed:
     @pytest.mark.parametrize(
         "line, moved",
         [
-            ("?? iadd/x.md", False),
-            (" M iadd/config.json", False),
-            ("D  iadd/x.md", True),
-            (" D iadd/x.md", True),
+            ("?? agentory/x.md", False),
+            (" M agentory/config.json", False),
+            ("D  agentory/x.md", True),
+            (" D agentory/x.md", True),
         ],
         ids=[
             "untracked",
@@ -2139,17 +2157,17 @@ class Test_indexed:
         ],
     )
     def test_accepts_what_the_index_cannot_lose(self, line, moved):
-        assert not IADD.indexed(line, "iadd", moved=moved)
+        assert not IADD.indexed(line, "agentory", moved=moved)
 
     @pytest.mark.parametrize(
         "line, moved",
         [
-            (" M iadd/ledger.md", False),
-            ("M  iadd/config.json", False),
-            ("MM iadd/config.json", False),
-            (" M iadd/config.md", False),
-            ("D  iadd/x.md", False),
-            ("AD iadd/x.md", True),
+            (" M agentory/ledger.md", False),
+            ("M  agentory/config.json", False),
+            ("MM agentory/config.json", False),
+            (" M agentory/config.md", False),
+            ("D  agentory/x.md", False),
+            ("AD agentory/x.md", True),
             ("fatal: not a git repository", False),
         ],
         ids=[
@@ -2163,27 +2181,27 @@ class Test_indexed:
         ],
     )
     def test_refuses_what_git_rm_cached_would_drop(self, line, moved):
-        assert IADD.indexed(line, "iadd", moved=moved)
+        assert IADD.indexed(line, "agentory", moved=moved)
 
 
 class Test_tracked:
     def test_accepts_a_path_git_tracks_something_under(self, _worlds):
-        assert IADD.tracked(str(_worlds / "shared"), "iadd")
+        assert IADD.tracked(str(_worlds / "shared"), "agentory")
 
     def test_refuses_a_path_git_tracks_nothing_under_or_cannot_read(
         self, _worlds, tmp_path
     ):
         assert not IADD.tracked(str(_worlds / "shared"), "nothing-here")
-        assert not IADD.tracked(str(tmp_path), "iadd")
+        assert not IADD.tracked(str(tmp_path), "agentory")
 
     def test_refuses_a_git_that_did_not_answer_as_nothing_tracked(
         self, _worlds, monkeypatch
     ):
-        unanswered(monkeypatch, [LS_FILES, "-z", "--", "iadd"], TIMED_OUT)
+        unanswered(monkeypatch, [LS_FILES, "-z", "--", "agentory"], TIMED_OUT)
         with pytest.raises(IADD.gitcmd.Unrun) as caught:
-            IADD.tracked(str(_worlds / "shared"), "iadd")
+            IADD.tracked(str(_worlds / "shared"), "agentory")
         assert caught.value.line == (
-            "`git ls-files -z -- iadd` did not finish within 60 seconds"
+            "`git ls-files -z -- agentory` did not finish within 60 seconds"
         )
 
 
@@ -2339,7 +2357,7 @@ class Test_install_workflow:
         "shape, kind",
         [
             ("no shared root", "no-root"),
-            ("a project's own iadd", "no-root"),
+            ("a project's own agentory", "no-root"),
             ("a file there", "kept"),
             ("no version", "no-version"),
             ("no template", "unreadable"),
@@ -2350,7 +2368,7 @@ class Test_install_workflow:
     def test_refuses_to_overwrite_or_to_write_what_it_cannot_pin_or_stage(
         self, take, tmp_path, monkeypatch, shape, kind
     ):
-        no_root = ("no shared root", "a project's own iadd")
+        no_root = ("no shared root", "a project's own agentory")
         repo = take("local" if shape in no_root else "shared")
         path = os.path.join(str(repo), WORKFLOW_PATH)
         if shape == "a file there":
@@ -2358,8 +2376,8 @@ class Test_install_workflow:
         elif shape == "an ignored directory":
             write(repo, ".gitignore", ".github/\n")
             commit_as_e(repo, "ignore the workflow's directory")
-        elif shape == "a project's own iadd":
-            write(repo, "iadd/README.md", "# iadd\n\nThis package's notes.\n")
+        elif shape == "a project's own agentory":
+            write(repo, "agentory/README.md", "# agentory\n\nThis package's notes.\n")
         elif shape not in no_root:
             version, template = '{"version": "1.2.3"}', "--branch v<version>\n"
             if shape == "no version":
@@ -2451,13 +2469,13 @@ class Test_remove_workflow:
 
 class Test_say_report:
     def where(self, tmp_path):
-        return str(tmp_path), str(tmp_path / ".git" / "iadd")
+        return str(tmp_path), str(tmp_path / ".git" / "agentory")
 
     def test_accepts_a_mode_row_with_the_folder_and_the_file(self, tmp_path, capsys):
         repo, home = self.where(tmp_path)
         IADD.say_report(repo, home, "", "", "local", "mode", "local")
         assert capsys.readouterr().out == (
-            "  folder: local  .git/iadd/\n  key:    local  .git/iadd/config.json\n"
+            "  folder: local  .git/agentory/\n  key:    local  .git/agentory/config.json\n"
         )
 
     @pytest.mark.parametrize(
@@ -2468,8 +2486,8 @@ class Test_say_report:
                 "remote",
                 "  key:    remote — which is not a mode. The two values are `local` and `shared`.\n",
             ),
-            ("refused", "why", "  key:    refused  (.git/iadd/config.json)\n"),
-            ("none", "", "  key:    not declared  (.git/iadd/config.json)\n"),
+            ("refused", "why", "  key:    refused  (.git/agentory/config.json)\n"),
+            ("none", "", "  key:    not declared  (.git/agentory/config.json)\n"),
         ],
     )
     def test_refuses_a_row_that_names_no_mode_by_saying_which(
@@ -2477,7 +2495,7 @@ class Test_say_report:
     ):
         repo, home = self.where(tmp_path)
         IADD.say_report(repo, home, "", "", "local", kind, value)
-        assert capsys.readouterr().out == "  folder: local  .git/iadd/\n" + row
+        assert capsys.readouterr().out == "  folder: local  .git/agentory/\n" + row
 
 
 class Test_mode_refusal:
@@ -2617,11 +2635,11 @@ class Test_mode_report:
         self, take, at_top, capsys, shape, check
     ):
         repo = at_top(take("shared"))
-        path = os.path.join(str(repo), "iadd", "config.json")
+        path = os.path.join(str(repo), "agentory", "config.json")
         if shape == "a directory":
             os.mkdir(path)
         elif shape == "a broken link":
-            symlink_or_skip(os.path.join(str(repo), "iadd", "nowhere.json"), path)
+            symlink_or_skip(os.path.join(str(repo), "agentory", "nowhere.json"), path)
         else:
             config_at(repo, shape)
         before = tree(repo)
@@ -2629,7 +2647,7 @@ class Test_mode_report:
         assert code == 2, out
         assert (
             "  folder: shared " in out
-            and "  key:    refused  (iadd/config.json)\n" in out
+            and "  key:    refused  (agentory/config.json)\n" in out
         )
         assert out.endswith(". Nothing was written.\n"), out
         assert tree(repo) == before
@@ -2656,20 +2674,24 @@ class Test_gitlinks_under_root:
     @pytest.mark.parametrize("world", ["shared", "beside"])
     def test_accepts_a_root_holding_no_submodule(self, _worlds, take, world):
         repo = _worlds / world if world == "shared" else take(world)
-        assert IADD.gitlinks_under_root(str(repo), "iadd") == ([], "")
+        assert IADD.gitlinks_under_root(str(repo), "agentory") == ([], "")
 
     def test_refuses_a_submodule_under_the_root_and_a_git_that_cannot_answer(
         self, take, monkeypatch
     ):
         repo = take("under")
-        (line,), why = IADD.gitlinks_under_root(str(repo), "iadd")
+        (line,), why = IADD.gitlinks_under_root(str(repo), "agentory")
         assert (
-            line.startswith("160000 ") and line.endswith("\tiadd/vendor") and why == ""
+            line.startswith("160000 ")
+            and line.endswith("\tagentory/vendor")
+            and why == ""
         )
-        unanswered(monkeypatch, ["--stage", "--", "iadd"], OSError("git is not here"))
-        assert IADD.gitlinks_under_root(str(repo), "iadd") == (
+        unanswered(
+            monkeypatch, ["--stage", "--", "agentory"], OSError("git is not here")
+        )
+        assert IADD.gitlinks_under_root(str(repo), "agentory") == (
             None,
-            "`git ls-files --stage -- iadd` could not be run: git is not here",
+            "`git ls-files --stage -- agentory` could not be run: git is not here",
         )
 
 
@@ -2706,7 +2728,7 @@ class Test_refusals:
             config_at(repo, "{}\n")
             commit_as_e(repo, "a config with no Mode key")
             config_at(repo, mode_row("shared"))
-            write(repo, "iadd/untracked.md", "# a draft\n")
+            write(repo, "agentory/untracked.md", "# a draft\n")
         elif shape == "moved by hand":
             shared, local = roots(repo)
             os.rename(shared, local)
@@ -2720,11 +2742,11 @@ class Test_refusals:
             ("two rows", NAMES_BOTH_KEYS),
             (
                 "a git that cannot answer",
-                "whether there is a submodule under iadd/ could not be read: `git ls-files --stage -- iadd` could not be run: git is not here.",
+                "whether there is a submodule under agentory/ could not be read: `git ls-files --stage -- agentory` could not be run: git is not here.",
             ),
             (
                 "a submodule under the root",
-                "there is a submodule under iadd/:\n  160000 ",
+                "there is a submodule under agentory/:\n  160000 ",
             ),
             (
                 "a file at the destination",
@@ -2736,11 +2758,11 @@ class Test_refusals:
             ),
             (
                 "a staged edit",
-                "the tree is not clean under the path this would stage:\n  M  iadd/follow-up.md\n",
+                "the tree is not clean under the path this would stage:\n  M  agentory/follow-up.md\n",
             ),
             (
                 "a staged deletion",
-                "the tree is not clean under the path this would stage:\n  D  iadd/follow-up.md\n",
+                "the tree is not clean under the path this would stage:\n  D  agentory/follow-up.md\n",
             ),
             (
                 "a config that is a link",
@@ -2759,20 +2781,20 @@ class Test_refusals:
             config_at(repo, TWO_MODE_KEYS)
         elif shape == "a git that cannot answer":
             unanswered(
-                monkeypatch, ["--stage", "--", "iadd"], OSError("git is not here")
+                monkeypatch, ["--stage", "--", "agentory"], OSError("git is not here")
             )
         elif shape == "a file at the destination":
-            write(os.path.dirname(local), "iadd", "not a root\n")
+            write(os.path.dirname(local), "agentory", "not a root\n")
         elif shape == "a broken link at the destination":
             symlink_or_skip(os.path.join(str(repo), "elsewhere"), local)
         elif shape == "a staged edit":
-            write(repo, "iadd/follow-up.md", "# changed\n")
-            git(repo, "add", "--", "iadd/follow-up.md")
+            write(repo, "agentory/follow-up.md", "# changed\n")
+            git(repo, "add", "--", "agentory/follow-up.md")
         elif shape == "a staged deletion":
-            git(repo, "rm", "--quiet", "--", "iadd/follow-up.md")
+            git(repo, "rm", "--quiet", "--", "agentory/follow-up.md")
         elif shape == "a config that is a link":
             symlink_or_skip(
-                os.path.join(str(repo), "iadd", "follow-up.md"),
+                os.path.join(str(repo), "agentory", "follow-up.md"),
                 os.path.join(shared, "config.json"),
             )
         found = refusals_of(
@@ -2792,13 +2814,15 @@ class Test_refusals:
             "move the link and leave the records where they are."
         ]
 
-    def test_refuses_a_projects_own_iadd_as_a_destination_not_as_two_roots(self, take):
-        """An `<repo>/iadd/` whose README does not open with the marker is no
+    def test_refuses_a_projects_own_agentory_as_a_destination_not_as_two_roots(
+        self, take
+    ):
+        """An `<repo>/agentory/` whose README does not open with the marker is no
         second root, so switching to shared is refused for the directory in
         the way, which nothing here overwrites: the root of a repository
-        that keeps an `iadd/` of its own stays local (#1651)."""
+        that keeps an `agentory/` of its own stays local (#1651)."""
         repo = take("local")
-        write(repo, "iadd/README.md", "# iadd\n\nThis package's notes.\n")
+        write(repo, "agentory/README.md", "# agentory\n\nThis package's notes.\n")
         found = refusals_of(repo, "shared")
         assert any("already exists, and nothing here overwrites" in f for f in found)
         assert not any("both roots exist" in f for f in found), found
@@ -2818,7 +2842,9 @@ class Test_switch:
         assert code == 0, out
         assert not os.path.exists(shared)
         assert listed(local) == sorted([*RECORDS, "config.json"])
-        assert all(line.startswith("D  iadd/") for line in status(repo)), status(repo)
+        assert all(line.startswith("D  agentory/") for line in status(repo)), status(
+            repo
+        )
         assert declared_in(repo) == ("mode", "local")
         assert open(workflow, encoding="utf-8").read() == IADD.plugin_workflow()
         assert (
@@ -2872,7 +2898,7 @@ class Test_switch:
         to = f"v{version}" if installed else "the installed release"
         assert (
             f"  .github/workflows/hygiene.yml stays, {here}: a release before "
-            "this one fails every pull request with no iadd/ in the tree. Move "
+            "this one fails every pull request with no agentory/ in the tree. Move "
             f"its `--branch` line to {to}, or run `iadd pr-checks remove`\n"
         ) in out
         assert "read nothing as declared" not in out, out
@@ -2887,12 +2913,12 @@ class Test_switch:
         assert not os.path.exists(local)
         assert listed(shared) == sorted([*RECORDS, "config.json"])
         assert staged(repo).splitlines() == sorted(
-            f"iadd/{rel}" for rel in [*RECORDS, "config.json"]
+            f"agentory/{rel}" for rel in [*RECORDS, "config.json"]
         )
         assert not os.path.lexists(os.path.join(str(repo), WORKFLOW_PATH))
         assert declared_in(repo) == ("mode", "shared")
         assert out.index("history") < out.index("Now commit")
-        assert out.count("`git reset -- :/iadd`") == 2, out
+        assert out.count("`git reset -- :/agentory`") == 2, out
         assert (
             "  no pull-request checks are installed: `iadd pr-checks install` "
             "writes .github/workflows/hygiene.yml\n"
@@ -2916,7 +2942,7 @@ class Test_switch:
         assert all(line.startswith("??") for line in status(repo)), status(repo)
         code, out = said(capsys, repo / "docs", "mode", "local")
         assert code == 0, out
-        assert not (repo / "iadd").exists()
+        assert not (repo / "agentory").exists()
 
     @pytest.mark.parametrize("wanted", ["local", "shared"])
     def test_accepts_a_run_stopped_after_the_move_as_one_to_finish(
@@ -2949,7 +2975,7 @@ class Test_switch:
         )
         if mode == "shared":
             assert (
-                "note: iadd/untracked.md is untracked, so the index cannot lose it"
+                "note: agentory/untracked.md is untracked, so the index cannot lose it"
                 in out
             )
 
@@ -2957,11 +2983,11 @@ class Test_switch:
         self, take, at_top, capsys, tmp_path
     ):
         repo = at_top(take("plain"))
-        holding(repo / "iadd")
+        holding(repo / "agentory")
         git(repo, "worktree", "add", "-q", str(tmp_path / "linked"), "feature/x")
         code, out = said(capsys, repo, "mode", "local")
         assert code == 0, out
-        assert "  nothing under iadd/ was tracked\n" in out
+        assert "  nothing under agentory/ was tracked\n" in out
         assert "is another worktree of this clone" in out and "linked" in out
 
     def test_accepts_a_tracked_config_without_calling_it_untracked(
@@ -2971,7 +2997,7 @@ class Test_switch:
         config_at(repo, "{}\n")
         commit_as_e(repo, "a config with no Mode key")
         assert said(capsys, repo, "mode")[0] == 0
-        assert " M iadd/config.json" in status(repo)
+        assert " M agentory/config.json" in status(repo)
         code, out = said(capsys, repo, "mode", "local")
         assert code == 0, out
         assert "config.json is untracked" not in out
@@ -2980,8 +3006,8 @@ class Test_switch:
         self, take, at_top, capsys
     ):
         repo = at_top(take("shared"))
-        write(repo, "iadd/follow-up.md", "# changed\n")
-        git(repo, "add", "--", "iadd/follow-up.md")
+        write(repo, "agentory/follow-up.md", "# changed\n")
+        git(repo, "add", "--", "agentory/follow-up.md")
         before = snapshot(repo)
         code, out = said(capsys, repo, "mode", "local")
         assert code == 1, out
@@ -3009,15 +3035,15 @@ class Test_switch:
 
     def test_refuses_to_call_a_stage_git_turned_down_staged(self, take, capsys):
         repo = take("local")
-        write(repo, ".gitignore", "iadd/\n")
+        write(repo, ".gitignore", "agentory/\n")
         write(repo, "docs/x.md", "x\n")
         commit_as_e(repo, "an ignore rule")
         code, out = said(capsys, repo / "docs", "mode", "shared")
         assert code == 1, out
-        assert "  iadd/ could NOT be staged: " in out
+        assert "  agentory/ could NOT be staged: " in out
         assert "A commit now would record nothing." in out
-        assert "`git add -f :/iadd` yourself" in out
-        assert "staged iadd/\n" not in out
+        assert "`git add -f :/agentory` yourself" in out
+        assert "staged agentory/\n" not in out
         assert "Now commit." not in out
 
     @pytest.mark.parametrize(
@@ -3026,26 +3052,26 @@ class Test_switch:
             (
                 "shared",
                 "local",
-                ["rm", "-r", "--cached", "--quiet", "--", "iadd"],
+                ["rm", "-r", "--cached", "--quiet", "--", "agentory"],
                 "  the records are still tracked: `git rm -r --cached --quiet "
-                "-- iadd` did not finish within 60 seconds\n",
-                "  Run `git rm -r --cached :/iadd` yourself, or this command again.\n",
+                "-- agentory` did not finish within 60 seconds\n",
+                "  Run `git rm -r --cached :/agentory` yourself, or this command again.\n",
             ),
             (
                 "shared",
                 "local",
-                [LS_FILES, "-z", "--", "iadd"],
-                "  the records are still tracked: `git ls-files -z -- iadd` did "
+                [LS_FILES, "-z", "--", "agentory"],
+                "  the records are still tracked: `git ls-files -z -- agentory` did "
                 "not finish within 60 seconds\n",
-                "  Run `git rm -r --cached :/iadd` yourself, or this command again.\n",
+                "  Run `git rm -r --cached :/agentory` yourself, or this command again.\n",
             ),
             (
                 "local",
                 "shared",
-                ["add", "--", "iadd"],
-                "  iadd/ could NOT be staged: `git add -- iadd` did not finish "
+                ["add", "--", "agentory"],
+                "  agentory/ could NOT be staged: `git add -- agentory` did not finish "
                 "within 60 seconds\n",
-                "`git add -f :/iadd` yourself, or this command again.\n",
+                "`git add -f :/agentory` yourself, or this command again.\n",
             ),
         ],
         ids=["git rm going local", "git ls-files going local", "git add going shared"],
@@ -3095,7 +3121,8 @@ class Test_mode:
         code, out = said(capsys, at_top(take("plain")), "mode", "--check")
         assert code == 0, out
         assert (
-            out == "no iadd/ here, so nothing is declared and nothing can disagree.\n"
+            out
+            == "no agentory/ here, so nothing is declared and nothing can disagree.\n"
         )
 
     @pytest.mark.parametrize("argv", [["mode"], ["mode", "local"]])
@@ -3141,24 +3168,24 @@ class Test_mode:
     def test_s1_first_setup_beside_the_package_keeps_the_root_local(
         self, package, at_top, capsys
     ):
-        """`iadd mode` with no root prints the package's `iadd/` as the shared
-        place and the common directory's `iadd/` as the local one. A root made
+        """`iadd mode` with no root prints the package's `agentory/` as the shared
+        place and the common directory's `agentory/` as the local one. A root made
         at the local place from the template reads as local mode, writes its
         key there, and passes `--check`, and `iadd mode shared` refuses to
         move it over the package, which stays as it was (#1651)."""
         at_top(package)
-        before = files_under(package / "iadd")
+        before = files_under(package / "agentory")
         code, out = said(capsys, package, "mode")
         assert code == 1, out
         places = [line.split()[0] for line in out.splitlines() if "mode)" in line]
         assert places == [
-            os.path.join(str(package), "iadd"),
-            os.path.join(str(package), ".git", "iadd"),
+            os.path.join(str(package), "agentory"),
+            os.path.join(str(package), ".git", "agentory"),
         ], out
 
         os.makedirs(places[1])
         shutil.copyfile(
-            os.path.join(ROOT, "templates", "setup", "iadd-README.md"),
+            os.path.join(ROOT, "templates", "setup", "agentory-README.md"),
             os.path.join(places[1], "README.md"),
         )
         code, out = said(capsys, package, "mode")
@@ -3170,7 +3197,7 @@ class Test_mode:
         code, out = said(capsys, package, "mode", "shared")
         assert code == 1, out
         assert "already exists, and nothing here overwrites" in out, out
-        assert files_under(package / "iadd") == before
+        assert files_under(package / "agentory") == before
 
 
 class Test_pr_checks:
@@ -3183,7 +3210,7 @@ class Test_pr_checks:
         assert said(capsys, repo, "pr-checks") == (
             0,
             "not installed: there is no .github/workflows/hygiene.yml. "
-            "`iadd pr-checks install` writes it where iadd/ is in the tree.\n",
+            "`iadd pr-checks install` writes it where agentory/ is in the tree.\n",
         )
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0, out
@@ -3532,18 +3559,18 @@ class Test_pr_checks:
         assert said_line in out, out
         assert staged(repo) == before
 
-    def test_pr_checks_install_names_iadd_where_no_root_stands_beside_the_package(
+    def test_pr_checks_install_names_agentory_where_no_root_stands_beside_the_package(
         self, take, at_top, capsys
     ):
         """With no root beside the package, `iadd pr-checks install` writes
-        nothing and says that no root stands at `iadd/`, the package's own,
+        nothing and says that no root stands at `agentory/`, the package's own,
         which stands in the tree (#1651). `optin.home_at` reads no root
         there."""
         repo = at_top(beside_the_package(take("plain")))
         assert home_of(repo) == ""
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
-        assert "no root stands at iadd/ in this tree" in out, out
+        assert "no root stands at agentory/ in this tree" in out, out
         assert not (repo / ".github").exists()
 
 

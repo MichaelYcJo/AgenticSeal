@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `iadd:inspector` 
 
 BEGIN PROMPT
 
-Inspection work item `1790000030-inspection-cleared` on branch `feat/inspection-cleared` in this clone, for issue #101 and its pull request: the base is `main` and the item is `iadd/threads/1790000030-inspection-cleared`. There is no tracker and no remote: the issue body is `.git/1790000030-inspection-cleared/issue-101.md` and the pull request body is `.git/1790000030-inspection-cleared/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
+Inspection work item `1790000030-inspection-cleared` on branch `feat/inspection-cleared` in this clone, for issue #101 and its pull request: the base is `main` and the item is `agentory/threads/1790000030-inspection-cleared`. There is no tracker and no remote: the issue body is `.git/1790000030-inspection-cleared/issue-101.md` and the pull request body is `.git/1790000030-inspection-cleared/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
 
 END PROMPT

@@ -7,7 +7,7 @@ own root. Every other directory named `specs` is a REFERENCE ROOT — read when
 a change touches what it describes, cited where it was read, and never moved,
 edited, absorbed or deleted.
 
-`iadd/config.json`'s `Reference specs` key names the reference roots, and with
+`agentory/config.json`'s `Reference specs` key names the reference roots, and with
 no key every directory named `specs` outside the plugin's root is one. The key
 has one reader, `lib/config.py#reference_roots`, and one predicate,
 `lib/config.py#under_reference_root`; every check that would read a
@@ -47,7 +47,7 @@ IADD = load_module(
 # of the removed work item's id, and `tests/skills/test_chain_check.py`'s
 # `Test_changed_routing`, which takes a declaration only under the directory
 # of the work items it is given, and `Test_declared_for_this_branch`, which
-# takes the one under `iadd/threads/` beside a team's `specs/`.
+# takes the one under `agentory/threads/` beside a team's `specs/`.
 
 PREDICATE = "asks lib/config.py#under_reference_root"
 PINNED = "reads the plugin's root under its own directory"
@@ -65,7 +65,7 @@ SHIPPED = {
     "iadd gate": (NO_WALK, "runs the command, chain_check.py and iadd.py mode"),
     "iadd fold": (
         NO_WALK,
-        "reads the policy root, each group its index names, and iadd/config.json",
+        "reads the policy root, each group its index names, and agentory/config.json",
     ),
     "iadd rules": (NO_WALK, "reads the one document it is named and its targets"),
     "iadd mutate": (NO_WALK, "breaks and restores the one file it is named"),
@@ -77,7 +77,7 @@ SHIPPED = {
         NO_WALK,
         "reads a range through git and the one work item it is named",
     ),
-    "iadd": (NOT_A_CHECK, "the mode command, writing iadd/config.json"),
+    "iadd": (NOT_A_CHECK, "the mode command, writing agentory/config.json"),
     "iadd stamp": (
         NOT_A_CHECK,
         "draws the inspector's stamp from a cleared inspection",

@@ -602,14 +602,14 @@ class Test_main:
         with a `from` that takes out a text and leaves the section, excuse
         nothing."""
         gone = doc(rule("check: tests/test_gone.py"))
-        design = "iadd/threads/1-a/frame/design.md"
+        design = "agentory/threads/1-a/frame/design.md"
         removal = "# Design\n\n## Rule changes\n\n- remove\n  file: docs/a.md\n"
         written = {"docs/a.md": gone, design: removal + "  section: The heading\n"}
         code, out = checked(tmp_path, written, capsys)
         assert code == 0, out
         assert (
             "iadd rules: excused: docs/a.md:6: The heading: tests/test_gone.py does "
-            "not exist; iadd/threads/1-a/ removes this section at the settle\n"
+            "not exist; agentory/threads/1-a/ removes this section at the settle\n"
         ) in out, out
         assert (
             "iadd rules: 1 excused in 1 check lines of 1 rule files, and every other "

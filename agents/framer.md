@@ -29,7 +29,7 @@ You build nothing, because a `frame/design.md` written by whoever then builds to
 becomes an account of what got built: no source file, no test, no fixture,
 and no check of the repository's, narrow or broad.
 
-Your writes are three files under `iadd/threads/<work-item-id>/frame/`, each
+Your writes are three files under `agentory/threads/<work-item-id>/frame/`, each
 begun from its template: `frame/design.md` from `templates/records/sdd-design.md`,
 holding the scope, the grounding clauses, the acceptance, what the work
 removes (`## Removes`), the rules it changes (`## Rule changes`), and your
@@ -58,9 +58,9 @@ write, and a write not named here is a write you do not make.
    outranks the ticket and the code alike: the policy root and the
    unsettled designs' `## Rule changes` (*A design states its rule changes*
    below). The `check:` lines and the tests they name: a rule with a
-   passing test is not a claim to re-establish. `iadd/follow-up.md`, whose
+   passing test is not a claim to re-establish. `agentory/follow-up.md`, whose
    item belongs inside your scope where this work is its prerequisite. The
-   earlier work items under `iadd/threads/`, their round records included
+   earlier work items under `agentory/threads/`, their round records included
    where they still stand: a work item's round records leave with its
    directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
@@ -68,7 +68,7 @@ write, and a write not named here is a write you do not make.
    `### Process changes` table, once, of the latest GitHub Release
    (`gh release view --json body --jq .body`) where the repository
    publishes one, and the same heading in the changelog fragments under
-   `iadd/threads/`: what the way of working became, and why, one row per
+   `agentory/threads/`: what the way of working became, and why, one row per
    change in the shape of `templates/records/process.md`. The ticket as
    your spawn hands it: the body as folded, and the orchestrator's line on
    its comments (`skills/implement/orchestration.md` *Orchestrator: the
@@ -78,7 +78,7 @@ write, and a write not named here is a write you do not make.
    line goes into `## Grounding` as the orchestrator's finding, and a spawn
    with no such line is reported, as a missing `routing.md` is. No row of
    `frame/questions.md` asks whether a comment changes the request.
-   `iadd/parity.json` where it is declared, which puts the original between
+   `agentory/parity.json` where it is declared, which puts the original between
    the ticket and the code, and with it `skills/legacy-parity/SKILL.md`
    *The original's coordinates*, whose list of the original's output
    surface your `## Grounding` holds. The release's other open work items

@@ -46,7 +46,7 @@ iadd fold
 The first prints each group of released designs whose rule changes name one
 section, in merge order, and every open row of every released record.
 Before the first, the session running the settle asks the person whether
-any directory besides `iadd/` holds decisions to fold, and passes each one
+any directory besides `agentory/` holds decisions to fold, and passes each one
 named to the first as `--from <dir>`. Where the first lists a document of
 one, the session proposes each document as promote or skip, and the person
 marks the rows in a second question, before the session's first edit.
@@ -67,20 +67,21 @@ request body states each decision with its grounds and lists the defaults
 it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `iadd/threads/`, and each of its commits
+it opens no directory under `agentory/threads/`, and each of its commits
 carries the trailer `IADD-Routing: no work item`, the
 recorded form of the routing question's `direct` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
-in this repository carrying a population floor over `iadd/threads/`.
+in this repository carrying a population floor over `agentory/threads/`.
 
 **Before `iadd settle --apply`, the settling session counts, for each released work item
 routed through the review chain, the findings, the findings that carry a `regression:`
 or `reopens:` line, the findings whose finding block names only paths under
-`iadd/threads/` on its `location:` line, and the rounds, and posts the four numbers as a
-comment on the open `flow-baseline` issue.** `python3 .github/scripts/finding_counts.py`
-prints the four as the table the comment carries, one row per such work item. It reads
-each round record through `skills/code-review/scripts/chain_check.py#record_findings`,
-the reader the pull-request check holds a record to. So a finding is counted once: by
+`agentory/threads/` on its `location:` line, and the rounds, and posts the four numbers
+as a comment on the open `flow-baseline` issue.**
+`python3 .github/scripts/finding_counts.py` prints the four as the table the
+comment carries, one row per such work item. It reads each round record through
+`skills/code-review/scripts/chain_check.py#record_findings`, the reader the
+pull-request check holds a record to. So a finding is counted once: by
 its `### <n>. <symptom>` section that holds a finding block, by that block's
 `regression:` or `reopens:` line, and by that block's `location:` line alone. A close
 block's `location:` names where the fix went, not where the defect shows, and the count
@@ -208,7 +209,7 @@ branch adds after the newest tag `main` holds:
 ```bash
 git diff --name-only --diff-filter=A \
   "$(git describe --tags --abbrev=0 origin/main)..origin/release/vX.Y.Z" \
-  -- 'iadd/threads/*/routing.md'
+  -- 'agentory/threads/*/routing.md'
 ```
 
 For each directory listed, it runs
@@ -298,7 +299,7 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       or the header was not in the note as generated: edited before the job
       reached it, already replaced by an earlier run of the job, published
       without one, or the pull requests moved between the two lists. A
-      value of `iadd/config.json`'s `Release note inspection mark` key other than
+      value of `agentory/config.json`'s `Release note inspection mark` key other than
       `yes` is named on a `::warning::` line of its own, and the results go
       in without the image. That job never fails the release. To mark one
       by hand, from a checkout at the tag,

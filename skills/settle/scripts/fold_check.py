@@ -5,11 +5,11 @@
 `skills/settle/rule-changes.md` gives the policy root one index. This is the
 reader of both.
 
-  iadd fold                      every check, with the values iadd/config.json states
+  iadd fold                      every check, with the values agentory/config.json states
   iadd fold --ceiling N          report documents past N estimated tokens, this run
   iadd fold --root DIR           a repository other than this one
 
-The policy root is `iadd/config.json`'s `Policy root` key, `docs` when absent,
+The policy root is `agentory/config.json`'s `Policy root` key, `docs` when absent,
 read through `lib/config.py#declared_policy_root`. Every check reads its
 top level and each of its groups: a directory directly in it that a row of
 the index names a document of, as `lib/config.py#policy_group` reads the
@@ -29,7 +29,7 @@ is named on exactly one row of its tables, and every row names one.
 document is true, or whether two contradict each other, stays review's.
 
 **It sets no value.** The repository states the values as keys of
-`iadd/config.json`, read through `lib/config.py#config_value`, and
+`agentory/config.json`, read through `lib/config.py#config_value`, and
 `templates/setup/config.md` *The fold's values* states each key once. An
 absent key means *not declared*, as every optional key of that file does:
 the check it governs is not run, and the output says so in one line rather
@@ -88,7 +88,7 @@ console = sibling.load("lib/console.py")
 
 INDEX = "README.md"
 
-# The `iadd/config.json` key this reads beside `Policy root`, which
+# The `agentory/config.json` key this reads beside `Policy root`, which
 # `lib/config.py#POLICY_KEY` names; each is optional.
 CEILING_KEY = "Document token ceiling"
 WHOLE = re.compile(r"[0-9]+")
@@ -237,7 +237,7 @@ def optin():
 
 
 def located(root):
-    """`(home, where)`: the `iadd/` root of the repository at `root`, or ""
+    """`(home, where)`: the `agentory/` root of the repository at `root`, or ""
     where it has none, and the words that name where its keys were read.
 
     Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
@@ -252,19 +252,19 @@ def located(root):
     if resolver.opted_out(common):
         return "", (
             f"{root}, which has opted out — `{resolver.SCRATCH}` is under its "
-            "git directory, so its iadd/config.json is not read"
+            "git directory, so its agentory/config.json is not read"
         )
-    return "", f"{root}, which has no iadd/ root at either place"
+    return "", f"{root}, which has no agentory/ root at either place"
 
 
-def iadd_home(root):
-    """The `iadd/` root of the repository at `root`, or "" where it has none
+def agentory_home(root):
+    """The `agentory/` root of the repository at `root`, or "" where it has none
     or opted out."""
     return located(root)[0]
 
 
 def config_reader():
-    """`lib/config.py`, the one reader of `iadd/config.json`, or exit 2."""
+    """`lib/config.py`, the one reader of `agentory/config.json`, or exit 2."""
     return sibling.load(CONFIG_READER)
 
 
@@ -346,7 +346,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="iadd fold",
         description="Hold the policy root's documents to one read and one "
-        "index, with the values iadd/config.json states.",
+        "index, with the values agentory/config.json states.",
     )
     ap.add_argument("--root", help="the repository to read (default: cwd)")
     ap.add_argument(
@@ -369,7 +369,7 @@ def main(argv=None):
         # Typed anywhere inside a repository, the command reads that
         # repository, the way `iadd.py` and `chain_check.py` resolve theirs.
         # Read from the directory it was typed in, a subdirectory has no
-        # `iadd/` and no `docs/`, and the run would pass having checked
+        # `agentory/` and no `docs/`, and the run would pass having checked
         # nothing.
         root = optin().repo_root(root) or root
     home, where = located(root)

@@ -12,7 +12,7 @@ one context a release cannot replace.
 What it does, in order, from the repository root:
 
   1. the repository's own broad command — the `Broad gate` key of
-     `iadd/config.json`, one shell command line the repository wrote for
+     `agentory/config.json`, one shell command line the repository wrote for
      itself. **The key is refused three ways, and all three are exit 2 with
      nothing run**: no key at all, because a run over a command nobody
      chose is the counterfeit `verify` names; a config that will not read,
@@ -137,7 +137,7 @@ import tempfile
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
 # loaded through `lib/sibling.py` the way `chain_check.py` loads
-# `lib/routing.py`: it is the one reader of `iadd/config.json`, and a second
+# `lib/routing.py`: it is the one reader of `agentory/config.json`, and a second
 # reader would answer a different question about the same file. The modules
 # loaded are named as `lib/sibling.py#load` names them.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -582,11 +582,11 @@ def resolve_base(root, given):
     return Base(given, given_commit, given, given_commit)
 
 
-def iadd_home(root):
+def agentory_home(root):
     """The shared place `optin.home_paths` gives where it is the root, else
-    `<git-common-dir>/iadd/`, else None — the places every `iadd/…` path in
+    `<git-common-dir>/agentory/`, else None — the places every `agentory/…` path in
     this plugin resolves to (contract rule 11), read in that order. Each is
-    the root only where `lib/optin.py#marked` finds the marker, so an `iadd/`
+    the root only where `lib/optin.py#marked` finds the marker, so an `agentory/`
     the project keeps for itself is never read for a command. The answer is
     `lib/optin.py#marked_home`'s; the scratch opt-out is not read here,
     because a throwaway repository still runs its broad command when
@@ -1949,13 +1949,13 @@ def gate(args, ascii_marks=False):
             f"iadd gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
         )
-    home = iadd_home(root)
+    home = agentory_home(root)
     if home is None:
         # The two places as `optin.home_paths` gives them, as `iadd mode`
         # prints them.
         shared, local = sibling.load(OPTIN).home_paths(root)
         raise Refused(
-            f"iadd gate: {root} has no iadd/ root at either place a root lives "
+            f"iadd gate: {root} has no agentory/ root at either place a root lives "
             f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
             "this repository is not opted in, and there is no config to read a "
             "command from. Nothing ran"

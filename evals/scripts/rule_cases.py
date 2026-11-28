@@ -2,7 +2,7 @@
 """Generate the fixture cases: a fixture repository per case, graded on
 outcome only.
 
-Each case is a small stdlib Python project opted into IADD (`iadd/`
+Each case is a small stdlib Python project opted into IADD (`agentory/`
 with its marker and a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
 graders read files and tool calls, never a judge, and each one asks
@@ -195,10 +195,10 @@ def base_project(item, branch, planning, implementation, extra_files=None):
         ),
         "README.md": "# textutil\n\nSmall text helpers.\n",
         "CONTRIBUTING.md": CONTRIBUTING,
-        # The marker is what makes `iadd/` the plugin's root to every gate.
-        "iadd/README.md": optin.MARKER + "\n",
-        "iadd/config.json": CONFIG,
-        f"iadd/threads/{item}/routing.md": routing(
+        # The marker is what makes `agentory/` the plugin's root to every gate.
+        "agentory/README.md": optin.MARKER + "\n",
+        "agentory/config.json": CONFIG,
+        f"agentory/threads/{item}/routing.md": routing(
             item, branch, planning, implementation
         ),
         **(extra_files or {}),
@@ -276,9 +276,9 @@ def proofer_case():
 """
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
         write(
-            f"iadd/threads/{item}/frame/plan.md",
+            f"agentory/threads/{item}/frame/plan.md",
             one_phase_plan("shout_twice", "`shout_twice(text)` in `src/textutil.py`"),
         ),
         "git add -A",
@@ -292,7 +292,7 @@ def proofer_case():
         "git add -A",
         f"{BY} 'feat: shout_twice'",
     ]
-    report = f"iadd/threads/{item}/trail/rounds/round-1.md"
+    report = f"agentory/threads/{item}/trail/rounds/round-1.md"
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
@@ -376,8 +376,8 @@ def crafter_case(index, slug, signature, rule, example):
     plan = one_phase_plan(name, f"`{signature}` in `src/textutil.py` and its case")
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
-        write(f"iadd/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: {name}'",
     ]
@@ -423,7 +423,7 @@ def crafter_closing(item):
             "phase-record",
             "The phase closes with its `trail/phases/phase-1.md`, which the next phase reads.",
             type="file_exists",
-            path=f"iadd/threads/{item}/trail/phases/phase-1.md",
+            path=f"agentory/threads/{item}/trail/phases/phase-1.md",
         ),
         shape_tool(
             "committed",
@@ -484,8 +484,8 @@ What it returns does not change.
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
         write("README.md", RENAME_README),
-        write(f"iadd/threads/{item}/frame/design.md", spec + MARK),
-        write(f"iadd/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: exclaim'",
     ]
@@ -531,7 +531,7 @@ What it returns does not change.
         behaviour.report_regex(
             "shape",
             "proved-by",
-            f"iadd/threads/{item}/trail/phases/phase-1.md",
+            f"agentory/threads/{item}/trail/phases/phase-1.md",
             r"test_(?:shout|exclaim)",
             "The phase record names the case that proved the rename.",
         ),
@@ -693,7 +693,7 @@ def framer_case(index, slug, issue, extra=None, files=None):
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "crafter", files)
-    folder = f"iadd/threads/{item}"
+    folder = f"agentory/threads/{item}"
     number = 100 + index
     spawn = (
         f"Frame issue #{number} as work item `{item}`, on branch `{branch}` in this clone; "
@@ -902,10 +902,10 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
     so only the record's staleness can make its verdict `withheld`."""
     item = f"1790000030-inspection-{slug}"
     branch = f"feat/inspection-{slug}"
-    folder = f"iadd/threads/{item}"
+    folder = f"agentory/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
-        item, branch, "framer", "crafter", {"iadd/config.json": INSPECTOR_CONFIG}
+        item, branch, "framer", "crafter", {"agentory/config.json": INSPECTOR_CONFIG}
     )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"

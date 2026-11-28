@@ -47,7 +47,7 @@ tables = load_lib_module("tables.py", "iadd_tables_for_liveness")
 WORK_ITEM = "1700000001-alpha"
 # One ledger row, spelled as a table row so every reader reads the same line.
 ROW = (
-    f'| a claim | `iadd/threads/{WORK_ITEM}/frame/design.md#"# alpha"@abcdef12` '
+    f'| a claim | `agentory/threads/{WORK_ITEM}/frame/design.md#"# alpha"@abcdef12` '
     "| read | 2026-01-01 | |"
 )
 

@@ -1,7 +1,7 @@
 # implement, the bootstrap
 
 This file is the orchestrator's, read before the first edit only where no
-`iadd/` root carrying the marker stands yet at any of the places the opening
+`agentory/` root carrying the marker stands yet at any of the places the opening
 paragraph of `skills/core/SKILL.md` names. It creates the root, asks where it
 lands and whether the project ports an original, and then the orchestrator
 goes back to `skills/implement/orchestration.md` for the routing question.
@@ -11,16 +11,16 @@ goes back to `skills/implement/orchestration.md` for the routing question.
 When a root or file this skill needs does not exist, the orchestrator creates
 it from `templates/` in this plugin and continues. In particular:
 
-- `iadd/README.md`, which says what the root holds and names the section of
+- `agentory/README.md`, which says what the root holds and names the section of
   `skills/implement/SKILL.md` that states the export rules. Its first line
   is the marker the gates read, so the file is copied from
-  `templates/setup/iadd-README.md` as it stands.
+  `templates/setup/agentory-README.md` as it stands.
 - **Not** policy documents. A repository that has none has none; judge from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
   project's documentation habit, and one field's vocabulary, on every
   repository this plugin touches.
 
-**When no `iadd/` whose `README.md` opens with the marker exists at either
+**When no `agentory/` whose `README.md` opens with the marker exists at either
 place, the orchestrator asks once, in the one call step 1 states, before
 creating anything, then does two more things before continuing.**
 Creating the root is what opts the repository in: from the next command on,
@@ -34,12 +34,12 @@ codebase, are asked at all. Before it asks, the orchestrator runs
 the shared place and the local place, both from `lib/optin.py#home_paths`.
 A shared answer creates the root at the shared place it printed.
 
-**An `<repo>/iadd/` whose `README.md` does not open with the marker is the
+**An `<repo>/agentory/` whose `README.md` does not open with the marker is the
 project's own.** The marker is the first line of
-`templates/setup/iadd-README.md`, and a package or a tool can keep a directory
-named `iadd` for itself. The orchestrator writes nothing into it and offers
+`templates/setup/agentory-README.md`, and a package or a tool can keep a directory
+named `agentory` for itself. The orchestrator writes nothing into it and offers
 neither shared option. The root goes under the git directory, at
-`$(git rev-parse --git-common-dir)/iadd/`, as the local option below
+`$(git rev-parse --git-common-dir)/agentory/`, as the local option below
 creates it, and the orchestrator says so in one line:
 *"`<the shared place>` is this project's own, so the plugin keeps its root
 under the git directory, in local mode"*. The one call of step 1 then
@@ -51,7 +51,7 @@ carries the `Broad gate` question and the two language questions.
    this order:
 
    - **shared, records only** (the default, listed first) creates
-     `<repo>/iadd/` in the tree, at the shared place `iadd mode` prints; the
+     `<repo>/agentory/` in the tree, at the shared place `iadd mode` prints; the
      routing commit made before the first edit carries it. It writes
      nothing under `.github/`, so nothing it installs can stop a teammate's
      pull request.
@@ -63,7 +63,7 @@ carries the `Broad gate` question and the two language questions.
      stages it, so the routing commit carries it too. An existing file is
      never overwritten, and the orchestrator relays the line the command
      prints when it leaves one alone.
-   - **local** creates `$(git rev-parse --git-common-dir)/iadd/`, installs
+   - **local** creates `$(git rev-parse --git-common-dir)/agentory/`, installs
      nothing, and touches nothing in the tree. The path is spelled through
      the common git directory rather than through `.git`, which is a file in
      a linked worktree; the root lands beside the stamp's queue, shared by
@@ -79,7 +79,7 @@ carries the `Broad gate` question and the two language questions.
 
    **The answer is not a door that shuts.** `iadd mode` reports where the
    root is, and `iadd mode local` or `iadd mode shared` moves it, writing the
-   mode into `iadd/config.json` on the way and leaving `.github/` alone.
+   mode into `agentory/config.json` on the way and leaving `.github/` alone.
    `iadd pr-checks` reports whether the checks are installed, and
    `iadd pr-checks install` and `iadd pr-checks remove` put them in and take
    them out. The orchestrator says so in one line when it creates the root,
@@ -197,7 +197,7 @@ later**: it shows every key with its value and routes a change to whatever
 owns that key. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.
 
-Ask only here. A repository that has an `iadd/` carrying the marker at one of
+Ask only here. A repository that has an `agentory/` carrying the marker at one of
 the places the opening paragraph of `skills/core/SKILL.md` names has been
 through this: the mode is read from where the folder is, and asking again is the
 nagging this plugin exists to avoid. The two language keys are the one

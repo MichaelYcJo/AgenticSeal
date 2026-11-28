@@ -85,7 +85,7 @@ APPLIES_THE_SHARED_GUARD = {
     # the missing half.
     "tests/behaviour/test_a_cited_section_stands_in_its_file.py#corpus": 1,
     # #1270's `<commit>:<path>` citations, and the commits named bare
-    # outside `iadd/`. It refuses what it finds, so it skips the missing
+    # outside `agentory/`. It refuses what it finds, so it skips the missing
     # half.
     "tests/text/test_a_cited_commit_outlives_the_squash.py#cited": 1,
     # #1055's outline sweep over every tracked edition pair. It returns the

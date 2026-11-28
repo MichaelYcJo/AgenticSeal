@@ -3,7 +3,7 @@
 The orchestrator opens this file on either of two conditions, and not
 otherwise. The first is that it is about to put the batch of questions to a
 person, the routing question among them. The second is that `config.json`
-under the `iadd/` root, read before the routing commit, lacks either of the
+under the `agentory/` root, read before the routing commit, lacks either of the
 two language keys. `skills/implement/orchestration.md` holds the rest of
 starting a work item, and its *What the answer writes* holds the rows of
 the declaration.
@@ -137,7 +137,7 @@ the tell. Ask which of two named paths instead, and say what each one does.
 
 **The two language keys join the batch wherever either is missing.** Before
 the routing commit, the orchestrator reads `Commit and pull request
-language` and `Record language` in `config.json` under the `iadd/` root.
+language` and `Record language` in `config.json` under the `agentory/` root.
 Where both stand, nothing is asked. Where either is absent in any of the
 four ways `templates/setup/config.md` *An absent language key is a refusal
 at the pull request body, and never at a commit* names, the batch asks for

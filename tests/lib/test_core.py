@@ -1,6 +1,6 @@
 """`lib/core.py`: what the core hook prints into a session.
 
-A session in a repository that holds an `iadd/` root receives the core,
+A session in a repository that holds an `agentory/` root receives the core,
 `skills/core/SKILL.md`, from the plugin's `SessionStart` hook, under one
 first line naming the file printed and the running plugin's version, and
 above one closing line naming where work starts (#1177, #1430). A session
@@ -91,7 +91,7 @@ class Test_origin:
         root = plugin(tmp_path / "plugin")
         tree = git_repo(tmp_path / "tree")
         plugin(tree, version="0.26.0", core="# the tree's core\n")
-        mark_root(tree / "iadd")
+        mark_root(tree / "agentory")
         (tree / "docs" / "deep").mkdir(parents=True)
         for cwd in (tree, tree / "docs" / "deep"):
             found = core.origin(str(cwd), root)
@@ -299,18 +299,18 @@ class Test_rendered:
 
 class Test_output:
     def test_accepts_a_repository_holding_a_marked_root(self, tmp_path):
-        """A session whose repository holds an `iadd/` root receives
+        """A session whose repository holds an `agentory/` root receives
         `rendered` for the core `origin` names."""
         core = core_module()
         root = plugin(tmp_path / "plugin")
         repo = git_repo(tmp_path / "repo")
-        mark_root(repo / "iadd")
+        mark_root(repo / "agentory")
         assert core.output(str(repo), root) == core.rendered(
             os.path.join(root, *CORE), root
         )
 
     def test_refuses_a_repository_with_no_marked_root(self, tmp_path):
-        """#1430. A repository with no `iadd/` root, one whose `iadd/` lacks
+        """#1430. A repository with no `agentory/` root, one whose `agentory/` lacks
         the marker, a directory outside git and a cwd not given each receive
         nothing: the root is what says the repository runs the IADD
         process."""
@@ -318,7 +318,7 @@ class Test_output:
         root = plugin(tmp_path / "plugin")
         bare = git_repo(tmp_path / "bare")
         unmarked = git_repo(tmp_path / "unmarked")
-        write(str(unmarked / "iadd" / "README.md"), "# a package of our own\n")
+        write(str(unmarked / "agentory" / "README.md"), "# a package of our own\n")
         outside = tmp_path / "outside"
         outside.mkdir()
         for cwd in (bare, unmarked, outside, ""):

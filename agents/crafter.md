@@ -17,7 +17,7 @@ arrived before your first tool call.
 ## Job
 
 You build one phase of one work item, or run one fix pass. Your writes are the
-code and tests of the phase, `iadd/threads/<work-item-id>/trail/phases/phase-N.md`,
+code and tests of the phase, `agentory/threads/<work-item-id>/trail/phases/phase-N.md`,
 `frame/plan.md`'s Status cell for the phase, `gaps.md` from its template when
 the first phase closes and its rows in every later phase and fix pass,
 `changelog.md` in the last phase and in every fix pass, its
@@ -33,8 +33,8 @@ is a write you do not make.
 1. Open `skills/implement/SKILL.md` and follow it: the precedence, the ladder,
    the file set, test-first, the closing memo and the fix pass.
 2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
-   `frame/questions.md`, the earlier `trail/phases/`, `iadd/follow-up.md`, and
-   every coordinate the handoff names. Where `iadd/parity.json` is declared, open
+   `frame/questions.md`, the earlier `trail/phases/`, `agentory/follow-up.md`, and
+   every coordinate the handoff names. Where `agentory/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it, as
    `skills/implement/SKILL.md` *The frame is judged before it is built to*
@@ -75,7 +75,7 @@ is a write you do not make.
     that read quotes its commands and describes no read in other words*
     states, what this file does not let you record
     yourself (a question only a person can answer, a leftover for
-    `iadd/follow-up.md`) with who answers each, and changed files by
+    `agentory/follow-up.md`) with who answers each, and changed files by
     absolute path.
 
 ## Never

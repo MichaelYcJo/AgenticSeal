@@ -12,8 +12,8 @@ spec and code together.
 **No arm runs at the commit.** The review arm is the routing check, which
 runs at the pull request (`docs/checks/the-routing-check.md`), and the
 parity arm is checked at the pull request too, as *Parity arm* below
-states. The migration config lives at `iadd/parity.json`, so declaring it
-creates `iadd/`, which opts the repository into the routing check too.
+states. The migration config lives at `agentory/parity.json`, so declaring it
+creates `agentory/`, which opts the repository into the routing check too.
 check: tests/skills/test_chain_check.py
 
 ### Review arm
@@ -29,7 +29,7 @@ touches.
 
 #### The declaration, and where the check went
 
-**The routing check reads `iadd/threads/<work-item-id>/routing.md` before it
+**The routing check reads `agentory/threads/<work-item-id>/routing.md` before it
 reads anything else.**
 
 | The declaration says | At the pull request |
@@ -88,7 +88,7 @@ is gone is asked `chain_check.py#settled` at the merge base, the
 predicate `docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion* states. Where it holds, the check prints `retired: a settle`;
 where it does not, the refusal stands, except where the tree the check reads
-has no top-level `iadd` entry (`docs/checks/the-pull-request-check.md` *What
+has no top-level `agentory` entry (`docs/checks/the-pull-request-check.md` *What
 the check reads at the pull request*).
 
 Every record is read as git carries it at `HEAD`, never as the working tree
@@ -113,7 +113,7 @@ check: tests/lib/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm
 
-Opt-in: `iadd/parity.json`. Ported behaviour follows the original where policy
+Opt-in: `agentory/parity.json`. Ported behaviour follows the original where policy
 is silent, so a change to code carries a record, in the tree, that the
 original was consulted.
 
@@ -122,7 +122,7 @@ original was consulted.
 | through the review chain | each round record's `original:` line |
 | straight to the PR | one `original:` line in the inspector's `inspection.md` |
 | none | nowhere, and no comparison is checked: each commit's `IADD-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
-| any, for a change confined to `docs/`, `iadd/` | nothing is owed: nothing there can be compared against an original |
+| any, for a change confined to `docs/`, `agentory/` | nothing is owed: nothing there can be compared against an original |
 
 "The change" is every path the pull request changes against its base.
 

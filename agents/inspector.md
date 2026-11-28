@@ -63,7 +63,7 @@ return.
    git -C <root> log --ignore-submodules=none --no-merges --name-only <named>..HEAD ^<base>
    ```
 
-   - **At HEAD, or followed only by paths under `iadd/threads/<item>/`**: go
+   - **At HEAD, or followed only by paths under `agentory/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
      or followed by any other path**: write `inspection.md` with
@@ -114,18 +114,18 @@ return.
    is the fix pass's claim with you as its reader, so read it the way a
    verifying round reads a fix. Read the record at HEAD against what the
    finding asked. Where the finding's `location:` names a path outside
-   `iadd/threads/<item>/`, the fix left that path as the last round read
+   `agentory/threads/<item>/`, the fix left that path as the last round read
    it: open it at HEAD and read whether the finding asked for a change
    there. A change the finding asked for outside the records and did not
    get is a disagreement like any other, and a `withheld` reason naming the
    path. Then run
-   `git -C <root> diff <the last record's target>..HEAD -- iadd/threads/<item>/`,
+   `git -C <root> diff <the last record's target>..HEAD -- agentory/threads/<item>/`,
    `<the last record's target>` being the commit its `target:` line names,
    and read against HEAD each sentence the diff adds or rewrites in the
    records `agents/proofer.md` *Every round reads the work item's records
    that state the present, whole, against its target* names, and each other
    statement in those records of a fact the diff changed. List those with
-   `git -C <root> grep -n -F '<the fact's words>' -- iadd/threads/<item>/`,
+   `git -C <root> grep -n -F '<the fact's words>' -- agentory/threads/<item>/`,
    a sample under rule 12 and rule 19. That rule also says how a frame
    section dated to the framer's commit reads. A record that does not say
    what the finding asked, and a sentence HEAD
@@ -141,9 +141,9 @@ return.
    names, steps 1 and 2's among them, stands in that block. Edit no earlier
    block, keep an `Answered <date> by <who>:` line standing below the block
    it answers, and read the answer as the owner's. Where git carries
-   `iadd/parity.json`, the work item's `routing.md` answers
+   `agentory/parity.json`, the work item's `routing.md` answers
    `straight to the PR` and the diff changes a path outside `docs/` and
-   `iadd/`, no round record compares the change with the original, so you
+   `agentory/`, no round record compares the change with the original, so you
    do: compare the audited commit with the original through
    `skills/legacy-parity/SKILL.md`, and record it as its *Recording the
    comparison* states.

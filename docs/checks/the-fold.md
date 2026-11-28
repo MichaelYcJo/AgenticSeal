@@ -32,7 +32,7 @@ another record or a later run already answered is answered, and the closure
 names that record; a row naming a measurement no failure, report or
 decision on record depends on is closed with that reason and opens
 nothing; and a row naming a measurement something on record needs is
-re-homed as an issue, or as an `iadd/follow-up.md` row in a repository
+re-homed as an issue, or as an `agentory/follow-up.md` row in a repository
 with no tracker. A row that fits more than one kind takes the first
 that fits, in this order, so only a measurement something on record
 needs opens an issue, since an issue no record waits on is read only to
@@ -70,7 +70,7 @@ section it wrote against the code, as it reads a section it wrote itself,
 and takes out what the latest decision does not keep.
 check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
 
-**A settle is not a work item.** It opens no directory under `iadd/threads/`.
+**A settle is not a work item.** It opens no directory under `agentory/threads/`.
 Its commits carry the trailer `IADD-Routing: no work item` where the root is shared,
 and what it wrote is reviewed at its pull request. What it leaves already has a home, the pull request and
 git history, so it keeps no log of its own. Were it a work item, each settle
@@ -79,7 +79,7 @@ end; `skills/settle/SKILL.md` *A settle is not a work item* is the procedure.
 check: tests/text/test_settle_reads_before_it_removes.py
 
 **A population floor over the records is replaced, never lowered.** A check
-asserting that a sweep of `iadd/threads/` read *enough* — `len(records) > 200` —
+asserting that a sweep of `agentory/threads/` read *enough* — `len(records) > 200` —
 is answering *did the walk read anything* with a literal that stops being true
 the moment the corpus shrinks, and a fold shrinks it by design. The repair
 compares the walk against an independent listing of the same tree —
@@ -144,10 +144,10 @@ No one rule serves all three kinds. The holding bias would let a
 excusing bias would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 
-**An `iadd/` root with no work item under it is the state a complete fold ends
+**An `agentory/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `iadd settle --apply` holds an
-empty `iadd/threads/`, and a fresh checkout of that commit holds none. Read as
+empty `agentory/threads/`, and a fresh checkout of that commit holds none. Read as
 unusable, `settle` would exit 2 on its own finished work, and `iadd unverified` would read the root's own `threads` path as a
 typo when a person runs it after the fold, and refuse a finished settle. Only that one path is
 settled; any other missing path is still refused, which keeps a misspelt
@@ -169,11 +169,11 @@ check: tests/skills/test_settle.py
 
 **A directory a person names at the settle is read and never
 written, and only the documents the person marks promote reach the
-policy root.** A repository's decisions also stand outside `iadd/`, in
+policy root.** A repository's decisions also stand outside `agentory/`, in
 architecture decision records, RFCs and another tool's spec files, and
 nothing gathers them into the policy root on its own. So the settling
 session asks the person, before its first edit, whether any directory
-besides `iadd/` holds decisions to fold. `iadd settle --from <dir>`
+besides `agentory/` holds decisions to fold. `iadd settle --from <dir>`
 lists every document of each directory named, placed in the timeline by
 the commit that added it and the commit that last changed it. The
 session proposes each document as promote or skip, with the section it
@@ -183,7 +183,7 @@ promoted decision is written into its section as a released design's
 is, and the section cites the document by its path. The settle's pull
 request body states each row with its mark. No step writes, moves or
 removes a file under a named directory, and `iadd settle --apply`
-removes only under `iadd/threads/`. A first answer of "none" runs the
+removes only under `agentory/threads/`. A first answer of "none" runs the
 settle with no `--from`, and no configuration key names such a
 directory. `skills/settle/SKILL.md` *The settling session's procedure*
 is the procedure.

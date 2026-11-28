@@ -156,7 +156,7 @@ def test_every_inspector_case_grades_the_inspection():
 # of the inspector's file, and no Bash call of the broad run.
 VERDICT_GRADER = (
     "---\ntype: 'regex'\n"
-    "target: {source: 'file', path: 'iadd/threads/i/inspection.md'}\n"
+    "target: {source: 'file', path: 'agentory/threads/i/inspection.md'}\n"
     f"pattern: '{BLOCK_PATTERN}Verdict: cleared$'\nflags: 'm'\n---\nv\n"
 )
 BOUND_GRADER = (

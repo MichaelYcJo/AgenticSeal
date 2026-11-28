@@ -332,7 +332,7 @@ one more piece of a model of `cmd.exe`, and the gate carries none.
 run the command again** (`skills/code-review/orchestration.md`
 *Orchestrator: the pull request opens once the work item is cleared*). So a part of
 the command that reads those records, such as a Markdown lint over every
-`.md` file or a suite case over `iadd/threads/`, reads them as they stood at
+`.md` file or a suite case over `agentory/threads/`, reads them as they stood at
 the run. Where the repository runs the same command in its pull request's
 CI, that run reads the later records. Where it runs the command nowhere
 else, the repository answers for what the command would have found in
@@ -405,13 +405,13 @@ reference root.
 |---|---|
 | one or more repository-relative directories, separated by commas, each with or without a trailing `/` | those directories and everything under them |
 | `none` | no reference root |
-| absent or empty, or no `iadd/` root at either place | every directory named `specs` outside the plugin's root, at any depth |
+| absent or empty, or no `agentory/` root at either place | every directory named `specs` outside the plugin's root, at any depth |
 
 **What it governs.** The checks that would read a record leave a reference
 root out: `iadd unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this key says; `iadd settle --apply` removes only under `iadd/threads/`.
+this key says; `iadd settle --apply` removes only under `agentory/threads/`.
 `iadd settle --from` reads a reference root only where a person names it at
 the settle, whatever this key says, and writes nothing there. One reader
 answers the key, `lib/config.py#reference_roots`, and one predicate the
@@ -427,10 +427,10 @@ so the next reader can open the same file.
 Two keys, each written in one repository of a pact
 (`docs/layout/the-pact.md`). A work item that commits in more than one
 repository, where those repositories keep a contract together, keeps the one
-copy of that contract in `iadd/pact.md` in one of them, the pact's
+copy of that contract in `agentory/pact.md` in one of them, the pact's
 repository. Every repository of the work item is a signer. Every one except
 the pact's repository names the pact in a `Pact` key. The pact's repository
-needs no `Pact` key, because it is identified by holding `iadd/pact.md`, and
+needs no `Pact` key, because it is identified by holding `agentory/pact.md`, and
 lists every other signer in a `Pact signers` key.
 
 - **`Pact`**: the origin remote URL of the pact's repository, such as

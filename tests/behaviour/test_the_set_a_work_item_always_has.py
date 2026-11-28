@@ -1,6 +1,6 @@
 """The SDD file set was read two ways at once, and the counts said so.
 
-`iadd/threads/` is the root for a work item — its whole lifetime, its whole
+`agentory/threads/` is the root for a work item — its whole lifetime, its whole
 contract.
 `frame/design.md` was a file on a ladder keyed to how many files the work touched. Both
 readings live in `skills/implement/SKILL.md`, neither is wrong on its own

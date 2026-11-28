@@ -1,5 +1,5 @@
 ---
 type: 'file_exists'
-path: 'iadd/threads/1790000025-sharp-s/frame/design.md'
+path: 'agentory/threads/1790000025-sharp-s/frame/design.md'
 ---
 The frame writes `frame/design.md`.

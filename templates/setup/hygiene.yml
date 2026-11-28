@@ -1,6 +1,6 @@
 # Pull-request checks for the IADD process, run against what the pull
 # request committed: the review chain's round record, and the `Mode` key of
-# `iadd/config.json`. The first check also reads the pull request's body
+# `agentory/config.json`. The first check also reads the pull request's body
 # against what `iadd pr-body` composes from those records.
 #
 # Setup: `iadd pr-checks install` writes this file to
@@ -12,10 +12,10 @@
 # it, or runs `iadd pr-checks remove` and then `iadd pr-checks install`.
 #
 # Why it refuses in local mode: the checks read committed files
-# (`chain_check.py` lists `iadd/threads/` with `git ls-tree HEAD`), and local
+# (`chain_check.py` lists `agentory/threads/` with `git ls-tree HEAD`), and local
 # mode keeps the root under the git directory, where nothing is ever committed.
 # `iadd mode` moves the root and leaves this file alone, so a copy can stay
-# after a switch to local. There no `iadd/` is in the tree, so the
+# after a switch to local. There no `agentory/` is in the tree, so the
 # review-chain step reads nothing as declared and judges the commit trailers
 # alone, and the mode step finds no root to disagree with. Every step passes
 # the commits a local-mode session writes, which carry no `IADD-Routing`
@@ -87,7 +87,7 @@ jobs:
           python3 "$RUNNER_TEMP/iadd/skills/code-review/scripts/chain_check.py" \
             --baseline "origin/${{ github.base_ref }}"
 
-      # `iadd/config.json`'s `Mode` key is what this repository says its mode
+      # `agentory/config.json`'s `Mode` key is what this repository says its mode
       # should be; where the root actually sits is what it is. Nothing at
       # runtime reads the key, so it is the one thing here that can quietly
       # stop being true. This fails for a disagreement left standing (always

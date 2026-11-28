@@ -12,11 +12,11 @@ The walk and `main` read repositories built once for the
 module: a clone of two work items and a
 tracked overview under `build/`, a clone whose second overview is a tracked
 link to the first, built once with the link sorting after its target and
-once before it, a clone with no `iadd/` root and an overview under
+once before it, a clone with no `agentory/` root and an overview under
 `specs/`, a clone with a moved base branch beside its work
-branch, a clone of work items a settle can remove, a clone with an `iadd/`
-root beside a team's own `specs/`, an `iadd/` root with no `specs/`, and a
-`iadd/` root whose one work item holds no overview. A case that writes into
+branch, a clone of work items a settle can remove, a clone with an `agentory/`
+root beside a team's own `specs/`, an `agentory/` root with no `specs/`, and a
+`agentory/` root whose one work item holds no overview. A case that writes into
 a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
@@ -91,14 +91,14 @@ def copy_of(world, tmp_path):
 
 def _committed(base, files):
     """A repository at BASE/repo holding FILES, `{rel: text}`, in one
-    commit; an `iadd/` among them is made a root."""
+    commit; an `agentory/` among them is made a root."""
     d = base / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
     for rel, text in files.items():
         write(d, rel, text)
-    if (d / "iadd").is_dir():
-        mark_root(d / "iadd")
+    if (d / "agentory").is_dir():
+        mark_root(d / "agentory")
     commit_everything_as_e(d, "the base")
     return d
 
@@ -110,8 +110,8 @@ def plain(tmp_path_factory):
     return _committed(
         tmp_path_factory.mktemp("plain"),
         {
-            f"iadd/threads/{WORK}/gaps.md": memo(CANONICAL),
-            f"iadd/threads/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
+            f"agentory/threads/{WORK}/gaps.md": memo(CANONICAL),
+            f"agentory/threads/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
             "build/x/gaps.md": memo(CANONICAL, "x"),
         },
     )
@@ -128,12 +128,12 @@ def linked(tmp_path_factory, request):
     #19 stood only where the link sorted first."""
     d = _committed(
         tmp_path_factory.mktemp("linked"),
-        {f"iadd/threads/{WORK}/gaps.md": memo(CANONICAL)},
+        {f"agentory/threads/{WORK}/gaps.md": memo(CANONICAL)},
     )
-    (d / "iadd" / "threads" / request.param).mkdir()
+    (d / "agentory" / "threads" / request.param).mkdir()
     symlink_or_skip(
         os.path.join("..", WORK, "gaps.md"),
-        str(d / "iadd" / "threads" / request.param / "gaps.md"),
+        str(d / "agentory" / "threads" / request.param / "gaps.md"),
     )
     commit_everything_as_e(d, "a link")
     return d
@@ -141,7 +141,7 @@ def linked(tmp_path_factory, request):
 
 @pytest.fixture(scope="module")
 def rootless(tmp_path_factory):
-    """A repository with no `iadd/` root at either place, whose one overview
+    """A repository with no `agentory/` root at either place, whose one overview
     stands under a `specs/`."""
     return _committed(
         tmp_path_factory.mktemp("rootless"),
@@ -220,13 +220,13 @@ def settle(tmp_path_factory):
 
 
 TEAM = "specs/1788000001-team-thing"
-OURS = "iadd/threads/1790000000-ours"
+OURS = "agentory/threads/1790000000-ours"
 MALFORMED = "## Not verified\n\nnot a table, and not a none line either\n"
 
 
 @pytest.fixture(scope="module")
 def joined(tmp_path_factory):
-    """An `iadd/` root holding one readable work item, and a team's own
+    """An `agentory/` root holding one readable work item, and a team's own
     `specs/` whose overview the reader cannot read."""
     return _committed(
         tmp_path_factory.mktemp("joined"),
@@ -240,19 +240,21 @@ def joined(tmp_path_factory):
 
 @pytest.fixture(scope="module")
 def settled(tmp_path_factory):
-    """An `iadd/` root with no `specs/`, the tree a complete settle leaves."""
-    return _committed(tmp_path_factory.mktemp("settled"), {"iadd/ledger.md": "# l\n"})
+    """An `agentory/` root with no `specs/`, the tree a complete settle leaves."""
+    return _committed(
+        tmp_path_factory.mktemp("settled"), {"agentory/ledger.md": "# l\n"}
+    )
 
 
 @pytest.fixture(scope="module")
 def unwritten(tmp_path_factory):
-    """An `iadd/` root whose one work item has a routing and a spec and never
+    """An `agentory/` root whose one work item has a routing and a spec and never
     opened a closing memo."""
     return _committed(
         tmp_path_factory.mktemp("unwritten"),
         {
-            f"iadd/threads/{WORK}/routing.md": f"# {WORK} routing\n",
-            f"iadd/threads/{WORK}/frame/design.md": "# a spec\n",
+            f"agentory/threads/{WORK}/routing.md": f"# {WORK} routing\n",
+            f"agentory/threads/{WORK}/frame/design.md": "# a spec\n",
         },
     )
 
@@ -303,7 +305,7 @@ class Test_overviews:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "iadd/config.json",
+            "agentory/config.json",
             config_json(("Reference specs", "specs")),
         )
         symlink_or_skip(str(d), str(tmp_path / "link"), directory=True)
@@ -325,8 +327,8 @@ class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
         config, home, name = UC.config_at(str(joined))
         assert callable(config.reference_roots)
-        assert same_path(home, joined / "iadd")
-        assert name == "iadd"
+        assert same_path(home, joined / "agentory")
+        assert name == "agentory"
 
     def test_refuses_to_invent_a_root(self, rootless):
         _config, home, name = UC.config_at(str(rootless))
@@ -354,7 +356,7 @@ class Test_reference_rule:
     def test_accepts_a_predicate_true_for_a_reference_root(self, joined):
         skip = UC.reference_rule(str(joined))
         assert skip(str(joined / "specs")) is True
-        assert skip(str(joined / "iadd" / "threads")) is False
+        assert skip(str(joined / "agentory" / "threads")) is False
 
     @pytest.mark.parametrize("where", ["inside", "outside"])
     def test_refuses_to_prune_a_named_root_or_outside_a_repository(
@@ -425,20 +427,24 @@ class Test_unique_by_target:
 class Test_settled_root:
     @pytest.mark.parametrize("state", ["absent", "empty", "a file only"])
     def test_accepts_a_roots_own_specs_with_no_work_item(self, tmp_path, state):
-        (tmp_path / "iadd").mkdir()
+        (tmp_path / "agentory").mkdir()
         if state != "absent":
-            (tmp_path / "iadd" / "threads").mkdir()
+            (tmp_path / "agentory" / "threads").mkdir()
         if state == "a file only":
-            write(tmp_path, "iadd/threads/README.md", "r\n")
-        assert UC.settled_root(str(tmp_path / "iadd" / "threads")) is True
+            write(tmp_path, "agentory/threads/README.md", "r\n")
+        assert UC.settled_root(str(tmp_path / "agentory" / "threads")) is True
 
     @pytest.mark.parametrize("state", ["a work item", "another parent", "no root"])
     def test_refuses_a_work_item_another_parent_and_no_root(self, tmp_path, state):
         if state == "a work item":
-            (tmp_path / "iadd" / "threads" / WORK).mkdir(parents=True)
+            (tmp_path / "agentory" / "threads" / WORK).mkdir(parents=True)
         if state == "another parent":
             (tmp_path / "other").mkdir()
-        path = tmp_path / ("other" if state == "another parent" else "iadd") / "threads"
+        path = (
+            tmp_path
+            / ("other" if state == "another parent" else "agentory")
+            / "threads"
+        )
         assert UC.settled_root(str(path)) is False
 
 
@@ -486,8 +492,8 @@ class Test_main:
         if state == "missing":
             argv = [str(tmp_path / "spces")]
         if state == "and a root":
-            (tmp_path / "iadd").mkdir()
-            argv.append(str(tmp_path / "iadd" / "threads"))
+            (tmp_path / "agentory").mkdir()
+            argv.append(str(tmp_path / "agentory" / "threads"))
         assert run(argv) == 2
         err = capsys.readouterr().err
         assert ("no such path" if state == "missing" else "nothing was checked") in err
@@ -518,36 +524,36 @@ class Test_main:
     def test_the_roots_own_specs_path_is_settled_when_nothing_is_under_it(
         self, settled, tmp_path, capsys, keep_empty_dir
     ):
-        """G7: after a complete settle the root's own `iadd/threads/` holds
+        """G7: after a complete settle the root's own `agentory/threads/` holds
         nothing, or is gone because git keeps no empty directory, and a run
         handed that path reads it as settled, not as a typo. The line says
         there is nothing to read and claims nothing about what left."""
         d = settled
         if keep_empty_dir:
             d = copy_of(settled, tmp_path)
-            (d / "iadd" / "threads").mkdir()
-        assert run([str(d / "iadd" / "threads")]) == 0
+            (d / "agentory" / "threads").mkdir()
+        assert run([str(d / "agentory" / "threads")]) == 0
         out = capsys.readouterr()
         said = " ".join((out.out + out.err).split())
         assert (
-            "holds no work item and its `iadd/` root is there — the state a "
+            "holds no work item and its `agentory/` root is there — the state a "
             "complete settle ends in, so there is nothing to read"
         ) in said, said
         assert "left the record" not in said, said
 
     def test_refuses_any_other_missing_path_as_a_typo(self, settled, capsys):
-        assert run([str(settled / "iadd" / "spces")]) == 2
+        assert run([str(settled / "agentory" / "spces")]) == 2
         assert "no such path" in capsys.readouterr().err
 
     def test_refuses_a_tree_with_no_root_as_a_missing_path(
         self, rootless, capsys, monkeypatch
     ):
-        """#1576, design S2: `iadd/threads` typed at the top level of a
-        working tree with no `iadd/` directory names nothing, as any other
+        """#1576, design S2: `agentory/threads` typed at the top level of a
+        working tree with no `agentory/` directory names nothing, as any other
         missing path does."""
         monkeypatch.chdir(rootless)
-        assert run(["iadd/threads"]) == 2
-        assert "no such path: iadd/threads" in capsys.readouterr().err
+        assert run(["agentory/threads"]) == 2
+        assert "no such path: agentory/threads" in capsys.readouterr().err
 
     def test_refuses_work_items_with_no_closing_memo_as_nothing_checked(
         self, unwritten, capsys
@@ -555,7 +561,7 @@ class Test_main:
         """#1576, design S3: a root's `threads/` whose work items carry no
         `gaps.md` is a scan that found no closing memo, as any other path
         holding none is."""
-        assert run([str(unwritten / "iadd" / "threads")]) == 2
+        assert run([str(unwritten / "agentory" / "threads")]) == 2
         assert "nothing was checked" in capsys.readouterr().err
 
     # A team's own `specs/` is read as history and never checked (#688).

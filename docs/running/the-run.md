@@ -27,7 +27,7 @@ check: tests/text/test_the_rules_have_one_owner.py
 |---|---|---|
 | 1 | the branch owns the unit, or the crafter answers the finding with grounds | the diff, or the round record with the grounds |
 | 2 | an open issue already owns the ground | a comment on that issue; the verdict reads `deferred #N` |
-| 3 | the finding names a party who agreed to act on it | a new issue labelled `from-review`, or an `iadd/follow-up.md` row where there is no tracker; the verdict reads `deferred #N` |
+| 3 | the finding names a party who agreed to act on it | a new issue labelled `from-review`, or an `agentory/follow-up.md` row where there is no tracker; the verdict reads `deferred #N` |
 | 4 | it names nobody | the round record alone, and the pull request body |
 
 **On a run whose `routing.md` reads `Automation` `yes`, the orchestrator

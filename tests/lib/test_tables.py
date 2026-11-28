@@ -572,7 +572,7 @@ class _Old_config_table:
         )
 
     def test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive(self):
-        """A1. `iadd/config.md` is markdown and `\\|` is markdown's own answer for
+        """A1. `agentory/config.md` is markdown and `\\|` is markdown's own answer for
         a pipe inside a cell (`questions.md` Q1, answered by the repository owner
         on 2026-09-17).
 

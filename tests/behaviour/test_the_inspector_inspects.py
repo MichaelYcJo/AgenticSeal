@@ -111,11 +111,11 @@ class TestTemplate:
 
 def test_every_committed_inspection_in_blocks_reads_whole():
     """Round 1 of #1000, finding 2, under #1198: each `inspection.md` under
-    `iadd/threads/` that holds a verdict block's opener reads through the
+    `agentory/threads/` that holds a verdict block's opener reads through the
     reader with no refusal and at least one block. An inspection of a work
     item released before #1198 holds none, and no check judges it again."""
     found = {}
-    for path in (ROOT / "iadd" / "threads").glob("*/inspection.md"):
+    for path in (ROOT / "agentory" / "threads").glob("*/inspection.md"):
         text = path.read_text(encoding="utf-8")
         if fields.OPENER not in text.split("\n"):
             continue
@@ -261,10 +261,10 @@ class TestDefinition:
         pinned = [
             # The command the inspector runs to list what the pass wrote.
             "`git -C <root> diff <the last record's target>..HEAD -- "
-            "iadd/threads/<item>/`",
+            "agentory/threads/<item>/`",
             # The command the inspector runs to list a changed fact's other
             # statements.
-            "`git -C <root> grep -n -F '<the fact's words>' -- iadd/threads/<item>/`",
+            "`git -C <root> grep -n -F '<the fact's words>' -- agentory/threads/<item>/`",
             # The verdict word `lib/fields.py` reads, beside what it names.
             "a sentence HEAD contradicts, are each a disagreement like any "
             "other, and a `withheld` reason naming its coordinate",
@@ -288,7 +288,7 @@ class TestDefinition:
             "*Judgment is not licence to skip a party* gives its fix to you",
             # The read of the path the fix left as the last round read it.
             "Where the finding's `location:` names a path outside "
-            "`iadd/threads/<item>/`, the fix left that path as the last round "
+            "`agentory/threads/<item>/`, the fix left that path as the last round "
             "read it: open it at HEAD and read whether the finding asked for a "
             "change there.",
             # The verdict word `lib/fields.py` reads, beside what it names.

@@ -381,7 +381,7 @@ def session_composition(root, home, user):
     returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
     `lib/core.py#rendered` for the core `lib/core.py#origin` names in ROOT,
     header and closing line included: what a session in ROOT receives where
-    ROOT holds an `iadd/` root. Where the whole output would reach
+    ROOT holds an `agentory/` root. Where the whole output would reach
     `lib/core.py#CAP`, `rendered` returns one line naming the core's file and
     the closing line, the row counts those, and it carries `named`, true: the
     session opens the core itself, and no row counts it. Where ROOT
@@ -502,7 +502,7 @@ def _session_lines(session):
         "What a session started in this tree reads before its first prompt: "
         "the `CLAUDE.md` pair with the files its `@` lines import, and the core "
         "the plugin's `SessionStart` hook prints where the repository holds a "
-        "`iadd/` root. No subagent receives the hook's output, so no agent's "
+        "`agentory/` root. No subagent receives the hook's output, so no agent's "
         "table below carries it.",
         "",
         "| File | Bytes | Chars | Tokens | Basis |",

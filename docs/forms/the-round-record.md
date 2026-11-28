@@ -5,7 +5,7 @@ The proofer writes this record, the crafter closes its findings, and
 
 ## The round record
 
-**A round is one file the proofer writes.** `iadd/threads/<id>/trail/rounds/round-N.md`,
+**A round is one file the proofer writes.** `agentory/threads/<id>/trail/rounds/round-N.md`,
 from `templates/records/sdd-round.md`, in the branch worktree under review: an `iadd` block holding its `target:` line, then `## Findings` with one `### <n>. <symptom>` section per finding, `## Confirmations` where the round confirmed something, `## Not judged` and `## Probes`. A finding holds one `iadd` block of its fields, why it matters with its grounds, the paste-ready fix in a fenced block, and, once it is closed, its close block. The record is written in words, and no
 emoji stands anywhere in it. No report file stands beside it and nothing
 generates, copies or derives any part of it.
@@ -18,7 +18,7 @@ check: tests/skills/test_chain_check.py
 (fix, or say why not); no script decides on the word, and the agents judge
 it. What this round confirmed holds is a `confirms:` entry of
 `## Confirmations`, and what it could not judge a row of `## Not judged`
-with who answers it; neither is a finding. A wrong sentence an agent reads and acts on is `should`, and so is a wrong line of a work item's own record that a script reads or copies: a line the check reads, a row `iadd unverified` reads, or a line `iadd pr-body` copies into the pull request body. A sentence of a record that restates another record's fact and has drifted from it is a finding, answered by removing the copy and citing the home, never by correcting the copy; one that has not drifted is no finding, since no template holds a place for a copy (`docs/layout/the-record-layout.md` *iadd/threads/<work-item-id>/*). A sentence in a record that merely reads badly is not a finding.
+with who answers it; neither is a finding. A wrong sentence an agent reads and acts on is `should`, and so is a wrong line of a work item's own record that a script reads or copies: a line the check reads, a row `iadd unverified` reads, or a line `iadd pr-body` copies into the pull request body. A sentence of a record that restates another record's fact and has drifted from it is a finding, answered by removing the copy and citing the home, never by correcting the copy; one that has not drifted is no finding, since no template holds a place for a copy (`docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/*). A sentence in a record that merely reads badly is not a finding.
 check: tests/skills/test_chain_check.py
 
 **A finding's `location:` names where the defect shows, and a `fixed` commit

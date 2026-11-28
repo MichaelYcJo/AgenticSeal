@@ -268,7 +268,7 @@ def test_the_builder_reads_its_range_and_the_records_whole_before_it_closes():
         # The command the builder runs to print the read, as it types it.
         "iadd range <item> --from <commit> --out <file>",
         # The directory whose files the builder reads whole.
-        "`iadd/threads/<work-item-id>/`",
+        "`agentory/threads/<work-item-id>/`",
         # The command the builder runs for the other statements of a rule.
         "`git grep`",
         # The file and the heading the builder writes what it did not finish
@@ -357,7 +357,7 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
         "and severity is for people*",
         "`docs/forms/the-round-record.md` *The fix pass appends one close block "
         "per finding and edits nothing else in the file*",
-        # The contract rule a fix pass resolves for the two `iadd/` roots a
+        # The contract rule a fix pass resolves for the two `agentory/` roots a
         # procedure step is read in.
         "contract rule 11",
         # The field the fix pass writes its own wording of a fix into.
@@ -428,9 +428,9 @@ def test_the_crafters_hand_back_names_the_follow_up_file():
     files from."""
     text = read(CRAFTER)
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
-    # The path `iadd/follow-up.md`, the code span, where the orchestrator
+    # The path `agentory/follow-up.md`, the code span, where the orchestrator
     # files a leftover the hand-back names.
-    assert "a leftover for `iadd/follow-up.md`" in order, (
+    assert "a leftover for `agentory/follow-up.md`" in order, (
         "step 10 no longer names the file a leftover goes to"
     )
 
