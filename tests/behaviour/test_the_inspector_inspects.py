@@ -198,6 +198,19 @@ class TestDefinition:
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
 
+    def test_step_2_reads_the_diff_with_submodules_shown(self):
+        """S1 of #1648. Step 2's diff, the one the inspector audits, carries
+        the flag step 1's listing carries.
+
+        Protects: an inspector that audits a pull request's diff and never sees
+        that it moves a submodule's pointer, where `diff.ignoreSubmodules` or a
+        `.gitmodules` entry's `ignore` reads `all`."""
+        step = " ".join(
+            between(INSPECTOR, "2. **Check the body's copy", "3. **").split()
+        )
+        # The `git` command the inspector types to read the diff it audits.
+        assert "`git diff --ignore-submodules=none <base>...HEAD`" in step, step
+
     def test_the_inspector_checks_the_copy_with_the_command_and_its_exit(
         self,
     ):
