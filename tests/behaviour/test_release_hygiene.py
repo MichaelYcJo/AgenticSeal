@@ -224,8 +224,8 @@ def shipped_tags(root=ROOT):
     A tag exists only once the release reached `main`, which is what makes it
     the one truthful source for *shipped* — the last pull request into
     `release/next` bumps the running version before the release ships, and
-    the version being cut is the timer the rule exists to catch. A tag that is not version-shaped is
-    not a release and is dropped.
+    the version being cut is the timer the rule exists to catch. A tag that
+    is not version-shaped is not a release and is dropped.
     """
     return {
         tag[1:]
@@ -249,10 +249,9 @@ def timers_in(rel, text, running, shipped=frozenset()):
     (#363): `plugin.json` is bumped in the last pull request into
     `release/next` before a release is cut, so from that release's merge
     until the next release's bump the running version is one that has
-    already shipped, and the documents
-    shipping with it could not name it. `shipped`
-    is the set of tagged versions of the root being swept — never derived
-    from anything the bump's own commit writes.
+    already shipped, and the documents shipping with it could not name it.
+    `shipped` is the set of tagged versions of the root being swept — never
+    derived from anything the bump's own commit writes.
     """
     if is_a_record_of_a_moment(rel):
         return []
@@ -622,9 +621,8 @@ def test_a_tagged_version_is_history_and_is_kept():
     """#363. The last pull request into `release/next` before a release is
     cut bumps `plugin.json`, so from that release's merge until the next
     release's bump the running version is one that has ALREADY shipped —
-    tagged, merged to `main`,
-    published in its release note — and the documents
-    that ship with it could not name it. `timers_in`'s own docstring argues
+    tagged, merged to `main`, published in its release note — and the
+    documents that ship with it could not name it. `timers_in`'s own docstring argues
     the ceiling from *below `running` is history*; a shipped version is
     history by that argument, and this is the sibling of the case above that
     pins it one number higher. The case above is not edited: below the
