@@ -9,6 +9,4 @@
 
 ## Not done
 
-The line `merged_pulls` prints where `gh pr list` fails still says that the note is "the theme line and the fragments alone". For a range of settles alone the note is then the theme line and the release pull request's body. The line was left as it stands. A settle-only run reaches `merged_pulls` only after `release_pull_body`'s own `gh pr list` answered, so the line can be wrong there only where the second call fails after the first succeeded. Its words are pinned by two cases of `tests/github/test_publish_release_note.py`, and the frame does not name that line among the texts it rewrites (`frame/design.md` *Scope* item 5).
-
 The docstring of `skills/code-review/scripts/chain_check.py#settled` names `retired` as the predicate's caller and does not name `.github/scripts/publish_release_note.py#settles`. It was left as it stands. The policy sentence that names both askers is rule change 4 of `frame/design.md`, which the settle writes into `docs/checks/the-fold.md`. A list of callers in a docstring is one that a later caller makes false without editing it (contract rule 19).

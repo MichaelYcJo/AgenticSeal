@@ -1040,7 +1040,8 @@ class Test_module:
         """The set is the pull requests merged into `release/vX.Y.Z` — the base
         every feature branch squashes into — and a failed `gh` call is None,
         with the log saying what the note is instead (#1053: the theme line
-        and the fragments)."""
+        and the fragments, or for a range of settles alone the release pull
+        request's body, #1655)."""
         mod = publisher()
         seen = []
 
@@ -1067,8 +1068,21 @@ class Test_module:
         )
         assert mod.merged_pulls(REPO, VERSION) is None
         out = capsys.readouterr().out
-        assert "the note is the theme line and the fragments alone" in out, out
+        assert (
+            "the note is the theme line and the fragments or the release pull "
+            "request's body alone" in out
+        ), out
         assert "gh pr list failed, so" in out and "alone: HTTP 502" in out, out
+
+        monkeypatch.setattr(
+            mod.gitcmd.subprocess, "run", lambda args, **_: Done(0, "not json")
+        )
+        assert mod.merged_pulls(REPO, VERSION) is None
+        assert capsys.readouterr().out == (
+            "gh pr list printed something that is not JSON, so the note is the "
+            "theme line and the fragments or the release pull request's body "
+            "alone\n"
+        )
 
     def test_a_create_gh_refuses_stops_the_run_in_the_runners_line(self, monkeypatch):
         """A release GitHub did not create is a red job, said in

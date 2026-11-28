@@ -49,9 +49,10 @@ the note says what the pull requests merged into `release/vX.Y.Z` already
 say -- the counts in its header, then one fold per conventional-commit type
 under its name and count holding one line per pull request with the issues
 its body closes, a credit for every outside contributor, how to
-update -- and keeps the fragments beneath, folded. Nothing here composes
+update -- and keeps the fragments beneath, folded, or for a range of
+settles alone the release pull request's body. Nothing here composes
 prose: every line is a milestone's sentence, a pull request title, a
-number, a handle or a fragment.
+number, a handle, a fragment, or a line of the release pull request's body.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`
@@ -93,9 +94,10 @@ The set is read instead: the pull requests' authors, less the repository
 owner and any bot. A release with none gets no credit line and no count.
 
 **The summary adds no way to fail.** A `gh` call that cannot list the pull
-requests publishes the theme line and the fragments alone, and says so in
-the job log -- a plain note is fixable in one edit, and a failed job at the
-tag is not.
+requests publishes the theme line and the fragments alone, or for a range
+of settles alone the theme line and the release pull request's body, and
+says so in the job log -- a plain note is fixable in one edit, and a failed
+job at the tag is not.
 
 **It says whether it created the release.** `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
@@ -606,9 +608,10 @@ def merged_pulls(repo, version):
 
     Each is `{"number", "title", "body", "author": {"login", "is_bot"}}` as
     `gh pr list --json` prints it. None means the list could not be read, and
-    the caller publishes the theme line and the fragments alone rather than
-    failing the tag's job. A `gh` that gave no answer is read the same way,
-    and the line names it in the runner's words.
+    the caller publishes the theme line and the fragments alone, or for a
+    range of settles alone the theme line and the release pull request's
+    body, rather than failing the tag's job. A `gh` that gave no answer is
+    read the same way, and the line names it in the runner's words.
     """
     try:
         out = gitcmd.gh(
@@ -635,7 +638,7 @@ def merged_pulls(repo, version):
     if said is not None:
         print(
             "gh pr list failed, so the note is the theme line and the fragments "
-            f"alone: {said}"
+            f"or the release pull request's body alone: {said}"
         )
         return None
     try:
@@ -643,7 +646,8 @@ def merged_pulls(repo, version):
     except ValueError:
         print(
             "gh pr list printed something that is not JSON, so the note is the "
-            "theme line and the fragments alone"
+            "theme line and the fragments or the release pull request's body "
+            "alone"
         )
         return None
 
