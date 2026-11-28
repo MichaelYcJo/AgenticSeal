@@ -34,7 +34,7 @@ The work rewrites rule text and adds no code. The texts it changes, with their l
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 5 | `bin/test tests/text tests/behaviour <each other test file that opens a file the phase changed> -q` passes, each other file named in the phase record; `S1` and `S2` of `frame/design.md` *Data & interfaces* *The searches* print nothing. The eval harness owns no file of the set (G12) | c4666fa8 |
+| 1 | Scope items 1 to 5 | `bin/test tests/text tests/behaviour <each other test file that opens a file the phase changed> -q` passes, each other file named in the phase record; `S1` and `S2` of `frame/design.md` *Data & interfaces* *The searches* print nothing. The eval harness owns no file of the set (G12) | 787a5158 |
 | 2 | Scope items 6 to 11 | `bin/test tests/text tests/behaviour <each other test file that opens a file the phase changed> -q` passes, each other file named in the phase record; `S3` of `frame/design.md` *Data & interfaces* *The searches* prints nothing. The eval harness owns no file of the set (G12) | |
 
 ## Overlap with the release
