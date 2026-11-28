@@ -291,16 +291,20 @@ class Test_main:
         `frame/keep-2-paths.txt`, each print under the keep file's head line
         as `git diff -U0` prints the hunk, the function line after its
         header left out, and no other line of the file. Another work item's
-        keep file is another text path, and prints widened."""
+        keep file, its directory's name as long as this one's, and a file of
+        this work item whose name holds no phase's number, are other text
+        paths, and print widened."""
         lines = [f"docs/file-{n}.md:a kept line {n}" for n in range(1, 41)]
-        other = "agentory/threads/1700000001-another-item/frame/keep-1.txt"
         keep, paths = f"{ITEM}/frame/keep-2.txt", f"{ITEM}/frame/keep-2-paths.txt"
+        other = "agentory/threads/1700000001-b-work-item/frame/keep-1.txt"
+        unnumbered = f"{ITEM}/frame/keep-notes.txt"
         repo, base = built(
             tmp_path,
             {
                 keep: "\n".join(lines) + "\n",
                 paths: "\n".join(lines[:20]) + "\n",
                 other: "\n".join(lines) + "\n",
+                unnumbered: "\n".join(lines) + "\n",
             },
         )
         changed = [*lines]
@@ -308,6 +312,7 @@ class Test_main:
         write(repo, keep, "\n".join(changed) + "\n")
         write(repo, paths, "\n".join(changed[:20]) + "\n")
         write(repo, other, "\n".join(changed) + "\n")
+        write(repo, unnumbered, "\n".join(changed) + "\n")
         head = commit_everything(repo, "change")
         out = tmp_path / "read.txt"
         code, said, _err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
@@ -318,10 +323,11 @@ class Test_main:
             own = ("\n" + body).split("\n==> ", 1)[0][1:] + "\n"
             for line in lines[:19] + lines[20:]:
                 assert line + "\n" not in own
-            assert RANGE.KEEP_HEAD.format(path=path) + "\n" in text
+            assert f"==> {path}: keep file, each hunk at its own lines <==\n" in text
             assert own.endswith(hunks(repo, base, head, path, 0))
-        whole = text.split(RANGE.WHOLE_HEAD.format(path=other), 1)[1]
-        assert lines[0] in whole.split("\n==> ", 1)[0]
+        for path in (other, unnumbered):
+            whole = text.split(RANGE.WHOLE_HEAD.format(path=path), 1)[1]
+            assert lines[0] in whole.split("\n==> ", 1)[0]
 
     def test_accepts_the_records_whole_at_head_and_names_each_absent(
         self, tmp_path, monkeypatch, capsys
