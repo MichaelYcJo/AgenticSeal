@@ -61,23 +61,31 @@ Report the command and the scope it ran over, so the next session re-runs it
 instead of re-inventing it.
 
 **A search that is to print lines the design keeps compares them with a
-keep file.** A content search a phase's *Verified by* cell in
-`frame/plan.md`, or a *Verifiable how* cell in `frame/design.md`, names
-for phase `<N>`, where the search is to print lines the design keeps at
-that phase's close, has the keep file `frame/keep-<N>.txt`. It holds each
-line the search is to print at that close, written as `git grep` prints it
-with no line number, `path:content`, and sorted under `LC_ALL=C sort`.
-Those lines are the lines the design keeps and the lines a later phase
-changes. A phase's own lines are the lines its keep file lacks and the
-earlier phase's keep file holds. Where the old spelling stands in a path,
-`frame/keep-<N>-paths.txt` holds, the same way, each path the path search
-is to print. A search that is to print no line has no keep file. A keep
-file names each line it keeps, so a second line in a file that holds a
-kept line is printed. A file named in the cell, a pathspec that excludes
-the file, or a pattern narrowed past the kept line would hide that second
-line. `frame/design.md` gives the reason for each kind of kept line, as a
-table of kinds where many lines share one, and names the lines a later
-phase changes by that phase's *Scope* items. It does not copy the lines.
+keep file.** A phase has at most one content search that is to print
+lines the design keeps at its close, and its *Verified by* cell in
+`frame/plan.md` names it. Where the design keeps lines of several patterns
+in one phase, the cell joins them into one pattern, as `-P 'first|second'`,
+over one pathspec, the union of their pathspecs where they differ. That
+search has the keep file `frame/keep-<N>.txt`. A search that is to print
+no line stays a search of its own and has no keep file. A *Verifiable how*
+cell in `frame/design.md` that rests on a search that keeps lines names
+the phase whose search it is, and runs no search of its own. The keep
+file holds each line the search is to print at that close, written as
+`git grep` prints it with no line number, `path:content`, and sorted under
+`LC_ALL=C sort`. Those lines are the lines the design keeps and the lines
+a later phase changes or removes, so a line a later phase removes is a
+line of the keep file of each phase whose search prints it and that
+closes before the phase that removes it. Where an earlier phase runs the
+same search, a phase's own lines are the lines its keep file lacks and
+the earlier phase's keep file holds. Where the old spelling stands in a
+path, `frame/keep-<N>-paths.txt` holds, the same way, each path the path
+search is to print. A keep file names each line it keeps, so a second
+line in a file that holds a kept line is printed. A file named in the
+cell, a pathspec that excludes the file, or a pattern narrowed past the
+kept line would hide that second line. `frame/design.md` gives the reason
+for each kind of kept line, as a table of kinds where many lines share
+one, and names the lines a later phase changes or removes by that phase's
+*Scope* items. It does not copy the lines.
 
 The commands below run from the repository's top level, because `git grep` run
 from a subdirectory searches that subdirectory alone and prints paths
@@ -107,8 +115,9 @@ it in step with the kinds the design keeps.** The framer writes it from
 the commands' output at the commit `frame/design.md` `## Grounding`
 names. Where a phase rewrites a kept line, as a rewrap does, or writes a
 line that holds a kept kind, the builder writes the line into that phase's
-keep file and into every later phase's keep file, in the same commit. A
-kept line the tree no longer holds leaves those keep files the same way.
+keep file and into the keep file of each later phase whose search prints
+it, in the same commit. A kept line the tree no longer holds leaves those
+keep files the same way.
 A line of no kept kind goes into no keep file. A new kind is a departure
 from the frame: the builder names it in the phase record, and the framer
 folds it. The phase record names each line the phase added, changed or

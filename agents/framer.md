@@ -178,12 +178,14 @@ This holds for a search in a *Verified by* cell of `plan.md` or a
 *Verifiable how* cell of `frame/design.md` that is to print nothing, or only
 lines the design keeps. Before you write the cell, you run the search from
 the repository's top level at the commit `## Grounding` names, and you
-account for each line it prints in one of two ways. A line the build
-removes, or changes so that the search no longer matches it, is named by a
-*Scope* item or a `## Removes` row. A line the design keeps is a line of
-the phase's keep file, as `skills/verify/SKILL.md` *An absence claim is only
-as good as the search behind it* states, and `frame/design.md` gives the
-reason for its kind. No file name, no pathspec other than the work item's
+account for each line it prints. A line the build removes, or changes so
+that the search no longer matches it, is named by a *Scope* item or a
+`## Removes` row, and it is also a line of the keep file of each phase
+whose search prints it and that closes before the phase that removes it.
+A line the design keeps is a line of the keep file of the phase whose
+search prints it. Both are as `skills/verify/SKILL.md` *An absence claim is
+only as good as the search behind it* states, and `frame/design.md` gives
+the reason for a kept line's kind. No file name, no pathspec other than the work item's
 directory and no narrowing of the pattern accounts for a line, because each
 hides every other line its file or its pattern covers. The search's
 pathspec states what the search is about: the whole tree for a rename. Your
