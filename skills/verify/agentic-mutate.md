@@ -23,9 +23,9 @@ the target.
 **`--tests` is one command, split into words and run with no shell.** A
 quote groups a word, and on POSIX a backslash escapes the next character;
 on Windows it is a path's separator. Nothing else a shell does happens: no
-operator, redirect or expansion. So a `--tests` holding `;`, `&`, `|`, `<`
-or `>` outside quotes, and on POSIX not after a backslash, is refused with
-exit 2 and nothing written. The message names each operator. Run as
+operator, redirect or expansion. So a `--tests` holding `;`, `&`, `|`, `<`,
+`>` or a newline outside quotes, and on POSIX not after a backslash, is
+`refused`, with nothing written, and the line names each operator. Run as
 written, the first program would get the operator as its argument, and the
 cases after it would never run, so each mutant would read `SURVIVED` for a
 run that measured nothing. A line that needs a shell is passed to one on
@@ -69,7 +69,8 @@ The first line printed is the verdict, then the command's own output:
 - exit 2 for every run that measured nothing: `no baseline` (the cases fail
   without the break, so the break was never written), `timed out`, `could not
   start`, `could not run`, `refused` (nothing was written: `<old>` does not
-  land once, or a `.py` mutant does not compile), `not restored`
+  land once, a `.py` mutant does not compile, or `--tests` holds a shell's
+  operator), `not restored`
   (the restore did not land, so the file may hold the break or what the
   cases wrote; restore it from the commit made before the run), and
   `interrupted`.

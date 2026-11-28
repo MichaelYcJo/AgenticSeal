@@ -1059,15 +1059,17 @@ class Test_main:
         `sh -c` form a person can pass on purpose."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
-        with pytest.raises(SystemExit) as raised:
-            module().main(
-                [str(target), "--replace", "1", "2", "--tests", "true && false"]
-            )
-        assert raised.value.code == 2
-        err = capsys.readouterr().err
+        code = module().main(
+            [str(target), "--replace", "1", "2", "--tests", "true && false"]
+        )
+        assert code == 2
+        out = capsys.readouterr().out
+        # The verdict is the first line, as every run that measured nothing
+        # prints it (`skills/verify/agentic-mutate.md`).
+        assert out.startswith("refused: "), out
         # The operator the shell would have read, and the form that runs it.
-        assert "`&&`" in err, err
-        assert "sh -c '" in err, err
+        assert "`&&`" in out, out
+        assert "sh -c '" in out, out
         assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 
     # --- S4 · restored from held bytes, and the restore is proved -----------
@@ -1945,9 +1947,16 @@ class Test_module:
             # separator on Windows, as `command_words` reads it.
             (r"find . -exec x {} \;", False, []),
             (r"find . -exec x {} \;", True, [";"]),
-            # A backslash inside double quotes escapes nothing that is an
-            # operator, and inside single quotes nothing at all.
+            # Inside single quotes a backslash escapes nothing, and inside
+            # double quotes it escapes the quote, so neither string closes
+            # where a reader that skipped the rule would close it.
             (r"x 'a\' ; y", False, [";"]),
+            (r'x "a\" ; b"', False, []),
+            # A double quote closes, and an operator after it is read.
+            ('x "a" ; y', False, [";"]),
+            # A newline ends a command as `;` does.
+            ("true\nfalse", False, ["\n"]),
+            ('x "a\nb"', False, []),
         ],
     )
     def test_shell_operators_reads_what_a_shell_would_read_outside_quotes(

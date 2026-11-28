@@ -250,7 +250,9 @@ def command_words(text, windows=None):
     return list(lexer)
 
 
-OPERATOR_CHARACTERS = ";&|<>"
+# What a POSIX shell's grammar reads as a separator, a control operator or a
+# redirection outside quotes: a newline ends a command as `;` does.
+OPERATOR_CHARACTERS = ";&|<>\n"
 
 
 def shell_operators(text, windows=None):
@@ -732,14 +734,18 @@ def main(argv=None) -> int:
         parser.error("--tests names no command")
     operators = shell_operators(args.tests)
     if operators:
-        named = ", ".join(f"`{op}`" for op in dict.fromkeys(operators))
-        parser.error(
-            f"--tests holds {named} outside quotes, and --tests runs with no "
-            "shell, so the first program would get it as an argument and the "
-            "cases after it would never run. Pass one command, or give the "
-            "shell the line on purpose: --tests \"sh -c '<command>'\". Nothing "
-            "was written."
+        named = ", ".join(
+            f"`{op}`".replace("\n", "\\n") for op in dict.fromkeys(operators)
         )
+        print(
+            f"{REFUSED}: --tests holds {named} outside quotes, and --tests runs "
+            "with no shell, so the first program would get it as an argument "
+            "and the cases after it would never run. Pass one command, or give "
+            "the shell the line on purpose: --tests \"sh -c '<command>'\". "
+            "Nothing was written.",
+            flush=True,
+        )
+        return 2
 
     started = time.monotonic()
     try:
