@@ -34,7 +34,7 @@ The tree as read at `3729b409`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 7 of `frame/design.md`, with the work item's `changelog.md`. | `uv run --no-project tests/run_tests.py -q tests/github/test_publish_release_note.py tests/github/test_release_mark.py tests/behaviour/test_a_release_publishes_its_note.py tests/skills/test_settle.py tests/behaviour/test_a_cited_section_stands_in_its_file.py` passes; `uvx ruff check .github/scripts/publish_release_note.py tests/github/test_publish_release_note.py` and `uvx ruff format --check` on the same two files exit 0; each new case is shown red at `3729b409` as contract rule 15 asks; S6 of the design is run and its output quoted in the phase record. | |
+| 1 | Scope items 1 to 7 of `frame/design.md`, with the work item's `changelog.md`. | `uv run --no-project tests/run_tests.py -q tests/github/test_publish_release_note.py tests/github/test_release_mark.py tests/behaviour/test_a_release_publishes_its_note.py tests/skills/test_settle.py tests/behaviour/test_a_cited_section_stands_in_its_file.py` passes; `uvx ruff check .github/scripts/publish_release_note.py tests/github/test_publish_release_note.py` and `uvx ruff format --check` on the same two files exit 0; each new case is shown red at `3729b409` as contract rule 15 asks; S6 of the design is run and its output quoted in the phase record. | 07f3bb14 |
 
 ## Overlap with the release
 
