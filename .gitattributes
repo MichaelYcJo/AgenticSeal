@@ -25,7 +25,7 @@
 # tag and `dist` never needs.
 /tests/ export-ignore
 /evals/ export-ignore
-/seal/ export-ignore
+/agentory/ export-ignore
 /CLAUDE.md export-ignore
 /.github/ export-ignore
 /assets/seals/*.svg export-ignore

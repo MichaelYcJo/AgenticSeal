@@ -115,7 +115,7 @@ def build_tracked_tree(d, files, deleted=()):
     `files` is `{relative path: text}`; every one of them is committed, and
     each entry of `deleted` is then unlinked WITHOUT staging the removal, so
     it stays in the index and leaves the working tree. That is the state
-    `seal settle --apply` leaves, since it deletes each directory and stages
+    `agentic settle --apply` leaves, since it deletes each directory and stages
     nothing (`docs/releasing/release-checklist.md` *Settle what earlier
     releases left behind*), and the state `on_disk` below is about.
 
@@ -281,7 +281,7 @@ os.environ["GIT_CONFIG_VALUE_0"] = "false"
 # has no token, so a case that falls through its stubs onto a live `gh` fails
 # there -- and passed on every developer's machine and under the broad gate,
 # because `gh` is logged in on both. Nothing local could see that class; CI
-# found it after the branch was sealed.
+# found it after the branch was cleared.
 #
 # `gh` looks for its login in three places, in this order: a token variable,
 # `hosts.yml` under its config directory, and the OS keyring. It reads the
@@ -340,7 +340,7 @@ for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
     del os.environ[_name]
 
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
-# exists (#866), except under `--sealing`, the broad gate's run, which asks
+# exists (#866), except under `--inspecting`, the broad gate's run, which asks
 # no state (#1620). A stub named `gh`, first on PATH from import,
 # answers that one question and passes every other call to the `gh` that was
 # on PATH, so `gh auth token` and the `PR` cell's question reach it as they
@@ -453,7 +453,7 @@ def load_lib_module(filename, name):
     return mod
 
 
-# `lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `lib/optin.py#MARKER`: an `agentory/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
 ROOT_MARKER = load_lib_module("optin.py", "agentic_optin_for_fixtures").MARKER
@@ -609,9 +609,9 @@ def posix_row_shell_or_skip():
 
 
 def local_home(repo):
-    """Create `<git-common-dir>/seal/` for `repo` and return its path.
+    """Create `<git-common-dir>/agentory/` for `repo` and return its path.
 
-    The local-mode root (#80). Asked of git rather than spelled `.git/seal`,
+    The local-mode root (#80). Asked of git rather than spelled `.git/agentory`,
     because in a linked worktree `.git` is a FILE and the root belongs to
     the main tree's common directory, which is what the scripts read.
     """
@@ -622,16 +622,16 @@ def local_home(repo):
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "seal"
+    home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "agentory"
     return mark_root(home)
 
 
 @pytest.fixture
 def local(repo):
-    """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
+    """The `repo` fixture in local mode: `agentory/` under `.git/` and nowhere
     else."""
     home = local_home(repo)
-    assert not (repo / "seal").exists()
+    assert not (repo / "agentory").exists()
     return repo, home
 
 
@@ -644,7 +644,7 @@ def declare_routing(
     Everything that used to key on a pull request number keys on this: the
     declaration names its branch, and the checked-out branch looks it up.
 
-    `home` is the root to write under when it is not `<repo>/seal/` -- the
+    `home` is the root to write under when it is not `<repo>/agentory/` -- the
     path `local_home` returned, for a local-mode fixture.
     """
     branch = subprocess.run(
@@ -653,7 +653,7 @@ def declare_routing(
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    d = mark_root(home if home else repo / "seal") / "threads" / item
+    d = mark_root(home if home else repo / "agentory") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -1031,7 +1031,7 @@ def shape_text(name):
 
 
 def opt_in_shared(repo):
-    return mark_root(repo / "seal")
+    return mark_root(repo / "agentory")
 
 
 def write_config(home, text):
@@ -1143,7 +1143,7 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
     (path / "f").write_text("2\n", encoding="utf-8")
     run("add", "f")
-    mark_root(path / "seal")
+    mark_root(path / "agentory")
     if declared:
         declare_routing(path, review=review)
     return path
@@ -1164,8 +1164,8 @@ def imported_roots(path):
 
 
 def config_json(*pairs):
-    """A `seal/config.json` holding one member per `(key, value)` in PAIRS,
-    in order, written as `seal mode` writes one; a key given twice is
+    """An `agentory/config.json` holding one member per `(key, value)` in PAIRS,
+    in order, written as `agentic mode` writes one; a key given twice is
     written twice, which a dict could not hold."""
     members = ",\n".join(
         f"  {json.dumps(key, ensure_ascii=False)}: "
@@ -1190,19 +1190,17 @@ def parity_file(sha):
     return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
-# --- a repository whose own `seal/` is a package (#1059) ---------------------
+# --- a repository whose own `agentory/` is a package (#1059) ---------------------
 #
-# Each command's cases that keep its records under `agentic-seal/` beside a
-# project's own `seal/` package share this world: the module files of
-# `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/skills/test_rules.py`.
+# The cases of a repository whose own `agentory/` is a package, whose root is
+# then the local one (#1651), share this world.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"
 # The project's own package, which no command of the plugin may write into.
 PACKAGE = {
-    "seal/__init__.py": "VERSION = 1\n",
-    "seal/README.md": "# seal\n\nThis package's own notes.\n",
+    "agentory/__init__.py": "VERSION = 1\n",
+    "agentory/README.md": "# agentory\n\nThis package's own notes.\n",
 }
 ROOT_RECORDS = {
     "follow-up.md": "# follow-up\n",
@@ -1220,7 +1218,7 @@ def records_at(home):
 
 @pytest.fixture
 def package(tmp_path):
-    """A repository on `main` whose committed `seal/` is the package, with
+    """A repository on `main` whose committed `agentory/` is the package, with
     REMOTE as `origin` and no root at either place."""
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -1232,23 +1230,15 @@ def package(tmp_path):
     return repo
 
 
-@pytest.fixture
-def shared(package):
-    """PACKAGE's repository with its root committed at `agentic-seal/`."""
-    records_at(package / "agentic-seal")
-    commit_everything_as_e(package, "the root")
-    return package
-
-
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
 # and the cases of `tests/lib/test_config.py` that run it over a signer's config
-# share one world: the pact's repository, whose `seal/config.json` lists the
-# signer in its `Pact signers` key and whose `seal/pact.md` carries one clause
+# share one world: the pact's repository, whose `agentory/config.json` lists the
+# signer in its `Pact signers` key and whose `agentory/pact.md` carries one clause
 # committed as v1 and then v2 on `main` and v3 on a side branch HEAD does not
 # hold, and the signer beside it, which names the pact in its
-# `seal/config.json`.
+# `agentory/config.json`.
 
 
 @functools.cache
@@ -1266,8 +1256,8 @@ PACT_URL = "git@example.com:org/orders-api.git"
 SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
 CLAUSE_PATH = "## Order response shape / ### Fields"
-PACT = "seal/pact.md"
-SPEC = "seal/threads/1790000000-x/frame/design.md"
+PACT = "agentory/pact.md"
+SPEC = "agentory/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` key names in the reader's cases, and what
 # `lib/config.py#pact_declaration` answers for it.
@@ -1283,7 +1273,7 @@ def pact(fields):
 
 
 def pact_config(*signers):
-    """The pact's repository's `seal/config.json`: `Mode`, then a `Pact
+    """The pact's repository's `agentory/config.json`: `Mode`, then a `Pact
     signers` key listing SIGNERS separated by `;`."""
     return config_json(("Mode", "shared"), ("Pact signers", "; ".join(signers)))
 
@@ -1296,7 +1286,7 @@ def clause(fields):
 
 
 def signer_config(*pairs):
-    """A signer's `seal/config.json`: `Mode` and then each of PAIRS."""
+    """A signer's `agentory/config.json`: `Mode` and then each of PAIRS."""
     return config_json(("Mode", "shared"), *pairs)
 
 
@@ -1328,8 +1318,8 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
-    write(api, "seal/config.json", pact_config(SIGNER_URL))
-    mark_root(api / "seal")
+    write(api, "agentory/config.json", pact_config(SIGNER_URL))
+    mark_root(api / "agentory")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
     commit(api, "pact v2")
@@ -1339,8 +1329,8 @@ def _template(tmp_path_factory):
     git(api, "switch", "-q", "main")
     web = base / "work" / "orders-web"
     init(web, SIGNER_URL)
-    write(web, "seal/config.json", signer_config(("Pact", PACT_URL)))
-    mark_root(web / "seal")
+    write(web, "agentory/config.json", signer_config(("Pact", PACT_URL)))
+    mark_root(web / "agentory")
     commit(web, "signer")
     return base
 
@@ -1371,7 +1361,7 @@ class World:
 
     def sign(self, *signers):
         """Write the pact's repository's config listing SIGNERS."""
-        write(self.api, "seal/config.json", pact_config(*signers))
+        write(self.api, "agentory/config.json", pact_config(*signers))
 
     def map(self, *entries):
         """Write the machine-local map, one member per `(remote, path)`."""
@@ -1426,11 +1416,11 @@ def declare_automation(home, answer, branch, item="1780000000-a-work-item"):
     return d / "routing.md"
 
 
-# --- a `seal` block, as `lib/fields.py` reads one ---------------------------
+# --- an `iadd` block, as `lib/fields.py` reads one ---------------------------
 
 
-def seal_block(*lines, opener="`" * 3 + "seal"):
-    """A `seal` block holding LINES, closed, with a newline after it.
+def iadd_block(*lines, opener="`" * 3 + "iadd"):
+    """An `iadd` block holding LINES, closed, with a newline after it.
     `tests/lib/test_fields.py` and `tests/skills/test_chain_check.py`
     write records with it."""
     return "\n".join([opener, *lines, "`" * 3]) + "\n"
@@ -1440,7 +1430,7 @@ def seal_block(*lines, opener="`" * 3 + "seal"):
 
 
 def home(repo):
-    mark_root(repo / "seal")
+    mark_root(repo / "agentory")
 
 
 def legacy(repo):
@@ -1493,7 +1483,7 @@ def _console_repo_template():
 def opted_in_repo(where):
     """An opted-in repository, at a path holding non-ASCII."""
     shutil.copytree(_console_repo_template(), where)
-    mark_root(where / "seal")
+    mark_root(where / "agentory")
     return where
 
 
@@ -1560,9 +1550,9 @@ def tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
-    mark_root(repo / "seal")
+    mark_root(repo / "agentory")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-        item = repo / "seal" / "threads" / name
+        item = repo / "agentory" / "threads" / name
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text(
             f"# {name}\n\nWhat it decided.\n", "utf-8"
@@ -1572,7 +1562,7 @@ def tree(tmp_path):
     git(repo, "config", "user.name", "x")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "released")
-    later = repo / "seal" / "threads" / "1700000004-delta"
+    later = repo / "agentory" / "threads" / "1700000004-delta"
     (later / "frame").mkdir(parents=True)
     (later / "frame" / "design.md").write_text(
         "# delta\n\nIn flight.\n", encoding="utf-8"

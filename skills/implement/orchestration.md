@@ -6,15 +6,15 @@ the order of the parties, the fold of a decision made after the frame, the
 one batch of questions asked before the first edit, the rows of the routing
 declaration, the route chosen under `agentic`, the ladder that says whether
 a work item has a frame, the drain before the broad run, and where a
-decision or a lesson is written. Where no `seal/` whose `README.md` opens
+decision or a lesson is written. Where no `agentory/` whose `README.md` opens
 with the marker stands at any of the places the opening paragraph of
-`skills/core/SKILL.md` names, which `seal mode` answers by exiting 1, the
+`skills/core/SKILL.md` names, which `agentic mode` answers by exiting 1, the
 orchestrator reads `skills/implement/bootstrap.md` first.
 
 `skills/implement/SKILL.md` is the other half, and the orchestrator reads
 both. The crafter opens that one at its first step and never this one,
 because asking a person and writing `routing.md` are acts
-`agents/crafter.md` leaves to the orchestrator. Every `seal/…` path here
+`agents/crafter.md` leaves to the orchestrator. Every `agentory/…` path here
 resolves as `skills/implement/SKILL.md` *Document layout — two roots, three
 lifetimes* states (contract rule 11).
 
@@ -25,8 +25,8 @@ lifetimes* states (contract rule 11).
    The orchestrator makes the branch with `git switch`, and a worktree only
    where another session works in the same clone at the same time.
    Before the first edit the orchestrator holds the core once, which the
-   plugin's `SessionStart` hook printed where a `seal/` root stood when the
-   session started. Where no output opening `AgenticSeal core from` stands
+   plugin's `SessionStart` hook printed where an `agentory/` root stood when the
+   session started. Where no output opening `IADD core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
    once. The orchestrator opens `skills/agent-contract/SKILL.md` once,
    beside the core. In every route, the orchestrator's own commands, its
@@ -48,12 +48,12 @@ lifetimes* states (contract rule 11).
    orchestrator writes and commits the work item's `pr.md`, the pull request body's
    first part, with its `pr.<lang>.md` where the two language keys differ,
    before the first round. The proofer's rounds follow, then
-   `seal gate --preflight` and `seal gate --record`, both run by the
-   orchestrator, then `seal pr-body`, which the orchestrator runs to write
-   the pull request body from `pr.md` and the records, then the sealer,
+   `agentic gate --preflight` and `agentic gate --record`, both run by the
+   orchestrator, then `agentic pr-body`, which the orchestrator runs to write
+   the pull request body from `pr.md` and the records, then the inspector,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
-   opens once the sealer seals* owns when). Once the pull request is open,
+   opens once the work item is cleared* owns when). Once the pull request is open,
    the orchestrator removes the work item's scratch directory,
    `<scratchpad>/<work-item-id>/`, in one `rm -rf` whose path is written
    out in full, with no variable in it, and removes nothing else of the
@@ -153,7 +153,7 @@ and the prompt that spawns a fresh one, each name
 `skills/implement/fold-and-reframe.md` for the framer to open before it
 answers. The row for a fold states the decision as it was sent. After the
 fold the orchestrator changes it only where the framer's hand-back, a
-round's finding or the sealer's verdict names a defect in it, which it
+round's finding or the inspector's verdict names a defect in it, which it
 corrects, or where the framer rejects the decision, as the next paragraph
 states. It then commits the frame files the framer
 changed and its own rows in one commit, before the spawn or the resume
@@ -271,8 +271,8 @@ Two things sharpen the list:
   code first. An issue's line that leaves a decision to a person is a claim
   dated by the issue: it records what was open when the issue was filed.
   Before its question enters the batch, the orchestrator checks it against
-  the policy root, `seal/config.json`, the code, and the records under
-  `seal/threads/` of the work items that came before. Where they answer it,
+  the policy root, `agentory/config.json`, the code, and the records under
+  `agentory/threads/` of the work items that came before. Where they answer it,
   the orchestrator does not ask. It writes the answer with its coordinate in
   *Why this way* of the `routing.md` of the work item the issue opens, when
   it writes that `routing.md` at the item's start. For a later work item of
@@ -301,7 +301,7 @@ the person can lift, and under `Automation` `yes` nobody is there to lift it.
 every work item the request names.** What surfaces after it is written down
 rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
-`seal/follow-up.md` with an answerer named — a deferral to nobody is how
+`agentory/follow-up.md` with an answerer named — a deferral to nobody is how
 "someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
 answerer has to exist*) — and what was deliberately left goes to the closing
 memo's Not done section. Each is named in the PR body, because a leftover
@@ -312,7 +312,7 @@ nobody can find was not handed over.
 The orchestrator opens `skills/implement/routing-question.md` when it puts
 the batch of questions, the routing question among them, to a person, and
 where either of the two language keys is missing from `config.json` under
-the `seal/` root, which it reads before the routing commit. That file holds
+the `agentory/` root, which it reads before the routing commit. That file holds
 the routing question's two calls, what each answer writes, how a question
 of the batch is worded, and what the batch does about the two keys.
 
@@ -342,8 +342,8 @@ reads the facts back and writes the code still answers `the session`;
 orchestrator still has to hold (`docs/running/the-agent-set.md` *What a spawn
 costs*). The file ends with `## Why this way`: one or two sentences where
 the person chose the rows, and where the orchestrator chose them under
-`agentic`, the grounds *Under agentic* asks for, which the sealer reads
-against the diff (`agents/sealer.md` step 4).
+`agentic`, the grounds *Under agentic* asks for, which the inspector reads
+against the diff (`agents/inspector.md` step 4).
 
 **While the `Automation` row reads `yes`, the plugin's `PreToolUse` hook puts
 the rule for the run in front of the orchestrator at each `AskUserQuestion`
@@ -373,11 +373,12 @@ framer runs. The orchestrator fills the row from what happened:
 orchestrator drew it, and no row where no frame was called for or chosen.
 
 **The orchestrator writes the answer down before the first edit**, in
-`seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
-commits it, because the check happens at the pull request and CI sees only
-what is in the tree. Below the SDD ladder this may be the only file a work
-item gets. No check refuses an earlier edit; the pull request's check judges
-the declared work item, and a session that declares nothing is the limit
+`agentory/threads/<work-item-id>/routing.md`, from
+`templates/records/sdd-routing.md`, and commits it, because the check happens
+at the pull request and CI sees only what is in the tree. Below the SDD ladder
+this may be the only file a work item gets. No check refuses an earlier edit;
+the pull request's check judges the declared work item, and a session that
+declares nothing is the limit
 `docs/checks/the-routing-check.md` states.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
@@ -476,7 +477,7 @@ the answer writes* above:
   needs no frame.
 - **Implementation**: by the criterion *What the answer writes* states.
 - **Review**: `through the review chain` where a reader independent of the
-  build is worth its rounds; `straight to the PR` where the sealer's single
+  build is worth its rounds; `straight to the PR` where the inspector's single
   reading of the diff against the issue is enough.
 - **Automation**: `yes` where every question the orchestrator foresees has
   a default the tree or the framer can give; `no` where the item reaches
@@ -489,7 +490,7 @@ the answer writes* above:
 
 | Combination | Why it does not stand |
 |---|---|
-| a work item whose pull request opens without the broad run or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
+| a work item whose pull request opens without the broad run or without a cleared inspection | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
 | `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
 | `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it |
 
@@ -510,7 +511,7 @@ holds one sentence of grounds, above the trailer.
 trailer, and the pull request's check prints them rather than refusing
 them (`docs/checks/the-routing-check.md` *At the pull request*). A work
 item routed `straight to the PR` takes the review chain where its diff
-reaches what its grounds did not name, or where its sealer withholds on
+reaches what its grounds did not name, or where its inspector withholds on
 that. Each raise is a row of `frame/plan.md` *Judgments of the run* where a
 plan stands, and otherwise a sentence added under *Why this way*. A route
 is not lowered when the build turns out smaller, because the orchestrator
@@ -552,9 +553,9 @@ not something anyone can check, and it is not a way out.
 
 ## Orchestrator: drain the rows before the broad run, and keep the records
 
-**A row whose destination stands outside `seal/threads/<work-item-id>/` is
+**A row whose destination stands outside `agentory/threads/<work-item-id>/` is
 committed before the round that reads it.** Such a row is a
-`seal/follow-up.md` row or a policy document written directly, and its
+`agentory/follow-up.md` row or a policy document written directly, and its
 commit is one that `docs/checks/the-pull-request-check.md` *What the check
 reads at the pull request* gives to a round. The orchestrator commits a
 leftover a crafter's hand-back names before it spawns the round after that
@@ -562,12 +563,12 @@ phase or fix pass, and a finding it defers in a round record before the
 verifying round, where another finding of that round takes a fix pass.
 
 **Every other row moves out once the last round record has no finding
-open, and before the orchestrator runs `seal gate --preflight`**, whichever
+open, and before the orchestrator runs `agentic gate --preflight`**, whichever
 party `routing.md`'s `Implementation` row names: a row whose destination
 stands inside the work item's directory, and a row that makes no commit,
 such as an issue or a comment on one. The orchestrator opens the pull
 request, and every commit after the broad run leaves `trail/gate.md` stale
-for the sealer (`skills/code-review/gate-to-pull-request.md`
+for the inspector (`skills/code-review/gate-to-pull-request.md`
 *Orchestrator: from the preflight to the open pull request*).
 
 **A row that first arises once no round is to follow is weighed.** Its
@@ -580,8 +581,8 @@ A row is out when it stands at its destination below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless the sealer reads its fix, by the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must`, or an item whose fix the sealer reads by that row of the core, is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
-| Waiting on prerequisite work | `seal/follow-up.md` |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless the inspector reads its fix, by the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must`, or an item whose fix the inspector reads by that row of the core, is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
+| Waiting on prerequisite work | `agentory/follow-up.md` |
 | Needs a decision | the policy document's open-questions section: written there directly where the work item's subject is the policy root, and otherwise an `add` in `frame/design.md`'s `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
 Each finding that moves out reads `deferred <home>` in its round record. The

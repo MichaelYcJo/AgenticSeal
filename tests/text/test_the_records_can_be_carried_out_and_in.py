@@ -1,7 +1,7 @@
-"""`seal export` and `seal import`: the READMEs that name them.
+"""`agentic export` and `agentic import`: the READMEs that name them.
 
-The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`,
-and the three of `normalise_remote`, which `seal.py` re-exports from
+The cases of `skills/implement/scripts/agentic.py` are in `tests/skills/test_agentic.py`,
+and the three of `normalise_remote`, which `agentic.py` re-exports from
 `lib/config.py`, are in `tests/lib/test_config.py`. The two cases here read
 the READMEs.
 """
@@ -11,7 +11,7 @@ import os
 import pytest
 from conftest import ROOT
 
-# No TARGET: its cases hold seal export and seal import across the READMEs and the seal README with its template.
+# No TARGET: its cases hold agentic export and agentic import across the READMEs and the `agentory/` README with its template.
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])
@@ -26,7 +26,7 @@ def test_both_readmes_carry_the_pair_and_the_rule_that_makes_it_safe(readme):
     with open(os.path.join(ROOT, readme), encoding="utf-8") as handle:
         text = handle.read()
     # The two commands a reader runs.
-    assert "seal export" in text and "seal import" in text
+    assert "agentic export" in text and "agentic import" in text
     # The suffix of the path a colliding record lands at, which a reader
     # opens.
     assert ".incoming" in text, f"{readme} does not say where a collision lands"
@@ -36,11 +36,14 @@ def test_the_root_readme_and_its_template_say_it_too():
     """The template is what a first setup bootstraps a user's root from, and
     `tests/behaviour/test_first_setup_asks_once.py` asserts the two are byte-identical —
     so the rule lands in every repository that opts in, not only this one."""
-    for parts in (("seal", "README.md"), ("templates", "setup", "seal-README.md")):
+    for parts in (
+        ("agentory", "README.md"),
+        ("templates", "setup", "agentory-README.md"),
+    ):
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
             text = handle.read()
         # The two commands a reader runs.
-        assert "seal export" in text and "seal import" in text, "/".join(parts)
+        assert "agentic export" in text and "agentic import" in text, "/".join(parts)
         # The file name of the state that must not travel, which a reader
         # leaves out of a copy.
         assert "agentic-last-export.json" in text, (

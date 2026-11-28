@@ -203,7 +203,7 @@ def corrections(root):
     """`[(rule_changes.Op, work item directory)]` for every item of a pending
     `## Rule changes`, as `rule_changes.pending` reads them against the
     policy root `lib/config.py#policy_root` names."""
-    home = os.path.join(root, "seal")
+    home = os.path.join(root, "agentory")
     return rules.pending(home, config.policy_root(home))
 
 
@@ -1024,17 +1024,17 @@ SHAPES = {
 def pending(tmp_path, changes, citing="docs/a.md", policy=None):
     """A repository whose CITING file holds `POLICY_CITING` and whose one
     work item's `## Rule changes` holds CHANGES, or that has no such
-    section where CHANGES is None; `seal/config.json` names POLICY as the
+    section where CHANGES is None; `agentory/config.json` names POLICY as the
     policy root where it is given."""
     design = spec(changes) if changes is not None else "# a work item\n"
     files = {
         citing: POLICY_CITING,
         "manual/b.md": "## New name\n",
         "manual/b.py": "kept = 1\n",
-        "seal/threads/1-x/frame/design.md": design,
+        "agentory/threads/1-x/frame/design.md": design,
     }
     if policy:
-        files["seal/config.json"] = config_json(("Policy root", policy))
+        files["agentory/config.json"] = config_json(("Policy root", policy))
     return repo(tmp_path, files)
 
 
@@ -1096,10 +1096,10 @@ def test_a_pending_correction_excuses_a_policy_citation_and_warns(
     root = pending(tmp_path, changes, citing, policy)
     with pytest.warns(UserWarning) as caught:
         found = assert_resolved(root, reader)
-    assert found.excused == [(citing, line, target, cited, "seal/threads/1-x/")]
+    assert found.excused == [(citing, line, target, cited, "agentory/threads/1-x/")]
     assert [str(w.message) for w in caught] == [
         f"{citing}:{line} cites {message}, which a pending rule change "
-        "in seal/threads/1-x/ corrects; it stands until the settle writes that "
+        "in agentory/threads/1-x/ corrects; it stands until the settle writes that "
         "correction"
     ]
 

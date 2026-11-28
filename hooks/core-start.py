@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """SessionStart: print the core, or a line naming its file, into a session
-whose repository holds a `seal/` root.
+whose repository holds an `agentory/` root.
 
 The core, `skills/core/SKILL.md`, is what every party of this plugin judges
 by. An agent receives it through its definition's `skills:` list; a session

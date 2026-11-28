@@ -127,10 +127,10 @@ def test_the_record_of_a_comparison_names_its_writer():
     The section said *you*, so a crafter or a tracer opening the skill read
     itself as the writer of a record its definition does not name. #1027
     removed the parity mark and gave the comparison under `straight to the
-    PR` to the sealer (`questions.md` Q1's default), so the writers are the
-    proofer in each round record and the sealer in `guarantee.md`. #1198
+    PR` to the inspector (`questions.md` Q1's default), so the writers are the
+    proofer in each round record and the inspector in `inspection.md`. #1198
     put each line in a block: the round block, and the verdict block each
-    run of the sealer appends."""
+    run of the inspector appends."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     # The heading `agents/proofer.md` and `skills/implement/orchestration.md`
@@ -141,8 +141,8 @@ def test_the_record_of_a_comparison_names_its_writer():
         # The `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts, each a
         # row's first cell, which a reader matches against `routing.md`.
         *(f"| {answer} |" for answer in routing.REVIEW_ANSWERS),
-        # The file the sealer appends the line to.
-        "`guarantee.md`",
+        # The file the inspector appends the line to.
+        "`inspection.md`",
     ):
         assert fact in body, f"the record of a comparison lost {fact!r}"
 

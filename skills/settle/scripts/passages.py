@@ -34,7 +34,7 @@ READER = "lib/lines.py"
 # `a bare word is a pathspec and git rejects it`, which the retired probe rule
 # and the design gate's waiver paragraph both spelt; the proofer's 9-word echo
 # of contract rule 6 was the next. Both left with their rewrites (#957, #967),
-# and the widest kept run after them was 8 words, `agents/sealer.md` with
+# and the widest kept run after them was 8 words, `agents/inspector.md` with
 # contract rule 2. The smallest run a real copy produced, measured on the same
 # files before phase 4 removed the copies, was 25 words (contract rule 10),
 # then 31 (contract rule 9), 37 (a rule #957 folded into contract rule 11), 59

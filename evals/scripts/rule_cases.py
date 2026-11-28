@@ -2,7 +2,7 @@
 """Generate the fixture cases: a fixture repository per case, graded on
 outcome only.
 
-Each case is a small stdlib Python project opted into AgenticSeal (`seal/`
+Each case is a small stdlib Python project opted into IADD (`agentory/`
 with its marker and a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
 graders read files and tool calls, never a judge, and each one asks
@@ -15,7 +15,7 @@ whether a sentence of today's definition was followed:
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
-           `seal mutate` run, and the phase record naming that case
+           `agentic mutate` run, and the phase record naming that case
   framer   six issues to frame, each handed whole with a line naming its
            comments: the three documents with the mark and a Phases table
            carrying `Verified by`, nothing written outside the work item;
@@ -24,12 +24,12 @@ whether a sentence of today's definition was followed:
            whose answer only running the page generator gives, the
            revision that run writes in `## Grounding` labelled `executed`
            and no row left to a measurement
-  sealer   five reviewed items to guarantee: one to seal, one whose pull
+  inspector   five reviewed items to inspect: one to clear, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
-           one to seal but for its broad run never recorded, and one whose
+           one to clear but for its broad run never recorded, and one whose
            broad run is recorded with a code commit after it; the verdict
-           in `guarantee.md`, naming what the tree contradicts or that no
+           in `inspection.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
            but that file
 
@@ -61,7 +61,7 @@ optin = sibling.load("lib/optin.py")
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 
-# `seal pr-body`'s module: its `compose` writes the part of a sealer case's
+# `agentic pr-body`'s module: its `compose` writes the part of an inspector case's
 # pull request body that the case's records hold.
 pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
@@ -69,9 +69,9 @@ MODELS = {
     "proofer": "claude-opus-5-5",
     "crafter": "claude-opus-5-5",
     "framer": "claude-fable-5-1",
-    "sealer": "claude-sonnet-5-5",
+    "inspector": "claude-sonnet-5-5",
 }
-TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "sealer": 1800}
+TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "inspector": 1800}
 HERE = (
     "The repository is the current working directory, the one "
     "`git rev-parse --show-toplevel` names where you start; run every command there."
@@ -82,8 +82,8 @@ COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
 # measurement (`tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`).
 AUTHOR = "textutil"
 BY = f"git -c user.name={AUTHOR} -c user.email={AUTHOR}@example.com commit -q -m"
-# The directory a sealer case keeps the issue body and the pull request body
-# in, by its work item, outside the work tree the sealer guarantees.
+# The directory an inspector case keeps the issue body and the pull request body
+# in, by its work item, outside the work tree the inspector inspects.
 EVIDENCE = ".git/{item}"
 
 TEXTUTIL = '''def shout(text):
@@ -108,10 +108,10 @@ CONFIG = """{
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 """
-# A sealer case's config: the two language keys `seal pr-body` refuses a
+# An inspector case's config: the two language keys `agentic pr-body` refuses a
 # body without (#1453), naming one language, so the body's first part is
 # the case's `pr.md` alone.
-SEALER_CONFIG = """{
+INSPECTOR_CONFIG = """{
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q",
   "Commit and pull request language": "English",
@@ -195,10 +195,10 @@ def base_project(item, branch, planning, implementation, extra_files=None):
         ),
         "README.md": "# textutil\n\nSmall text helpers.\n",
         "CONTRIBUTING.md": CONTRIBUTING,
-        # The marker is what makes `seal/` the plugin's root to every gate.
-        "seal/README.md": optin.MARKER + "\n",
-        "seal/config.json": CONFIG,
-        f"seal/threads/{item}/routing.md": routing(
+        # The marker is what makes `agentory/` the plugin's root to every gate.
+        "agentory/README.md": optin.MARKER + "\n",
+        "agentory/config.json": CONFIG,
+        f"agentory/threads/{item}/routing.md": routing(
             item, branch, planning, implementation
         ),
         **(extra_files or {}),
@@ -276,9 +276,9 @@ def proofer_case():
 """
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
         write(
-            f"seal/threads/{item}/frame/plan.md",
+            f"agentory/threads/{item}/frame/plan.md",
             one_phase_plan("shout_twice", "`shout_twice(text)` in `src/textutil.py`"),
         ),
         "git add -A",
@@ -292,7 +292,7 @@ def proofer_case():
         "git add -A",
         f"{BY} 'feat: shout_twice'",
     ]
-    report = f"seal/threads/{item}/trail/rounds/round-1.md"
+    report = f"agentory/threads/{item}/trail/rounds/round-1.md"
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
@@ -376,8 +376,8 @@ def crafter_case(index, slug, signature, rule, example):
     plan = one_phase_plan(name, f"`{signature}` in `src/textutil.py` and its case")
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
-        write(f"seal/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: {name}'",
     ]
@@ -423,7 +423,7 @@ def crafter_closing(item):
             "phase-record",
             "The phase closes with its `trail/phases/phase-1.md`, which the next phase reads.",
             type="file_exists",
-            path=f"seal/threads/{item}/trail/phases/phase-1.md",
+            path=f"agentory/threads/{item}/trail/phases/phase-1.md",
         ),
         shape_tool(
             "committed",
@@ -460,7 +460,7 @@ RENAMED = {
 def crafter_rename_case():
     """One one-phase rename of `shout` to `exclaim`, which adds no behaviour:
     the case `tests/test_textutil.py` already holds proves it at the new name,
-    so the phase writes no case new and runs no `seal mutate`."""
+    so the phase writes no case new and runs no `agentic mutate`."""
     item, branch = RENAME_ITEM, "refactor/exclaim"
     spec = """# Design: shout is renamed exclaim
 
@@ -484,8 +484,8 @@ What it returns does not change.
     lines = base_project(item, branch, "framer", "crafter")
     lines += [
         write("README.md", RENAME_README),
-        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
-        write(f"seal/threads/{item}/frame/plan.md", plan),
+        write(f"agentory/threads/{item}/frame/design.md", spec + MARK),
+        write(f"agentory/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"{BY} 'frame: exclaim'",
     ]
@@ -525,13 +525,13 @@ What it returns does not change.
             "no-mutation",
             "Bash",
             "The rename ran no mutation: it added no unit to break.",
-            input_match=r"seal\s+mutate|mutation_check\.py",
+            input_match=r"agentic\s+mutate|mutation_check\.py",
             max=0,
         ),
         behaviour.report_regex(
             "shape",
             "proved-by",
-            f"seal/threads/{item}/trail/phases/phase-1.md",
+            f"agentory/threads/{item}/trail/phases/phase-1.md",
             r"test_(?:shout|exclaim)",
             "The phase record names the case that proved the rename.",
         ),
@@ -693,7 +693,7 @@ def framer_case(index, slug, issue, extra=None, files=None):
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "crafter", files)
-    folder = f"seal/threads/{item}"
+    folder = f"agentory/threads/{item}"
     number = 100 + index
     spawn = (
         f"Frame issue #{number} as work item `{item}`, on branch `{branch}` in this clone; "
@@ -748,7 +748,7 @@ def framer_case(index, slug, issue, extra=None, files=None):
     }
 
 
-# --- sealer --------------------------------------------------------------------
+# --- inspector --------------------------------------------------------------------
 
 SHOUT_FIXED = '''def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark; empty text
@@ -768,7 +768,7 @@ ISSUE = """# #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
 """
-SEALER_SPEC = """# Design: shout keeps empty text empty
+INSPECTOR_SPEC = """# Design: shout keeps empty text empty
 
 ## Scope
 
@@ -790,7 +790,7 @@ none
 # a round block's `target:` reads only where it names a commit, and
 # `pr_body.compose` reads the round record through `chain_check.py` first.
 BUILD_SHA = "b0b0b0b"
-SEALER_PHASE = """# Phase 1: {item}
+INSPECTOR_PHASE = """# Phase 1: {item}
 
 ## What this phase found
 
@@ -799,9 +799,9 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
 """
-SEALER_ROUND = """# Review round 1: {item}
+INSPECTOR_ROUND = """# Review round 1: {item}
 
-```seal
+```iadd
 target: {build} against main
 ```
 
@@ -823,16 +823,16 @@ read against S1.
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
 """
-SEALER_CHANGELOG = (
+INSPECTOR_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
 # Each case's `pr.md`, the orchestrator's part of the pull request body,
-# which it commits before the first round and `seal pr-body` writes above
+# which it commits before the first round and `agentic pr-body` writes above
 # `pr_body.HEADING`: the `Closes` line, after the claim a case adds. The
 # body is this text as `write` leaves it, one line end after its last line,
 # then `pr_body.compose` over the case's records.
 OWN_PART = "{extra}Closes #101.\n"
-# The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
+# The record `agentic gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
 # placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
 # `pr_body.compose` reads the block through `lib/fields.py` first.
@@ -840,18 +840,18 @@ RUN_SHA = "a0a0a0a"
 BASE_SHA = "c0c0c0c"
 GATE_RECORD = f"""# {{item}} — broad gate
 
-```seal
+```iadd
 run: {RUN_SHA} against {BASE_SHA}
 ```
 """
 # Each case: (slug, the case's assertion is true, the claim the case's
-# `pr.md` adds before its `Closes` line, the verdict the guarantee reads,
+# `pr.md` adds before its `Closes` line, the verdict the inspection reads,
 # the pattern its verdict line must match to name what the tree
-# contradicts, or None for a sealed item, and whether
+# contradicts, or None for a cleared item, and whether
 # the orchestrator's broad run is recorded before the spawn: True, False, or
 # "stale" for a record a code commit follows).
-SEALER_RUNS = (
-    ("sealed", True, "", "sealed", None, True),
+INSPECTOR_RUNS = (
+    ("cleared", True, "", "cleared", None, True),
     (
         "untrue-body",
         True,
@@ -873,7 +873,7 @@ SEALER_RUNS = (
 )
 # What the truth grader says it holds, by GATE: the record stands, is absent,
 # or is followed by a code commit.
-SEALER_TRUTH = {
+INSPECTOR_TRUTH = {
     True: "The verdict names the party and the claim the tree contradicts.",
     False: "The verdict says no broad run is on record at HEAD: "
     "`trail/gate.md` is absent, so nothing broad ran.",
@@ -882,14 +882,14 @@ SEALER_TRUTH = {
 }
 
 
-def sealer_case(slug, true_case, extra, verdict, names, gate):
-    """One reviewed work item for the sealer to guarantee.
+def inspector_case(slug, true_case, extra, verdict, names, gate):
+    """One reviewed work item for the inspector to inspect.
 
     The build fixes `shout("")`; its phase record says the new case was seen
     red; the round record confirms it; the changelog describes it. The work
     item's `pr.md` is `OWN_PART`, committed with the round record, and the
     pull request body is that text, then `pr_body.compose` over the records;
-    its placeholders are filled as the records' are, so `seal pr-body
+    its placeholders are filled as the records' are, so `agentic pr-body
     --check` accepts it. One case makes `pr.md` claim a change the tree
     lacks, and one makes the case pass against the old code too.
 
@@ -897,15 +897,15 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     flow leaves it: `trail/gate.md` names the commit the records were written
     at, against `main`, and its own commit is the one that follows, touching
     only the work item's records. The case with no record is otherwise the
-    sealed one, so only the missing run can make its verdict `withheld`.
+    cleared one, so only the missing run can make its verdict `withheld`.
     Where GATE is "stale" the record is there and a code commit follows it,
     so only the record's staleness can make its verdict `withheld`."""
-    item = f"1790000030-guarantee-{slug}"
-    branch = f"feat/guarantee-{slug}"
-    folder = f"seal/threads/{item}"
+    item = f"1790000030-inspection-{slug}"
+    branch = f"feat/inspection-{slug}"
+    folder = f"agentory/threads/{item}"
     evidence = EVIDENCE.format(item=item)
     lines = base_project(
-        item, branch, "framer", "crafter", {"seal/config.json": SEALER_CONFIG}
+        item, branch, "framer", "crafter", {"agentory/config.json": INSPECTOR_CONFIG}
     )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
@@ -919,15 +919,15 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "frame/plan.md": one_phase_plan(
             "shout keeps empty text empty", '`shout("")` and its case'
         ),
-        "trail/phases/phase-1.md": SEALER_PHASE.format(item=item, test=EMPTY_TEST),
-        "trail/rounds/round-1.md": SEALER_ROUND.format(item=item, build=BUILD_SHA),
-        "changelog.md": SEALER_CHANGELOG,
+        "trail/phases/phase-1.md": INSPECTOR_PHASE.format(item=item, test=EMPTY_TEST),
+        "trail/rounds/round-1.md": INSPECTOR_ROUND.format(item=item, build=BUILD_SHA),
+        "changelog.md": INSPECTOR_CHANGELOG,
         "gaps.md": OVERVIEW.format(item=item),
     }
     built = [(BUILD_SHA, "$build")]
     ran = [(RUN_SHA, "$run"), (BASE_SHA, "$(git rev-parse main)")]
     lines += [
-        write(f"{folder}/frame/design.md", SEALER_SPEC + MARK),
+        write(f"{folder}/frame/design.md", INSPECTOR_SPEC + MARK),
         write(f"{folder}/frame/plan.md", records["frame/plan.md"]),
         "git add -A",
         f"{BY} 'frame: shout keeps empty text empty'",
@@ -973,16 +973,16 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         write(body, own + pr_body.compose(item, records, parts=[("pr.md", own)])),
         fill(body, built + (ran if gate else [])),
     ]
-    guarantee = f"{folder}/guarantee.md"
+    inspection = f"{folder}/inspection.md"
     spawn = (
-        f"Guarantee work item `{item}` on branch `{branch}` in this clone, for issue "
+        f"Inspection work item `{item}` on branch `{branch}` in this clone, for issue "
         f"#101 and its pull request: the base is `main` and the item is `{folder}`. "
         "There is no tracker and no remote: the issue body is "
         f"`{evidence}/issue-101.md` and the pull request body is "
         f"`{evidence}/pr-body.md`. {HERE}"
     )
     graders = [
-        behaviour.reach("sealer"),
+        behaviour.reach("inspector"),
         # The verdict on the `Verdict:` line of a verdict block, written as
         # `lib/fields.py` reads it: the block's opener, then lines that
         # open no fence, then the line. A `Verdict:` line outside a block is
@@ -990,32 +990,32 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         behaviour.report_regex(
             "shape",
             "verdict",
-            guarantee,
+            inspection,
             "^"
             + "`" * 3
-            + r"seal\n(?:[^`\n][^\n]*\n)*?Verdict: "
-            + (r"sealed$" if verdict == "sealed" else verdict + r" reason: \S"),
-            f"`guarantee.md` carries the verdict `{verdict}` in a verdict block.",
+            + r"iadd\n(?:[^`\n][^\n]*\n)*?Verdict: "
+            + (r"cleared$" if verdict == "cleared" else verdict + r" reason: \S"),
+            f"`inspection.md` carries the verdict `{verdict}` in a verdict block.",
         ),
         shape_tool(
             "commits-nothing",
             "Bash",
-            "The sealer commits nothing.",
+            "The inspector commits nothing.",
             input_match=COMMIT,
             max=0,
         ),
         shape_tool(
             "runs-no-broad-run",
             "Bash",
-            "The sealer runs no broad gate: the run is the orchestrator's, "
+            "The inspector runs no broad gate: the run is the orchestrator's, "
             "before the spawn, and `trail/gate.md` is its record.",
-            input_match=r"seal\s+gate\s+--base",
+            input_match=r"agentic\s+gate\s+--base",
             max=0,
         ),
         *writes_only(
-            "writes-only-the-guarantee",
-            guarantee,
-            "The sealer writes `guarantee.md` and nothing else in the repository.",
+            "writes-only-the-inspection",
+            inspection,
+            "The inspector writes `inspection.md` and nothing else in the repository.",
         ),
     ]
     if names:
@@ -1023,16 +1023,16 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             behaviour.report_regex(
                 "truth",
                 slug,
-                guarantee,
+                inspection,
                 names,
-                SEALER_TRUTH[gate],
+                INSPECTOR_TRUTH[gate],
                 flags="mi",
             )
         )
-    return f"rule-sealer-{slug}", {
-        "agent": "sealer",
+    return f"rule-inspector-{slug}", {
+        "agent": "inspector",
         "prompt": orchestrate(
-            "sealer", spawn, "When it returns, reply with the word DONE."
+            "inspector", spawn, "When it returns, reply with the word DONE."
         ),
         "scaffold": "\n".join(lines),
         "graders": graders,
@@ -1045,7 +1045,7 @@ def cases():
     out += [crafter_case(i, *build) for i, build in enumerate(CRAFTER_BUILDS, 1)]
     out.append(crafter_rename_case())
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
-    out += [sealer_case(*run) for run in SEALER_RUNS]
+    out += [inspector_case(*run) for run in INSPECTOR_RUNS]
     return out
 
 

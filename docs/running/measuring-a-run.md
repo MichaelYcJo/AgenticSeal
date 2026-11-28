@@ -118,7 +118,7 @@ check: tests/text/test_a_segment_feeds_the_flow_log.py
 
 **Posting a run's reading is one command, and the release runs it again for
 every work item it ships.**
-`seal cost --work-item <dir> --post --says <path|->` posts to the one open
+`agentic cost --work-item <dir> --post --says <path|->` posts to the one open
 log its label resolves to. It refuses without `--says`, because the numbers
 are the script's and what they say is the session's judgment, and a command
 that wrote that sentence itself would be posting one nobody wrote. The label

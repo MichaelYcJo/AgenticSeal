@@ -1,0 +1,1606 @@
+#!/usr/bin/env python3
+"""agentic stamp — the inspector's stamp, drawn from a `cleared` inspection.
+
+Drawn once per work item from the inspector's verdict. Two things side by side
+on the terminal's own background, and nothing else: at the left a wax disc
+with the disc's mark pressed into it, and three columns right of it the
+panel's text — a bold red `CLEARED` and a dim rule, then what the records at
+the inspection's commit say: the audited commit and its branch, the base,
+the work item, the newest broad run and the round count (`inspection_rows`
+owns the list). The disc is COMPUTED — `hypot` and `atan2` for its edge,
+its lip and its step ring — and only the disc's mark is authored: a 16 x 16
+sprite in `stamp-mark.txt` beside this file, read as data (`read_sprite`).
+Four hand-typed discs were each lopsided; a circle that is calculated
+cannot be off centre. The owner chose the grid, 28 cells across and 14
+lines, and no sheet behind the text (#832), so nothing outside the disc is
+painted and the stamp reads in the terminal's own theme. The disc's mark is
+drawn one cell at a time, so changing it is changing that file alone. The
+owner chose the little owl as the mark and a red wax seal to press it into
+(#1174): an edge that wobbles, a lip lit from the upper left with a gloss
+streak, a step ring lit the other way, the pressed field, the owl and its
+drop shadow, every cell exactly one of fifteen colours.
+
+Two forms, one drawing (`compose`). The block form is half-block characters,
+the disc in truecolour and the text in the terminal's own colours and
+styles, and it writes a code only where the colour or the style changes:
+one SGR per change and no reset inside a line (a code per cell was 282 KB
+for one stamp). The letter twin is the same footprint as letters — `KEY`
+for the disc, `e` its outer edge's dark and `w` its wax, `h d g` its lip
+lit, dark and its gloss, `s t` its step ring dark and lit, `.` its field and
+`y` the drop shadow, and the owl by the sprite's own letters, `K` its
+outline, `R` its body, `L` its breast, `W` its eyes, `P` its pupils and `Y`
+its beak and branch; the text as itself, with the owner's `·`, `✓`, `─` and
+`→` written `.`, `+`, `-` and `>` — for a console that cannot render
+half-blocks, and for `agentic stamp` on a pipe. The twin is chosen when
+stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
+neither: no Bash call's pipe is drawn on.
+
+**The `Stop` message is held under a limit**: the harness persists a
+`systemMessage` longer than `MESSAGE_LIMIT` and shows a preview instead, so
+`admitted` carries as many of the oldest stamps as fit with their disc and
+leaves the rest for the next `Stop`. Only one stamp that does not fit with
+its disc alone is drawn as the text block with no disc.
+
+The broad gate draws nothing: its report is text on every stream,
+and it imports the panel's text rules from here (`fit`, `wrapped`, the
+owner's marks) and `cleared_names` for its head. So nothing here reads a
+file at import, and the sprite is read where the disc is drawn (`build`).
+
+**The stamp is drawn where a person sees it, once per work item.** The
+inspector runs `agentic stamp --inspection <path>` once after it
+writes `Verdict: cleared`, under either root; `queue_for_written_inspection`
+reads the file, and where it reads `cleared` and no earlier run or commit
+stamped it, writes the stamp's rows to a values file under the git common
+dir of the path's clone. `agentic stamp --stop` is the command of the
+plugin's `Stop` hook, which `hooks/hooks.json` registers: it draws
+each undrawn file of the clone the payload's `cwd` is in, once, at the end
+of the main session's turn. This module owns the file:
+`queue_for_written_inspection` and `write_values`, `read_values`, `pending`
+and `claim`. Drawing claims the file first, by renaming it to `.drawn.json`,
+so a file is drawn once whoever draws it. `docs/checks/the-stamp.md` *The
+stamp* states the rule and its limits. Nothing here reads an environment
+variable: the caller passes every place it writes.
+
+Usage:
+  agentic stamp                      the stamp over sample rows, for a person
+  agentic stamp --shape              the letter twin
+  agentic stamp --from <file>        a queued stamp's values file, drawn once
+  agentic stamp --inspection <file>   queue the stamp of a cleared inspection.md
+  agentic stamp --stop               draw at a `Stop`, the payload on stdin
+
+The gate imports `cleared_names`, `ref_is_commit`, `is_utf8(stream)`,
+`text_lines`, `TWIN_ASCII` and the panel's text rules.
+`.github/scripts/release_mark.py` attaches a release's mark from the page
+form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`,
+and reads nothing of this file. The sample exists so a person can
+see the drawing without an inspection committed, and `--from` so a values file
+nothing drew can still be drawn by hand.
+
+Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
+file that is unreadable or drawn already, an inspection that could not be
+read or a git command `--inspection` asked that did not start or did not
+finish within `lib/gitcmd.py#TIMEOUT`, which queues nothing and records
+nothing, or, for every command but `--inspection` and `--stop`, a disc's mark
+sprite that is malformed (`SPRITE_MALFORMED`); nothing was written on 2. An
+interpreter below the floor never reaches this file through `agentic stamp`:
+`lib/launch.py` refuses `agentic` with 2 first. The `Stop` hook runs it with
+whatever `python3` the harness finds, and a load that fails there, or a
+malformed sprite, draws nothing.
+"""
+
+import argparse
+import collections
+import json
+import math
+import os
+import re
+import shlex
+import sys
+import time
+
+# --- the disc's colours --------------------------------------------------
+#
+# The red wax seal the owner approved (#1174). The owner chose the colours
+# and did not name them, so the names are no decision of the owner's. The
+# outer edge, `EDGE_DARK` on its shadowed side and `WAX` elsewhere; the lip
+# inside it, lit from the upper left, `WAX_LIT`, `WAX` and `WAX_DARK`, with a
+# `GLOSS` streak; the step ring inside that, lit the other way round,
+# `STEP_DARK` and `STEP_LIT`; the pressed `FIELD`; and `DROP`, the shadow the
+# disc's mark casts on the field down-right of it. Then the six the owl is
+# drawn in (`SPRITE_COLOURS`). No mid tones and no blend: every cell of the
+# disc is exactly one of these fifteen (`build`), and with `TITLE_RED` they
+# are the only colours the stamp sets.
+EDGE_DARK = (128, 12, 18)
+WAX = (204, 30, 34)
+WAX_LIT = (240, 92, 84)
+WAX_DARK = (172, 18, 24)
+GLOSS = (255, 172, 162)
+STEP_DARK = (98, 8, 14)
+STEP_LIT = (226, 66, 60)
+FIELD = (150, 16, 22)
+DROP = (84, 8, 12)
+OUTLINE = (90, 8, 12)
+PUPIL = (112, 16, 20)
+BODY = (160, 30, 34)
+BREAST = (186, 38, 42)
+EYE = (222, 86, 78)
+BEAK = (208, 68, 64)
+
+# `CLEARED` is bold and in this red, the owner's (#832). The rest of the text
+# is in the terminal's own colours (`STYLE_CODES`): nothing outside the disc
+# is painted.
+TITLE_RED = (196, 40, 44)
+
+# The letter for each disc colour in the twin: the wax in lower case — `e`
+# the edge's dark and `w` the wax, `h` and `d` the lip lit and dark and `g`
+# its gloss, `s` and `t` the step ring dark and lit — the field `.`, the drop
+# shadow `y`, and the owl in the sprite's own letters, so the twin's owl
+# reads as `stamp-mark.txt` does. No decision of the owner's names these
+# letters: the twin is for a console that cannot draw half-blocks. Every
+# disc cell is exactly one of these colours, so a cell's letter is a lookup
+# (`letter_row`).
+KEY = {
+    EDGE_DARK: "e",
+    WAX: "w",
+    WAX_LIT: "h",
+    WAX_DARK: "d",
+    GLOSS: "g",
+    STEP_DARK: "s",
+    STEP_LIT: "t",
+    FIELD: ".",
+    DROP: "y",
+    OUTLINE: "K",
+    PUPIL: "P",
+    BODY: "R",
+    BREAST: "L",
+    EYE: "W",
+    BEAK: "Y",
+}
+
+
+# There is no scale: the disc is `DISC_CELLS` across, because the disc's mark
+# is drawn for that grid and has one size.
+
+# --- what one hook message may hold ----------------------------------------
+#
+# The harness writes a `Stop` hook's `systemMessage` longer than this many
+# characters to a file and shows the person a 2 KB preview of it, so a stamp
+# past it is not seen. Counted in UTF-16 units, the length JavaScript gives a
+# string, not as bytes: a character outside the BMP is two, and Python's `str`
+# length counts it as one (`admitted` counts it as two). Measured on Claude
+# Code 2.1.287, with a `Stop` hook in a scratch project and one headless
+# `claude -p` turn per size: 9,990 and 10,000 characters, and 9,990 `▀`
+# (29,942 bytes), are shown with nothing written to the session's
+# `tool-results/`; 10,001, 10,010 and 12,000 each leave a
+# `hook-<uuid>-<n>-systemMessage.txt` there. 4,999 U+1D54F (9,998 units) are
+# shown, and 5,001 (10,002 units), 9,990 and 10,001 are persisted. This
+# project's own sessions bracket it too: 9,919 shown, 10,090 persisted. The
+# harness can move it, and the only sign is a preview on the owner's screen;
+# the same hook at two sizes either side of this number is the whole probe
+# again.
+# `--stop` holds its WHOLE message under it — every block, every label and the
+# blank line between two blocks — and nothing else shares the message.
+MESSAGE_LIMIT = 10000
+
+
+# The disc's numbers, in cells of the terminal's grid, where a cell is one
+# column by one half-row and so square. The owner's grid (#832): the disc is
+# 28 cells across and so `DISC_LINES` lines tall, and the disc's mark is
+# drawn for that grid. The owner's wax seal (#1174), measured from the centre
+# at `RADIUS`: the edge sits at `RADIUS`
+# plus one sine term per `EDGE_WOBBLE` row (amplitude, frequency, phase),
+# so it wobbles, and the outer edge is the `EDGE_WIDTH` inside it; the lip
+# runs in to `LIP_INSET` short of `RADIUS`, the step ring to `STEP_INSET`,
+# and the rest is the field. `lit` turns the outer edge dark over
+# `EDGE_DARK_FROM`, and the lip lit under `LIP_LIT_UNDER` and dark from
+# `LIP_DARK_FROM`; the gloss streak lies strictly between the two
+# `GLOSS_DEGREES` and the two `GLOSS_INSETS` short of `RADIUS`. The wobble
+# keeps the wax off column 0 and the last half-row, which is the approved
+# picture.
+DISC_CELLS = 28
+DISC_LINES = DISC_CELLS // 2
+RADIUS = DISC_CELLS / 2 - 0.5
+EDGE_WOBBLE = ((0.45, 3, 0.7), (0.25, 5, 2.1))
+EDGE_WIDTH = 1
+LIP_INSET = 2.9
+STEP_INSET = 3.7
+EDGE_DARK_FROM = -0.2
+LIP_LIT_UNDER = -0.35
+LIP_DARK_FROM = 0.4
+GLOSS_DEGREES = (200, 250)
+GLOSS_INSETS = (1.9, 0.7)
+
+# The disc's mark: one sprite in a file beside this one,
+# `SPRITE_CELLS` lines of `SPRITE_CELLS` characters, each a letter of
+# `SPRITE_COLOURS` drawn in its colour or `.` the field, standing
+# `SPRITE_OFFSET` cells in from the disc's left and top edges so it is
+# centred. It is the round-headed little owl the owner chose (#1174), drawn
+# one cell at a time for this grid, and changing the disc's mark is
+# replacing that file and nothing else, which is why it is data read here
+# rather than a tuple typed into this module.
+SPRITE_CELLS = 16
+SPRITE_OFFSET = (DISC_CELLS - SPRITE_CELLS) // 2
+# Each letter's colour, every one of them among the fifteen, and the twin
+# writes each as the letter itself. The pupil is darker than the field, so
+# no eye is near black and none reads as a hole. The sprite carries its own
+# light and dark: `build` shades no cell by its neighbours, because shading
+# breaks a small mark.
+SPRITE_COLOURS = {
+    "K": OUTLINE,
+    "P": PUPIL,
+    "R": BODY,
+    "L": BREAST,
+    "W": EYE,  # an eye's ring or a leaf
+    "Y": BEAK,  # the beak or the branch
+}
+SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stamp-mark.txt")
+SPRITE_MALFORMED = (
+    "agentic stamp: the disc's mark sprite {path} is not {n} lines of {n} "
+    "characters over `{letters}` with every drawn cell and its shadow inside "
+    "the disc's field ({fault}). Nothing was drawn."
+)
+
+
+def read_sprite(path):
+    """The sprite at `path` as a tuple of its lines, or `ValueError` with
+    `SPRITE_MALFORMED` naming the path and the first fault: a count of lines
+    that is not `SPRITE_CELLS`, a line of another length, a character
+    outside `.` and the letters of `SPRITE_COLOURS`, or, with the sprite at
+    `SPRITE_OFFSET`, a drawn cell or the undrawn cell down-right of it that
+    takes its shadow past the step ring's inner edge, `STEP_INSET` short of
+    `RADIUS`, where `build` would draw the step ring over it and the disc's
+    mark would lose a cell nobody sees go. The shape is read over every line
+    before the field is.
+    `utf-8-sig` reads a sprite an editor saved with a byte-order mark as the
+    same sprite, rather than refusing its first line as one character too
+    long."""
+    with open(path, encoding="utf-8-sig") as handle:
+        # exempt from splitlines: the disc's mark sprite, a grid of letters
+        lines = handle.read().splitlines()
+    n, at, letters = SPRITE_CELLS, SPRITE_OFFSET, "." + "".join(SPRITE_COLOURS)
+    c, field = (DISC_CELLS - 1) / 2, RADIUS - STEP_INSET
+
+    def drawn(x, y):
+        return 0 <= x < n and 0 <= y < n and lines[y][x] != "."
+
+    def outside(x, y):
+        return math.hypot(x + at - c, y + at - c) > field
+
+    fault = None if len(lines) == n else f"{len(lines)} lines"
+    for y, line in enumerate(lines):
+        stray = sorted(set(line) - set(letters))
+        if fault:
+            break
+        if len(line) != n:
+            fault = f"line {y + 1} is {len(line)} characters"
+        elif stray:
+            fault = f"line {y + 1} carries {stray[0]!r}"
+    cells = [(x, y) for y in range(n) for x in range(n)] if not fault else []
+    for x, y in cells:
+        if not drawn(x, y):
+            continue
+        if outside(x, y):
+            fault = f"line {y + 1} draws column {x + 1}, outside the field"
+        elif not drawn(x + 1, y + 1) and outside(x + 1, y + 1):
+            fault = f"line {y + 1} column {x + 1} casts its shadow outside the field"
+        if fault:
+            break
+    if fault:
+        raise ValueError(
+            SPRITE_MALFORMED.format(path=path, n=n, letters=letters, fault=fault)
+        )
+    return tuple(lines)
+
+
+def build():
+    """`(w, h, px)` — the disc's width and height in cells, `DISC_CELLS`
+    each, and `px(x, y)`, a cell's colour or None. Each call reads the
+    sprite, `read_sprite(SPRITE_PATH)`, and raises its `ValueError` where
+    the sprite is malformed; nothing reads it at import.
+
+    The centre is `c = (DISC_CELLS - 1) / 2` on both axes and `R` is
+    `RADIUS`, 13.5. A cell `dx, dy` from the centre at distance `d` and
+    angle `a = atan2(dy, dx)`, y downward so 225 degrees is the upper left,
+    with `lit = (dx + dy) / (|dx| + |dy|)` -1 at the upper left and +1 at
+    the lower right, is, from the outside in (the owner's wax seal, #1174):
+    None past `edge = R + 0.45 sin(3a + 0.7) + 0.25 sin(5a + 2.1)`
+    (`EDGE_WOBBLE`); the outer edge past `edge - EDGE_WIDTH`,
+    `EDGE_DARK` where `lit` is over `EDGE_DARK_FROM` and `WAX` elsewhere;
+    the lip past `R - LIP_INSET`, `GLOSS` strictly between the
+    `GLOSS_DEGREES` and between the `GLOSS_INSETS` short of `R`, else
+    `WAX_LIT` under `LIP_LIT_UNDER`, `WAX_DARK` from `LIP_DARK_FROM` and
+    `WAX` between; the step ring past `R - STEP_INSET`, lit the other way —
+    `STEP_DARK` where `lit` is under 0, else `STEP_LIT`; then the field. In
+    the field, with the sprite standing `SPRITE_OFFSET` cells in from the left
+    and top, a cell under a letter is that letter's colour in
+    `SPRITE_COLOURS`; a cell under `.`, or past the sprite's edge, whose
+    up-left neighbour is under a letter is `DROP`, a pupil counting as a
+    letter; the rest are `FIELD`. Every cell is exactly one of the
+    fifteen colours. The edge's wobble leaves column 0 and the last half-row
+    off the disc, as the approved picture is. `lit` is read only past the
+    step ring's inner edge, where `d` is never 0, so it needs no guard."""
+    sprite = read_sprite(SPRITE_PATH)
+    n, at = DISC_CELLS, SPRITE_OFFSET
+    c = (n - 1) / 2
+
+    def letter(x, y):
+        sx, sy = x - at, y - at
+        if 0 <= sx < SPRITE_CELLS and 0 <= sy < SPRITE_CELLS:
+            return sprite[sy][sx]
+        return "."
+
+    def px(x, y):
+        if not (0 <= x < n and 0 <= y < n):
+            return None
+        dx, dy = x - c, y - c
+        d = math.hypot(dx, dy)
+        a = math.atan2(dy, dx)
+        edge = RADIUS
+        for amplitude, frequency, phase in EDGE_WOBBLE:
+            edge += amplitude * math.sin(frequency * a + phase)
+        if d > edge:
+            return None
+        if d > RADIUS - STEP_INSET:
+            lit = (dx + dy) / (abs(dx) + abs(dy))
+            if d > edge - EDGE_WIDTH:
+                return EDGE_DARK if lit > EDGE_DARK_FROM else WAX
+            if d <= RADIUS - LIP_INSET:
+                return STEP_DARK if lit < 0 else STEP_LIT
+            low, high = GLOSS_DEGREES
+            inner, outer = GLOSS_INSETS
+            if (
+                low < math.degrees(a) % 360 < high
+                and RADIUS - inner < d < RADIUS - outer
+            ):
+                return GLOSS
+            if lit < LIP_LIT_UNDER:
+                return WAX_LIT
+            return WAX_DARK if lit >= LIP_DARK_FROM else WAX
+        if letter(x, y) != ".":
+            return SPRITE_COLOURS[letter(x, y)]
+        return DROP if letter(x - 1, y - 1) != "." else FIELD
+
+    return n, n, px
+
+
+# --- the two row writers -------------------------------------------------
+#
+# Both walk the same cells, so the two forms have one footprint: one
+# character per cell. A cell is `(char, fg, bg, style)`: the
+# character, or None for an empty cell; `fg` and `bg` a triple — one of the
+# disc's colours or `TITLE_RED` — or None for the terminal's own; `style`
+# None, `"dim"`, `"bold"` or `"green"`. A disc cell is `▀` with its top
+# half's colour as the foreground and its bottom half's as the background,
+# or `▄` in its bottom half's colour where the top half is off the disc.
+# Nothing but a disc cell has a background.
+
+RESET = "\x1b[0m"
+EMPTY = (None, None, None, None)
+HALF_BLOCKS = ("▀", "▄")
+# The code each text style is written as: the terminal's own dim, bold and
+# green. `22;39` ends any of them — 22 the intensity, 39 the foreground,
+# which the green set.
+STYLE_CODES = {"dim": "2", "bold": "1", "green": "32"}
+# The owner's characters the letter twin writes in ASCII, one for one, so a
+# console that is not UTF-8 is handed a printable line as wide as the block
+# form's.
+TWIN_ASCII = {"·": ".", "✓": "+", "─": "-", "→": ">"}
+
+
+def disc_cell(top, bottom):
+    """The cell over two half-rows of the disc, `top` and `bottom` each a
+    colour or None."""
+    if top and bottom:
+        return ("▀", top, bottom, None)
+    if top:
+        return ("▀", top, None, None)
+    if bottom:
+        return ("▄", bottom, None, None)
+    return EMPTY
+
+
+def disc_cells(px, w, y):
+    """One line of cells over the disc alone: row `y` on top, `y + 1`
+    below."""
+    return [disc_cell(px(x, y), px(x, y + 1)) for x in range(w)]
+
+
+def colour_code(ground, colour):
+    """One colour's part of an SGR: `ground` 38 for the foreground, 48 for
+    the background; a triple is truecolour, None the terminal's own."""
+    if colour is None:
+        return "39" if ground == 38 else "49"
+    r, g, b = colour
+    return f"{ground};2;{r};{g};{b}"
+
+
+def colour_row(cells):
+    """One line of the block form, lean. A code only where the next visible
+    cell's foreground, background or style differs from what is set; every
+    part of that change in one SGR; no reset inside the line, and `RESET` at
+    its end where it wrote a code. An empty cell or a space — no space
+    carries a background, because only a disc cell has one — is written as
+    a space that keeps the foreground and the style as they are set, since
+    a space shows neither; but a background would paint it, so one still
+    set from the disc ends there with `49`. A style that ends is written
+    `22;39` first, which takes the foreground back to the terminal's own as
+    well, so `39` is not written a second time in the same SGR. A green
+    cell writes no foreground part: `32` is its colour, and a `39` after it
+    in the same SGR would take the green back off — which a tick leading a
+    `""` row beside the disc meets, the disc's colour being still set
+    across the label's spaces."""
+    out, state, wrote = [], (None, None, None), False
+    for char, fg, bg, style in cells:
+        if char in (None, " "):
+            char, fg, style = " ", state[0], state[2]
+        if (fg, bg, style) != state:
+            parts, shown = [], state[0]
+            if style != state[2]:
+                if state[2]:
+                    parts.append("22;39")
+                    shown = None
+                if style:
+                    parts.append(STYLE_CODES[style])
+            if fg != shown and style != "green":
+                parts.append(colour_code(38, fg))
+            if bg != state[1]:
+                parts.append(colour_code(48, bg))
+            out.append(f"\x1b[{';'.join(parts)}m")
+            wrote = True
+            state = (fg, bg, style)
+        out.append(char)
+    return "".join(out) + (RESET if wrote else "")
+
+
+def letter_row(cells):
+    """One line of the letter twin over the same cells: a half-block's `KEY`
+    letter — its foreground's, which is the top
+    half's colour on `▀` and the bottom half's on `▄` — the text's own
+    character with `TWIN_ASCII` applied, and a space for an empty cell.
+    Every disc cell is exactly one palette colour, so the letter is a
+    lookup. A cell is the disc's by its colour, never by its character: a
+    value may carry `▀` or `▄` — a branch name can — and that is text,
+    written as itself."""
+    out = []
+    for char, fg, _bg, _style in cells:
+        if char in HALF_BLOCKS and fg in KEY:
+            out.append(KEY[fg])
+        else:
+            out.append(TWIN_ASCII.get(char, char or " "))
+    return "".join(out)
+
+
+# --- the panel's text rules ------------------------------------------------
+#
+# How a row's value is cut, continued and marked. The stamp's writer
+# (`queue_for_written_inspection`) composes rows, and the gate's plain report
+# imports them from here, so both write a row by one set of rules.
+
+# How many columns a panel value is given: the widest that keeps the stamp's
+# widest line inside an 80-column terminal, the floor a command line's
+# output is held to. The open layout has no frame, so the terminal is the
+# bound: 28 columns of disc, `GAP` (3) clear, a label of seven and a space,
+# and the value — 28 + 3 + 8 + 41 = 80. A longer value runs past the
+# terminal's edge or wraps into the disc's column, so a value is elided
+# before it does: a cut ref would read as a whole ref.
+#
+# Stated here and measured over there, and neither may move without the other
+# going red: `tests/skills/test_stamp.py`'s
+# `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
+# draws a value of this width and measures the stamp's widest line.
+PANEL_VALUE_WIDTH = 41
+ELISION = "..."
+# The panel's own characters, the owner's design (#832):
+# the separator inside a value, the arrow before a deferral's homes and the
+# mark on a result row that passed. They are the owner's and not ASCII; the
+# letter twin, which exists for a console that is not UTF-8, maps them where
+# it writes them (`TWIN_ASCII`).
+SEP, ARROW, TICK = " · ", "→", "✓ "
+
+
+def fit(value, keep="head", width=None):
+    """`value` as the panel can carry it: unchanged where it fits, else
+    elided to `width` — `PANEL_VALUE_WIDTH` unless a caller names less —
+    with `ELISION` on the side that was cut.
+
+    `keep="head"` for a branch name, whose issue number leads and is what a
+    reader matches to a ticket; `keep="tail"` for a ref, where the
+    `origin/` a runner reads is the part a reader can infer. Every value a
+    panel carries passes through here, so no row is wider than the frame
+    and none is cut by it without a marker. `width` is the room a ref has
+    beside its commit on the `base` row."""
+    value = str(value)
+    width = PANEL_VALUE_WIDTH if width is None else width
+    if len(value) <= width:
+        return value
+    room = width - len(ELISION)
+    return ELISION + value[-room:] if keep == "tail" else value[:room] + ELISION
+
+
+def wrapped(label, pieces):
+    """A list on as many panel rows as it needs: the first row under `label`,
+    the rest as `""` rows beneath it.
+
+    The owner chose continuation rows over a wider panel (#666), so a list
+    of counts or homes continues rather than losing its tail to `...`; only
+    a branch or a ref, which have no bound, are elided. Each piece but the
+    first carries the separator that joins it to the one before (`", #664"`
+    or `" · 11 skipped"`). A row is broken
+    before a piece that would not fit, and keeps that separator's mark — the
+    comma, or the ` ·` — at its end so the reader sees the list goes on; two
+    columns are held back for it on every piece but the last, because ` ·`
+    is two. One piece wider than the frame by itself is still elided by
+    `fit`."""
+    rows, line = [], ""
+    for n, piece in enumerate(pieces):
+        room = PANEL_VALUE_WIDTH - (0 if n == len(pieces) - 1 else 2)
+        if line and len(line + piece) > room:
+            lead = piece[: len(piece) - len(piece.lstrip(", ·"))]
+            rows.append(line + lead.rstrip())
+            line = piece.lstrip(", ·")
+        else:
+            line += piece
+    rows.append(line)
+    return [(label if n == 0 else "", fit(row)) for n, row in enumerate(rows)]
+
+
+def item_value(item):
+    """The `item` row: the digits before the first `-` of the work item
+    directory's name, or the whole name where it has no `-`."""
+    name = os.path.basename(os.path.normpath(item))
+    return name.split("-", 1)[0] or name
+
+
+# --- the stamp: the disc at the left, the text block at the right ---------
+#
+# The owner's layout (#832): no parchment, no edge, no frame and no
+# background outside the disc, the text in the terminal's own colours.
+
+# The columns a label is padded to before the one space ahead of its value:
+# the owner's seven.
+LABEL_WIDTH = 7
+# The dim `─` rule after the title: the owner's reference's thirty.
+RULE_WIDTH = 30
+# The panel's first row, which is drawn as the title rather than as a row.
+TITLE_ROW = ("CLEARED", "")
+# The mark that leads a value and the style it is drawn in: a result row
+# that passed, green, and a row that is not a pass, dim.
+VALUE_MARKS = {"✓": "green", "·": "dim"}
+# The clear columns between the disc's last column and the text block's
+# first: the owner's three.
+GAP = 3
+
+# `disc` is where the disc's grid stands, `(left, top, w, h)`: `left` and
+# `w` in cells, `top` and `h` in half-rows from the stamp's first line, or
+# None with no disc — what a case reads to find the disc without
+# re-deriving the layout.
+Letter = collections.namedtuple("Letter", "cells width height disc")
+
+
+def text_cells(text, style=None, fg=None):
+    """`text` as cells in one style and foreground, with no background."""
+    return [(char, fg, None, style) for char in text]
+
+
+def text_lines(rows):
+    """The text block of `rows`, as lines of cells.
+
+    Where the first row is the panel's title row, `("CLEARED", "")`, the
+    first line is `CLEARED ` bold in `TITLE_RED` and a dim rule of
+    `RULE_WIDTH` `─`, and the second is blank; rows without it draw no
+    title. Then one line per row: the label padded to `LABEL_WIDTH` and a
+    space, dim, and the value in the terminal's own foreground — a leading
+    `✓ ` with the `✓` green, a leading `· ` with the `·` dim. A `None` row
+    is a blank line; a `""` label is seven spaces and one, so its value
+    stands under the value above it. The rows are drawn as given:
+    `inspection_rows` owns the stamp's shape, `broad_gate.panel` the gate's
+    report's, and a values file an older gate wrote draws its older rows in
+    this layout."""
+    rows, lines = list(rows), []
+    if rows and rows[0] is not None and tuple(rows[0]) == TITLE_ROW:
+        title = text_cells("CLEARED ", "bold", TITLE_RED)
+        lines += [title + text_cells("─" * RULE_WIDTH, "dim"), []]
+        rows = rows[1:]
+    for row in rows:
+        if row is None:
+            lines.append([])
+            continue
+        label, value = row
+        mark = VALUE_MARKS.get(value[:1]) if value[1:2] == " " else None
+        lines.append(
+            text_cells(f"{label:<{LABEL_WIDTH}} ", "dim")
+            + text_cells(value[:1], mark)
+            + text_cells(value[1:])
+        )
+    return lines
+
+
+def compose(rows, disc=True):
+    """The stamp of `rows` as lines of cells (see the writers above), with
+    its width and height and where the disc stands: `Letter(cells, width,
+    height, disc)`.
+
+    The disc — `disc` False leaves it off, which is the rung `fitted` steps
+    down to — stands at column 0, `DISC_CELLS` wide and
+    `DISC_LINES` tall, and the text block (`text_lines`) begins `GAP`
+    columns right of it, or at column 0 with no disc. The height is the
+    taller one's, and each is centred on it. A cell inside the circle is its
+    colour on both halves; every other cell of the disc's columns is empty,
+    and nothing outside the disc has a background. No line runs past its
+    own last visible cell, so the width is the longest line's."""
+    text = text_lines(rows)
+    if disc:
+        n, _, px = build()
+        tall = DISC_LINES
+    else:
+        n, tall, px = 0, 0, None
+    height = max(len(text), tall)
+    top_disc, top_text = (height - tall) // 2, (height - len(text)) // 2
+    cells = []
+    for ln in range(height):
+        k, t = ln - top_disc, ln - top_text
+        line = disc_cells(px, n, 2 * k) if 0 <= k < tall else [EMPTY] * n
+        said = text[t] if 0 <= t < len(text) else []
+        line += [EMPTY] * (GAP if px else 0) + said
+        # No space carries a background, so a blank at the end is padding.
+        while line and line[-1][0] in (None, " "):
+            line.pop()
+        cells.append(line)
+    width = max((len(line) for line in cells), default=0)
+    where = (0, 2 * top_disc, n, n) if px else None
+    return Letter(cells, width, height, where)
+
+
+# --- what `--stop` and the gate call ---------------------------------------
+
+
+def stamp(rows, shape=False, disc=True):
+    """The lines of the stamp: the disc beside the text block of `rows`.
+    `shape` picks the letter twin. `disc` False is the text block with no
+    disc, the rung `fitted` steps down to."""
+    writer = letter_row if shape else colour_row
+    return [writer(line) for line in compose(rows, disc).cells]
+
+
+def admitted(blocks, budget=MESSAGE_LIMIT):
+    """The drawn blocks one `Stop` message carries under `budget`, oldest
+    first. `blocks` is `(label, rows)` per values file, oldest first; a
+    drawn block is its label and then its block form.
+
+    The owner's rule (#717): a stamp keeps its disc rather than share a
+    message without it. So the message carries as many of the oldest blocks
+    as fit together WITH the disc. A block has two rungs: with its disc, and
+    the text block alone, because the disc has one size. The blocks past
+    those are not drawn here; `drawings` leaves their files
+    pending, and the next `Stop` draws them whole.
+
+    The rung with no disc is for one block alone, the oldest, when it does
+    not fit with its disc by itself; it is returned whatever its size, because
+    nothing comes after it. So the first block is always drawn and the queue
+    cannot stall. A text block with no disc is about 50 characters a row with
+    its codes (925 with its label for the widest panel this tree can
+    produce), its width bounded by `PANEL_VALUE_WIDTH`.
+
+    A size is counted in UTF-16 units, which is what the harness counts
+    (`MESSAGE_LIMIT`): a character outside the BMP is two. `budget` is a
+    parameter so a case can drive both rungs."""
+
+    def drawn(block, disc):
+        label, rows = block
+        text = "\n".join([label, *stamp(rows, disc=disc)])
+        # `surrogatepass`: a values file is JSON, which can carry a lone
+        # surrogate, and a size that raised would leave every file pending.
+        return text, len(text.encode("utf-16-le", "surrogatepass")) // 2
+
+    out, used = [], -2
+    for block in blocks:
+        text, size = drawn(block, True)
+        if used + 2 + size > budget:
+            break
+        out.append(text)
+        used += 2 + size
+    if not out and blocks:
+        return [drawn(blocks[0], False)[0]]
+    return out
+
+
+def fitted(blocks, budget=MESSAGE_LIMIT):
+    """The message `--stop` prints for `blocks`: `admitted`'s drawn blocks
+    joined by a blank line, held under `budget`. The blocks past what
+    `admitted` carries are not in it; `drawings` claims only the files whose
+    blocks it holds."""
+    return "\n\n".join(admitted(blocks, budget))
+
+
+def cleared_names(tree, base, branch=None, ref=None):
+    """`<branch> @ <tree> against <ref> @ <base>` — what the broad gate's
+    `BROAD GATE PASSED` and `BROAD GATE FAILED` lines say they measured, and
+    what a drawn stamp's label says was cleared.
+
+    A head naming two commits alone names neither the branch nor the base's
+    ref, and leaves a reader matching a line to its work by hash. One
+    composer for the three lines, because two spellings of one sentence
+    drift.
+
+    Two collapses, and each leaves a part out rather than printing it twice:
+
+      - `branch` None — a detached HEAD has no branch, so the tree prints
+        alone, with no stray `@`
+      - `ref` None, or a ref that is the commit itself — a bare SHA given as
+        `--base` resolves to itself, and `1e2bed9 @ 1e2bed9` says one thing
+        twice. Read by `ref_is_commit` under `_same_commit`'s rule, because
+        the caller may have typed forty characters where the gate prints
+        eight, and a branch named `b` is not the commit `b1e2…`
+
+    `ref` is the RESOLVED ref (`broad_gate.Base.ref`), the one CI reads, not
+    the spelling the caller typed, so a reader can tell `origin/<base>` from
+    a local ref a week behind it."""
+    named = f"{branch} @ {tree}" if branch else f"{tree}"
+    against = f"{base}" if ref_is_commit(ref, base) else f"{ref} @ {base}"
+    return f"{named} against {against}"
+
+
+def ref_is_commit(ref, base):
+    """True where `ref` names nothing the commit `base` does not: no ref at
+    all, or a ref `_same_commit` reads as `base`'s commit. The one reading
+    of *the ref is the commit*, asked by `cleared_names` for the lines and by
+    `broad_gate.panel` for the row under `base`, so the two cannot disagree
+    about when a ref is worth printing."""
+    if ref is None or ref == "":
+        return True
+    return _same_commit(str(ref), str(base))
+
+
+def pick_shape(stream):
+    """True when `stream` gets the letter twin: anything that is not a UTF-8
+    terminal. A console on another codepage draws UTF-8 half-blocks as
+    mojibake, and a pipe has no terminal to draw colour on, so `agentic stamp`
+    on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
+    that call every stream answers `utf-8`, and a cp949 console would get the
+    blocks it cannot draw."""
+    if not is_utf8(stream):
+        return True
+    return not is_terminal(stream)
+
+
+def is_utf8(stream):
+    """True when `stream` says its encoding is UTF-8, whatever it is attached
+    to. The half of `pick_shape` the broad gate asks on its own:
+    its report is text on every stream, and only a console that is not UTF-8
+    gets the owner's marks in ASCII. Asked before the streams are
+    reconfigured, for `pick_shape`'s reason."""
+    encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+    return encoding == "utf8"
+
+
+def is_terminal(stream):
+    """True when `stream` is a terminal, whatever its encoding.
+
+    The other half of `pick_shape`, beside `is_utf8`: a cp949 terminal is a
+    terminal that gets letters, and a UTF-8 pipe is not a terminal.
+    Asked with `pick_shape`, before the streams are reconfigured, so both
+    answers describe the stream as the process found it."""
+    isatty = getattr(stream, "isatty", None)
+    try:
+        return bool(isatty and isatty())
+    except (ValueError, OSError):
+        return False
+
+
+# --- a stamp's values, drawn by somebody else ------------------------------
+#
+# A Bash call's stdout is a pipe into a tool result nobody sees unfolded,
+# so the stamp's rows are written here — by `agentic stamp --inspection`
+# over a `cleared` inspection under either root (`queue_for_written_inspection`)
+# — and `--stop`, at the end of a main session's turn in the same clone, draws
+# them. The directory is under the git COMMON dir because the worktree the
+# inspection was written in and that session's cwd can be different worktrees
+# of one clone, and the common dir is the one place both resolve alike; a
+# local root sits in the same directory. It is keyed by the clone and by
+# nothing else, so no session id is read: two sessions in one clone share it,
+# and the one whose turn ends first draws what waits there
+# (`docs/checks/the-stamp.md` *The stamp*).
+
+VALUES_DIR = "agentic-stamp"
+PENDING = ".json"
+DRAWN = ".drawn.json"
+
+VALUES_UNREADABLE = "agentic stamp: {path} cannot be read ({why}). Nothing was drawn."
+VALUES_MALFORMED = (
+    "agentic stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
+)
+VALUES_DRAWN = (
+    "agentic stamp: {path} was drawn already, and a stamp's values are drawn "
+    "once. Nothing was drawn; the values stay in {drawn}."
+)
+
+
+def values_dir(common):
+    """Where the stamps of the clone whose git common dir is `common` wait to
+    be drawn."""
+    return os.path.join(common, VALUES_DIR)
+
+
+def drawn_path(path):
+    """The name `path` takes once it has been claimed."""
+    stem = path[: -len(PENDING)] if path.endswith(PENDING) else path
+    return stem + DRAWN
+
+
+def write_values(common, values, now=None, key=None):
+    """Write one stamp's `values` under `common`; returns the file's path.
+
+    Written to a hidden temporary name and renamed into place, so a drawer
+    listing the directory never reads half a file. The name leads with the
+    time in nanoseconds, so a name sort is oldest first, and ends with `key`
+    — `<id>-<target sha>` for an inspection's stamp (`queue_for_written_inspection`) —
+    or the tree's name where no key is given. Raises `OSError` where the
+    directory cannot be made or the file cannot be written."""
+    directory = values_dir(common)
+    os.makedirs(directory, exist_ok=True)
+    moment = time.time_ns() if now is None else now
+    tail = key or os.path.basename(str(values.get("tree") or "tree"))
+    name = f"{moment}-{tail}"
+    path = os.path.join(directory, name + PENDING)
+    temporary = os.path.join(directory, f".{name}.tmp")
+    with open(temporary, "w", encoding="utf-8") as handle:
+        json.dump(values, handle)
+    os.replace(temporary, path)
+    return path
+
+
+def read_values(path):
+    """A values file as it was written, with each row a `(label, value)`
+    pair or None. Raises `ValueError` with the refusal sentence for a file
+    that cannot be read or is not in that shape. A `scale` key, which an
+    older gate's file carries, is read as nothing: such a file draws as one
+    written without it."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except OSError as exc:
+        raise ValueError(
+            VALUES_UNREADABLE.format(path=path, why=exc.strerror or exc)
+        ) from exc
+    except ValueError as exc:
+        raise ValueError(
+            VALUES_MALFORMED.format(path=path, why="it is not JSON")
+        ) from exc
+    if not isinstance(data, dict):
+        raise ValueError(VALUES_MALFORMED.format(path=path, why="it is not an object"))
+    rows = data.get("rows")
+    shaped = isinstance(rows, list) and all(
+        row is None
+        or (
+            isinstance(row, list)
+            and len(row) == 2
+            and all(isinstance(cell, str) for cell in row)
+        )
+        for row in rows
+    )
+    if not shaped:
+        raise ValueError(
+            VALUES_MALFORMED.format(
+                path=path, why="`rows` is not a list of label and value pairs"
+            )
+        )
+    return {**data, "rows": [None if row is None else tuple(row) for row in rows]}
+
+
+def pending(directory):
+    """The undrawn values files in `directory`, oldest first; empty where
+    the directory does not exist."""
+    try:
+        names = os.listdir(directory)
+    except OSError:
+        return []
+    return sorted(
+        os.path.join(directory, name)
+        for name in names
+        if name.endswith(PENDING)
+        and not name.endswith(DRAWN)
+        and not name.startswith(".")
+    )
+
+
+def claim(path):
+    """Mark `path` drawn by renaming it; the new path, or None where it was
+    not there to rename — somebody else claimed it first.
+
+    Called BEFORE anything is printed. Two drawers racing for one file both
+    reach `os.replace` and only one finds it, so the file is drawn at most
+    once; a crash between the rename and the print loses that one drawing
+    rather than repeating it."""
+    target = drawn_path(path)
+    try:
+        os.replace(path, target)
+    except OSError:
+        return None
+    return target
+
+
+def label(values):
+    """The line said above a drawn stamp: what was cleared, and for which
+    work item. The harness shows a hook message's first line as a dim label,
+    so this is the line that must not be blank.
+
+    A file carrying `branch` — `null` on a detached HEAD — gets
+    `cleared_names`'s names and then ` · #<pr>` where the file names a pull
+    request. **A file without the key draws the older label**,
+    `CLEARED <tree> against <base> · <item>`: a file an older gate wrote may
+    still be pending when a newer copy draws it."""
+    item = values.get("item")
+    where = f" · {os.path.basename(os.path.normpath(item))}" if item else ""
+    if "branch" not in values:
+        return f"CLEARED {values.get('tree')} against {values.get('base')}{where}"
+    pr = values.get("pr")
+    names = cleared_names(
+        values.get("tree"), values.get("base"), values.get("branch"), values.get("from")
+    )
+    return f"CLEARED {names}{f' · {pr}' if pr else ''}{where}"
+
+
+# --- the stamp, queued from a cleared inspection ------------------------------
+#
+# The rule, and what holds it to once per work item with its limits, is
+# `docs/checks/the-stamp.md` *The stamp*. `agentic stamp --inspection` calls
+# `queue_for_written_inspection` (below) once the inspector has written the
+# inspection, under either root, and `--stop` draws what it queued. The values file's
+# name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
+# `cleared_before` reads HEAD's history, and `refused_here` names a `cleared`
+# this clone recorded refusing.
+
+# `lib/` first on `sys.path`, where `lib/sibling.py` is imported from at the
+# first use of each module below, each named as `lib/sibling.py#load` names
+# it.
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
+)
+CHAIN_CHECK = "skills/code-review/scripts/chain_check.py"
+GITCMD = "lib/gitcmd.py"
+# The line `--inspection` prints, which the inspector's hand-back carries to the
+# orchestrator. It names the way to draw the stamp by hand, because the
+# plugin's `Stop` hook draws nothing where it cannot: a
+# `python3` that cannot load this file, or a main session whose working
+# directory is outside this clone (`docs/checks/the-stamp.md` *The stamp*).
+QUEUED = (
+    "agentic: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
+    "draws it at the end of the turn, and where none appears, "
+    "`agentic stamp --from {command}` draws it"
+)
+# The line `queue_for_written_inspection` returns where its `inspection.md` names a
+# commit the work item's branch does not hold. No pull request's check reads
+# a local inspection, so in local mode this is the only place the wrong row is
+# seen; in shared mode the pull request's check refuses it as stale too. It
+# names no command: nothing was queued to draw.
+NOT_ON_BRANCH = (
+    "agentic: no stamp was queued for {id}: the work item is not cleared on "
+    "{branch}, since its inspection.md names {target}, which {branch} does "
+    "not hold; a new inspection at the head of {branch} draws it"
+)
+
+
+def quote(path, windows=None):
+    """`path` quoted for the shell a person types `agentic stamp --from` into:
+    double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
+    path holds a space prints a command that runs as printed.
+
+    `windows` is the platform, defaulting to this one, so both branches can
+    be driven from a case on either machine. Read inside the body, `os.name`
+    would leave the branch that exists for Windows undrivable from any other
+    machine, and the whole unit could be replaced by `return path` with
+    every case still green.
+
+    On Windows the person types the command into `cmd.exe`, where double
+    quotes carry a space and `& | ^ < > ( )` alike: inside them `cmd.exe`
+    treats none of those as syntax, and a `"` cannot appear in a Windows
+    path at all. What double quotes do not stop is `%VAR%` expansion, which
+    `cmd.exe` performs inside them, so a path holding percent signs would
+    still be mangled; the fix for that is not quoting."""
+    if windows is None:
+        windows = os.name == "nt"
+    return f'"{path}"' if windows else shlex.quote(path)
+
+
+def _git(cwd, *args):
+    """stdout of a git call in `cwd`, or None on a non-zero exit.
+
+    A git that did not answer raises `lib/gitcmd.py#Failed`, which `main`
+    reads as `--inspection`'s refusal, as it reads the one that
+    `queue_for_written_inspection`'s reach read raises: read as None, a
+    history git did not print would queue a work item stamped before, and a
+    reach git did not answer would record a refusal of a commit the branch
+    may hold. `--stop` asks nothing of this function."""
+    r = _gitcmd().git(cwd, *args)
+    return r.stdout if r.returncode == 0 else None
+
+
+def _gitcmd():
+    """`lib/gitcmd.py`, which starts every git command this file runs."""
+    import sibling
+
+    return sibling.load(GITCMD)
+
+
+def _chain_check():
+    """`chain_check.py`, which loads `lib/fields.py`, the reader of
+    `inspection.md` and `trail/gate.md` the pull request's check reads them
+    through, so a verdict block has one grammar."""
+    import sibling
+
+    return sibling.load(CHAIN_CHECK)
+
+
+def already_queued(common, ident):
+    """True where a values file for work item `ident` stands in the clone's
+    values directory, pending or drawn. A work item is stamped once,
+    whatever commit its inspection audited, so the audited commit is not part
+    of the question. A name is `<ns>-<ident>-<target>.json`; a file an older
+    gate wrote is `<ns>-<tree>.json` and has no middle part to match. A
+    directory an earlier release made per session under it is not read
+    (`docs/checks/the-stamp.md` *The stamp*)."""
+    try:
+        names = os.listdir(values_dir(common))
+    except OSError:
+        return False
+    for name in names:
+        parts = name.split("-")
+        if len(parts) == 3 and parts[1] == ident and name.endswith((PENDING, DRAWN)):
+            return True
+    return False
+
+
+def inspection_rows(target, branch, base, ident, run, rounds):
+    """The stamp's rows for a cleared inspection: what the records at the
+    commit say and nothing measured again — the title, the audited commit
+    with the branch under it, the base, the work item's id, a blank, then
+    the newest run `trail/gate.md` names and the count of round records. A
+    row whose record is absent is left out; `rounds` reads `0` where the
+    work item had none."""
+    rows = [TITLE_ROW, ("tree", fit(target))]
+    if branch:
+        rows.append(("", fit(branch)))
+    if base:
+        rows.append(("base", fit(base, keep="tail")))
+    rows += [("item", ident), None]
+    if run:
+        rows.append(("gate", fit(f"{TICK}{run}")))
+    rows.append(("rounds", str(rounds)))
+    return rows
+
+
+def _inspection_read(chain, text):
+    """`(newest, earlier)`: the newest verdict block of the `inspection.md`
+    TEXT and the blocks of its earlier runs, read through
+    `lib/fields.py`, the reader the pull request's check reads it
+    through; `(None, [])` where that reader refuses a line of TEXT, a fence
+    nobody closed and a line that begins `<!--` among them, or TEXT holds no
+    verdict block, as one whose fields stand outside any block does."""
+    found = chain.FIELDS.read(text, chain.FIELDS.INSPECTION)
+    if found.refusals or not found.blocks:
+        return None, []
+    return found.blocks[-1], found.blocks[:-1]
+
+
+def _cleared_by(chain, block):
+    """True where the verdict BLOCK reads `cleared`."""
+    return chain.FIELDS.verdict_word(block) == chain.FIELDS.CLEARED
+
+
+def _target_of(chain, block):
+    """The commit the verdict BLOCK audited."""
+    return block.fields[chain.FIELDS.TARGET].match["commit"]
+
+
+def cleared_before(chain, top, path, common=None, ident=None):
+    """True where `path`'s newest verdict block read `cleared` at a commit of
+    HEAD's history, whatever commit it audited, unless this clone recorded
+    refusing that `cleared` (`refused_here` of COMMON and work item IDENT,
+    where both are given). A version the reader refuses, or one holding no
+    verdict block, counts nothing. It is asked at a write no commit carries
+    yet, so HEAD itself counts.
+    A `cleared` in the history was stamped where it was made, in this clone or
+    another, so what the history carries holds across clones, a rebase among
+    them, and asks nothing of the row an agent writes. The history cannot
+    tell such a `cleared` from one committed where nobody refused it, over a
+    commit the branch does not hold, so that one counts too, and its work
+    item draws no stamp: a work item is never stamped twice, and a stamp
+    missed is the failure accepted over one drawn twice. A row this clone
+    refused at its write can still be committed, since no gate stops it, so
+    its record is asked, as the earlier blocks are asked. A root commit
+    has no parent: `git log` exits 128 and the history is empty."""
+    for sha in (_git(top, "log", "--format=%H", "HEAD", "--", path) or "").split():
+        text = _git(top, "show", f"{sha}:{path}")
+        newest, _earlier = _inspection_read(chain, text or "")
+        if newest is None or not _cleared_by(chain, newest):
+            continue
+        target = _target_of(chain, newest)
+        if common and ident and refused_here(common, ident, target):
+            continue
+        return True
+    return False
+
+
+# --- a `cleared` this clone refused ------------------------------------------
+#
+# The owner chose a record here over a limit stated in prose (#976). A
+# `cleared` over a commit the work item's branch does not hold draws nothing.
+# The inspector's new audit appends its block below that one, and without a
+# record of the refusal the earlier block reading `cleared` counts as the
+# stamp, so the repair would draw nothing either. One writer leaves the
+# record, for a block that stands in its own clone and nowhere else:
+# `queue_for_written_inspection`, under either root, for a block its branch
+# does not hold. Its read of the earlier blocks, and its read of the
+# history, skip a `cleared` the record names. Nothing infers a record after
+# the fact, so nothing asks ancestry at read time: an ancestry check at read
+# time has regressed in each of four review rounds.
+
+REFUSED_DIR = "agentic-stamp-refused"
+# The shortest SHA two spellings are matched on (`_same_commit`); shorter
+# spellings match none.
+SHORTEST_SHA = 7
+SHA_SPELLING = re.compile(f"[0-9a-f]{{{SHORTEST_SHA},40}}")
+
+
+def _same_commit(one, other):
+    """Whether two spellings name one commit as far as the text can tell,
+    the one rule this file holds for it: each is a SHA spelled in hex,
+    `SHORTEST_SHA` to forty characters in either case, and one is a prefix
+    of the other once both are lower-cased. Asked by `refused_here` of a
+    recorded target and by `ref_is_commit` of the base's ref. A shorter
+    spelling matches nothing, because a false match costs more in both:
+    a refusal record that matches skips a `cleared` that drew, and a ref
+    that matches is not printed though it may be a branch named in hex."""
+    one, other = (one or "").lower(), (other or "").lower()
+    if not (SHA_SPELLING.fullmatch(one) and SHA_SPELLING.fullmatch(other)):
+        return False
+    return one.startswith(other) or other.startswith(one)
+
+
+def record_refusal(common, ident, target):
+    """Record that this clone refused work item `ident`'s `cleared` over
+    `target` and drew nothing for it: an empty file
+    `<common>/agentic-stamp-refused/<ident>-<target>`, written by
+    `queue_for_written_inspection` at its branch refusal. Beside `VALUES_DIR`
+    and not in it, so neither `pending`, `already_queued` nor `--stop` lists
+    it. Per clone, because the refused row stands in this clone alone. A record
+    that cannot be written is skipped, and that verdict then counts as
+    stamped: a stamp missed is the failure accepted over one drawn twice."""
+    directory = os.path.join(common, REFUSED_DIR)
+    try:
+        os.makedirs(directory, exist_ok=True)
+        with open(os.path.join(directory, f"{ident}-{target}"), "w", encoding="utf-8"):
+            pass
+    except OSError:
+        pass
+
+
+def refused_here(common, ident, sha):
+    """True where this clone recorded refusing work item `ident`'s `cleared`
+    over a target `_same_commit` matches with `sha`. Asked by
+    `queue_for_written_inspection` of each earlier verdict block reading
+    `cleared`, and by its `cleared_before` of each `cleared` in the history."""
+    try:
+        names = os.listdir(os.path.join(common, REFUSED_DIR))
+    except OSError:
+        return False
+    for name in names:
+        owner, _, recorded = name.partition("-")
+        if owner == ident and _same_commit(recorded, sha):
+            return True
+    return False
+
+
+def _newest_run(chain, text):
+    """The commit of the last run block of the `trail/gate.md` TEXT, read
+    through the reader the pull request's check reads it through, or None
+    where TEXT is None, holds none, or holds a line that reader refuses."""
+    found = chain.FIELDS.read(text, chain.FIELDS.GATE) if text else None
+    if not found or found.refusals or not found.blocks:
+        return None
+    return found.blocks[-1].fields[chain.FIELDS.RUN].match["commit"]
+
+
+def _queue_values(
+    chain, common, now, *, ident, target, base, gate_text, rounds, branch, item
+):
+    """Write one work item's stamp under `common` and return
+    the line that names it, once `queue_for_written_inspection` has read the
+    records from disk and the inspection passed its refusals. `base` is the
+    base the newest verdict block names, `gate_text` the `trail/gate.md`
+    beside the inspection or None, `rounds` the round records its
+    `trail/rounds/` holds, as `lib/routing.py#rounds` lists them, and
+    `branch` the branch the audited commit stands on, or "" where none is
+    named."""
+    key = f"{ident}-{target}"
+    run = _newest_run(chain, gate_text)
+    count = len(rounds)
+    values = {
+        "tree": target,
+        "base": base,
+        "from": None,
+        "branch": branch or None,
+        "pr": None,
+        "item": item,
+        "rows": inspection_rows(target, branch, base, ident, run, count),
+    }
+    path = write_values(common, values, now=now, key=key)
+    return QUEUED.format(id=ident, path=path, command=quote(path))
+
+
+def _read(path):
+    """The text of `path`, or None where it cannot be read."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return handle.read()
+    except (OSError, ValueError):
+        return None
+
+
+def written_root(routing, records_root):
+    """`(common, top)` where RECORDS_ROOT, a real path, is the root in force of a
+    repository, `optin.home_at`'s answer, else None. TOP is the worktree
+    whose root it is in shared mode, and "" in local mode, where RECORDS_ROOT sits
+    under COMMON, the git common dir, and no worktree holds it."""
+    optin = routing.optin
+    parent = os.path.dirname(records_root)
+    # Shared mode: the parent is a worktree's top, main or linked. Inside a
+    # git directory `repo_root` finds no top, so a local root never matches.
+    top = optin.repo_root(parent)
+    if top and os.path.realpath(top) == parent:
+        common = optin.git_common_dir(top)
+        home = optin.home_at(top, common)
+        if common and home and os.path.realpath(home) == records_root:
+            return os.path.realpath(common), top
+    # Local mode: the parent is the common dir, and the main worktree, which
+    # `git worktree list` names first, resolves to it; "" where the parent is
+    # no git directory, and `git_common_dir("")` is "".
+    listed = _git(parent, "worktree", "list", "--porcelain") or ""
+    root = listed.split("\n", 1)[0].partition("worktree ")[2]
+    found = optin.git_common_dir(root)
+    if not found or os.path.realpath(found) != parent:
+        return None
+    home = optin.home_at(root, found)
+    if not home or os.path.realpath(home) != records_root:
+        return None
+    return parent, ""
+
+
+def queue_for_written_inspection(path, now=None):
+    """The lines `agentic stamp --inspection` says of the `inspection.md` at
+    `path`, under either root: one where it queued the work item's stamp in
+    the clone `path` is in, one where its audited commit is off the work
+    item's branch, else none.
+
+    It reads the file from disk once the inspector has written it, before it is
+    committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
+    *The stamp*). `path` must be `<root>/threads/<id>/inspection.md`, where
+    `<root>` is the repository's root in force (`optin.home_at`, through
+    `written_root`): `<repo>/agentory/` in shared mode, and `<common>/agentory/` in
+    local mode. It then queues where `lib/fields.py`, the reader the pull
+    request's check reads the file through, refuses none of its lines, a
+    fence nobody closed and a line that begins with `<!--` among them,
+    its newest verdict block reads `cleared`, no earlier block reads
+    `cleared` but one this clone recorded refusing, the clone holds no values
+    file for the work item, in shared
+    mode HEAD's history carries no `cleared` of the file (`cleared_before`
+    from HEAD, since the file is not yet committed), and the audited commit
+    is an ancestor of the branch the work item's `routing.md` names in its
+    `Branch` row; why a local root needs no history, and what the branch
+    keeps quiet, is that section's. Where the branch stands and
+    does not hold the audited commit, the refusal is recorded
+    (`record_refusal`) and the one line returned is `NOT_ON_BRANCH`; a
+    branch that is gone or unnamed says nothing. Raises whatever reading the
+    records or writing the values raises; `main` names it and exits 2."""
+    real = os.path.realpath(path)
+    item = os.path.dirname(real)
+    specs = os.path.dirname(item)
+    records_root = os.path.dirname(specs)
+    # The root's own name is not compared here: `written_root` asks the
+    # resolver whether RECORDS_ROOT is the root in force.
+    optin = _optin()
+    if (os.path.basename(real), os.path.basename(specs)) != (
+        optin.INSPECTION,
+        optin.WORK_ITEMS,
+    ):
+        return []
+    import sibling
+
+    chain = _chain_check()
+    routing = sibling.load("lib/routing.py")
+    found = written_root(routing, records_root)
+    if found is None:
+        return []
+    common, top = found
+    with open(real, encoding="utf-8") as handle:
+        text = handle.read()
+    newest, earlier = _inspection_read(chain, text)
+    if newest is None or not _cleared_by(chain, newest):
+        return []
+    target = _target_of(chain, newest)
+    ident = item_value(item)
+    if any(
+        _cleared_by(chain, block)
+        and not refused_here(common, ident, _target_of(chain, block))
+        for block in earlier
+    ):
+        return []
+    if already_queued(common, ident):
+        return []
+    rel = (
+        _gitcmd().git_path(os.path.relpath(real, os.path.realpath(top))) if top else ""
+    )
+    if rel and cleared_before(chain, top, rel, common, ident):
+        return []
+    declared = routing.parse(_read(os.path.join(item, routing.FILENAME)) or "")
+    branch = (declared or {}).get("branch")
+    if not branch:
+        return []
+    # Precondition: `target` and the branch resolve in this clone; where
+    # either does not, `merge-base` exits 128 and nothing is queued. Where
+    # the branch stands, the refusal is recorded and said. No guard
+    # applies: a local root never leaves its clone, so `already_queued`
+    # above already says whether the work item was stamped.
+    ref = f"refs/heads/{branch}"
+    if not _gitcmd().is_ancestor(common, target, ref):
+        if _git(common, "rev-parse", "--verify", "-q", ref) is None:
+            return []
+        record_refusal(common, ident, target)
+        return [NOT_ON_BRANCH.format(id=ident, target=target, branch=branch)]
+    rounds = routing.rounds(item)
+    line = _queue_values(
+        chain,
+        common,
+        now,
+        ident=ident,
+        target=target,
+        base=newest.fields[chain.FIELDS.TARGET].match["base"],
+        gate_text=_read(os.path.join(item, *optin.GATE.split("/"))),
+        rounds=rounds,
+        branch=branch,
+        item=item,
+    )
+    return [line]
+
+
+# --- the stamp drawn at the end of a turn (`--stop`) -----------------------
+#
+# The draw the plugin's `Stop` hook runs: `hooks/hooks.json` names this
+# file with `--stop`. The harness shows a `Stop` hook's `systemMessage`
+# unfolded, in truecolour, after the turn's final text, and shows its first
+# line as a dim `Stop says: <line>`, so line 1 is a label naming what was
+# cleared and the drawing starts on line 2.
+#
+# **Only the main session's `Stop`.** `SubagentStop` carries the parent's
+# `session_id` and differs by `agent_id` alone, so a payload carrying
+# `agent_id` draws nothing, and nor does any event that is not `Stop`.
+#
+# **Which clone.** The payload's `cwd`, walked up to its `.git` entry; the
+# git COMMON dir is the one place a linked worktree and the main checkout
+# resolve alike. The hook fires at the end of every turn in every
+# repository, so a clone with nothing pending returns before the opt-in is
+# read, and a main checkout starts no process to learn that.
+#
+# **Claim before print.** Each file is rendered, then renamed to
+# `.drawn.json` (`claim`), and only a file this process renamed is printed.
+# Two drawers racing for one file draw it once, and a crash between the two
+# loses a drawing rather than repeating one. Every failure is silent: the
+# stamp is a thing shown to a person and never a reason to hold a turn. A
+# values file somebody wrote by hand would be drawn, because this shows a
+# person what a session cleared and does not stop an adversary.
+
+STOP = "Stop"
+OPTIN = "lib/optin.py"
+
+
+def _optin():
+    """`lib/optin.py`, which says where a clone's common dir is and
+    whether the repository opted in."""
+    import sibling
+
+    return sibling.load(OPTIN)
+
+
+def toplevel(cwd):
+    """The first directory at or above `cwd` holding a `.git` entry, or
+    "" — asked of the filesystem, so the common case starts no process."""
+    here = os.path.abspath(cwd or ".")
+    while True:
+        if os.path.exists(os.path.join(here, ".git")):
+            return here
+        parent = os.path.dirname(here)
+        if parent == here:
+            return ""
+        here = parent
+
+
+def drawings(directory):
+    """The message block for every undrawn file in `directory`, oldest
+    first, for `fitted`. A block is `(label, rows)`, and each is built whole
+    and drawn with its disc before any file is claimed, so a file that is
+    not a stamp's values, whatever it fails on, is left where it is and takes
+    no other file's drawing with it. The file
+    can be written by one copy of the plugin and read by another, so a
+    format one side does not know is an ordinary state. The one rung
+    `fitted` may step down to draws the same rows with no disc, so a block
+    drawn here cannot fail there. Only the oldest files one message carries
+    are claimed (`admitted`, the owner's rule): the rest stay
+    pending under their own names for the next `Stop`, or for
+    `agentic stamp --from`."""
+    ready = []
+    for path in pending(directory):
+        try:
+            values = read_values(path)
+            block = (label(values), values["rows"])
+            stamp(values["rows"], shape=False)
+        except Exception:
+            continue
+        ready.append((path, block))
+    carried = len(admitted([block for _, block in ready]))
+    blocks = []
+    for path, block in ready[:carried]:
+        if claim(path) is None:
+            continue
+        blocks.append(block)
+    return blocks
+
+
+def drawn_at_stop(text):
+    """The `systemMessage` the `Stop` payload TEXT draws, or None: a payload
+    that is not a main session's `Stop`, a `cwd` outside any clone, a clone
+    with nothing pending or not opted in, or nothing that draws."""
+    try:
+        payload = json.loads(text)
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    if payload.get("hook_event_name") != STOP or payload.get("agent_id"):
+        return None
+    top = toplevel(payload.get("cwd"))
+    if not top:
+        return None
+    optin = _optin()
+    common = optin.git_common_dir(top)
+    if not common:
+        return None
+    directory = values_dir(common)
+    if not pending(directory) or not optin.opted_in(top):
+        return None
+    blocks = drawings(directory)
+    return fitted(blocks) if blocks else None
+
+
+# --- a person's command --------------------------------------------------
+
+# Neutral values in the stamp's shape, so `agentic stamp` shows a person what a
+# cleared inspection's commit draws without one having been committed — every
+# row `inspection_rows` can return, the conditional ones included, in its
+# order; a case in `tests/skills/test_stamp.py`'s `Test_module` holds the
+# labels against `inspection_rows`'. The stamp carries
+# what the records say and no suite counts: those are the broad gate's
+# report's, which the gate prints as text.
+SAMPLE_ROWS = [
+    ("CLEARED", ""),
+    ("tree", "c46fd2d"),
+    ("", "feat/12-a-branch"),
+    ("base", "1e2bed9"),
+    ("item", "1799000000"),
+    None,
+    ("gate", "✓ c46fd2d"),
+    ("rounds", "3"),
+]
+
+
+def main(argv=None, console_wants_letters=None):
+    """`console_wants_letters` is `pick_shape` asked of stdout as the process
+    found it. `__main__` asks before it reconfigures the streams, because
+    `reconfigure` changes the one object `sys.stdout` and `sys.__stdout__`
+    both name; a direct call may leave it to be asked here."""
+    parser = argparse.ArgumentParser(
+        prog="agentic stamp",
+        description="Print the inspector's stamp — what the commit of a cleared "
+        "inspection draws.",
+    )
+    parser.add_argument(
+        "--shape", action="store_true", help="the letter twin, whatever the console"
+    )
+    entry = parser.add_mutually_exclusive_group()
+    entry.add_argument(
+        "--from",
+        dest="values",
+        default=None,
+        metavar="FILE",
+        help="draw a queued stamp's values file, once, instead of the sample",
+    )
+    entry.add_argument(
+        "--inspection",
+        metavar="FILE",
+        help="queue the stamp of the cleared inspection.md at FILE, as the inspector does",
+    )
+    entry.add_argument(
+        "--stop",
+        action="store_true",
+        help="draw what waits in the clone of a Stop payload's cwd, read on stdin",
+    )
+    args = parser.parse_args(argv)
+    if args.stop:
+        try:
+            message = drawn_at_stop(sys.stdin.read())
+        except Exception:
+            message = None
+        if message:
+            sys.stdout.write(json.dumps({"systemMessage": message}) + "\n")
+        return 0
+    try:
+        if args.inspection is not None:
+            said = queue_for_written_inspection(args.inspection)
+        else:
+            said = None
+    except ValueError as refused:
+        sys.stderr.write(str(refused) + "\n")
+        return 2
+    except Exception as failed:
+        sys.stderr.write(f"agentic stamp: {args.inspection}: {failed}\n")
+        return 2
+    except _gitcmd().Failed as unanswered:
+        sys.stderr.write(f"agentic stamp: {args.inspection}: {unanswered.line}\n")
+        return 2
+    if said is not None:
+        sys.stdout.write("".join(line + "\n" for line in said))
+        return 0
+    if console_wants_letters is None:
+        console_wants_letters = pick_shape(sys.stdout)
+    shape = args.shape or console_wants_letters
+    try:
+        if args.values is None:
+            lines = stamp(SAMPLE_ROWS, shape=shape)
+        else:
+            lines = drawn_from(args.values, shape)
+    except ValueError as refused:
+        sys.stderr.write(str(refused) + "\n")
+        return 2
+    sys.stdout.write("\n" + "\n".join(lines) + "\n\n")
+    return 0
+
+
+def drawn_from(path, shape):
+    """The lines for the values file at `path`, which is claimed before they
+    are returned. Raises `ValueError`
+    with a refusal for a file drawn already, unreadable, or out of shape, or
+    for a disc's mark sprite that is malformed — and every refusal comes
+    before the claim, so a file refused for its content or for the sprite is
+    still there to be drawn once it is repaired."""
+    if path.endswith(DRAWN) or (
+        not os.path.exists(path) and os.path.exists(drawn_path(path))
+    ):
+        # The drawn file's own name, where that is what was given:
+        # `drawn_path` of it is `X.drawn.drawn.json`, which does not exist,
+        # and this is the sentence a person recovers the values from.
+        drawn = path if path.endswith(DRAWN) else drawn_path(path)
+        raise ValueError(VALUES_DRAWN.format(path=path, drawn=drawn))
+    values = read_values(path)
+    lines = stamp(values["rows"], shape)
+    if claim(path) is None:
+        raise ValueError(VALUES_DRAWN.format(path=path, drawn=drawn_path(path)))
+    return lines
+
+
+if __name__ == "__main__":
+    # Which form, asked of stdout as the process found it. It has to come
+    # before the loop below: `reconfigure` puts the stream into UTF-8, and a
+    # cp949 console asked afterwards would be handed the blocks it cannot draw.
+    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
+    _letters = pick_shape(sys.stdout)
+    # A console that cannot encode what this prints kills it with stdout
+    # empty. `lib/console.py` owns the reasoning and the three decisions
+    # behind these lines.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    sys.exit(main(console_wants_letters=_letters))

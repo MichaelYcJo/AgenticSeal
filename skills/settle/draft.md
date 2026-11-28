@@ -1,12 +1,12 @@
 # settle, the draft
 
-The settling session opens this file before it runs `seal settle --draft`,
+The settling session opens this file before it runs `agentic settle --draft`,
 which step 4 of `skills/settle/SKILL.md` *The settling session's procedure*
 takes where the session chooses to.
 
 ## What `--draft` writes
 
-**`seal settle --draft` writes a starting text for step 4 of the procedure,
+**`agentic settle --draft` writes a starting text for step 4 of the procedure,
 and no section it writes is settled.** It reads what the dry run reads, and
 writes each operation of each design the dry run groups into the policy root
 in the working tree, where `skills/settle/rule-changes.md` *Rule changes*

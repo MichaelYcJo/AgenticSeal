@@ -1,4 +1,4 @@
-"""`hooks/core-start.py`: a session whose repository holds a `seal/` root
+"""`hooks/core-start.py`: a session whose repository holds an `agentory/` root
 receives the core once, and any other session receives nothing.
 
 The hook prints `lib/core.py#output` as plain text, and `hooks/hooks.json`
@@ -85,9 +85,9 @@ def printed(cwd, root):
 
 
 def marked_repo(where):
-    """A scratch repository at WHERE holding a marked `seal/` root."""
+    """A scratch repository at WHERE holding a marked `agentory/` root."""
     repo = git_repo(where)
-    mark_root(repo / "seal")
+    mark_root(repo / "agentory")
     return repo
 
 
@@ -105,7 +105,7 @@ class Test_main:
             body["cwd"] = str(repo)
             out = start(json.dumps(body), root)
             assert out == printed(str(repo), root), (source, out)
-            assert out.startswith("AgenticSeal core from "), out
+            assert out.startswith("IADD core from "), out
             assert "# scratch core\n\nA value — kept.\n" in out, out
             assert "*Orchestrator: the order inside a ticket*" in out, out
 
@@ -131,7 +131,7 @@ class Test_main:
         assert out.endswith("\n" + core.closing(root) + "\n"), out[-400:]
 
     def test_refuses_to_print_into_a_repository_with_no_root(self, tmp_path):
-        """#1430. A session in a repository with no marked `seal/` root, or
+        """#1430. A session in a repository with no marked `agentory/` root, or
         in a directory outside git, is doing other work and receives
         nothing."""
         root = plugin(tmp_path / "plugin")

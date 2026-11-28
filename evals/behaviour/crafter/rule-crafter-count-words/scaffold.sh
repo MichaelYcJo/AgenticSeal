@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'AGENTIC_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/README.md')"
-cat > 'seal/README.md' <<'AGENTIC_EOF'
-# What AgenticSeal maintains in seal/
+mkdir -p "$(dirname 'agentory/README.md')"
+cat > 'agentory/README.md' <<'AGENTIC_EOF'
+# What IADD keeps in agentory/
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/config.json')"
-cat > 'seal/config.json' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/config.json')"
+cat > 'agentory/config.json' <<'AGENTIC_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000012-count-words/routing.md')"
-cat > 'seal/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000012-count-words/routing.md')"
+cat > 'agentory/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'
 # Routing: 1790000012-count-words
 
 | Axis | Answer |
@@ -69,8 +69,8 @@ AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/count-words
-mkdir -p "$(dirname 'seal/threads/1790000012-count-words/frame/design.md')"
-cat > 'seal/threads/1790000012-count-words/frame/design.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000012-count-words/frame/design.md')"
+cat > 'agentory/threads/1790000012-count-words/frame/design.md' <<'AGENTIC_EOF'
 # Design: count_words
 
 ## Scope
@@ -85,8 +85,8 @@ cat > 'seal/threads/1790000012-count-words/frame/design.md' <<'AGENTIC_EOF'
 
 Framed 2026-10-14 by framer, before the build.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000012-count-words/frame/plan.md')"
-cat > 'seal/threads/1790000012-count-words/frame/plan.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000012-count-words/frame/plan.md')"
+cat > 'agentory/threads/1790000012-count-words/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: count_words
 
 ## Phases

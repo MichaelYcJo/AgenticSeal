@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Edit'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/threads\/1790000026-generated-page\/)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!agentory\/threads\/1790000026-generated-page\/)'
 max: 0
 min: 0
 ---

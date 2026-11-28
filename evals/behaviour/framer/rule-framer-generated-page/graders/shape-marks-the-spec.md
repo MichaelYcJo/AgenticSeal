@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000026-generated-page/frame/design.md'}
+target: {source: 'file', path: 'agentory/threads/1790000026-generated-page/frame/design.md'}
 pattern: '^Framed \d{4}-\d{2}-\d{2} by framer'
 flags: 'm'
 ---

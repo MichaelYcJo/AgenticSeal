@@ -1,4 +1,4 @@
-"""`seal mutate`: what the builder's rule and the verify skill say of it.
+"""`agentic mutate`: what the builder's rule and the verify skill say of it.
 
 #641, with #129 as its twin. `agents/crafter.md` told the implementer to "clear
 `tests/__pycache__` between mutations", which aims at the wrong cache. It
@@ -11,7 +11,7 @@ in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 
 The cases that run the command stand in `tests/skills/test_mutation_check.py`.
 What stays here reads the sentences a session acts on: the
-builder's rule in `skills/implement/SKILL.md`, `skills/verify/seal-mutate.md`,
+builder's rule in `skills/implement/SKILL.md`, `skills/verify/agentic-mutate.md`,
 and the bound both of them state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
@@ -26,7 +26,7 @@ import sys
 
 from conftest import ROOT, flat
 
-# No TARGET: its cases hold seal mutate's command and bound across skills/implement/SKILL.md, skills/verify/seal-mutate.md and the script's constant.
+# No TARGET: its cases hold agentic mutate's command and bound across skills/implement/SKILL.md, skills/verify/agentic-mutate.md and the script's constant.
 
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
 
@@ -55,11 +55,11 @@ def test_the_builders_rule_names_the_command_and_its_flag():
     moved the rule from `agents/crafter.md` to `skills/implement/SKILL.md`,
     where an orchestrator that builds reads it too."""
     builder = flat("skills", "implement", "SKILL.md")
-    # The `seal mutate` command line with its `--replace` and `--tests`
+    # The `agentic mutate` command line with its `--replace` and `--tests`
     # arguments, which the builder copies for each unit it mutates.
     # Any runner: the skill ships to repositories with no `bin/test`, so the
     # pattern names none.
-    assert re.search(r"seal mutate \S+ --replace .+? --tests \"", builder), (
+    assert re.search(r"agentic mutate \S+ --replace .+? --tests \"", builder), (
         "`skills/implement/SKILL.md` does not show the mutation loop as one "
         "command, with its replacement and the cases it runs"
     )
@@ -74,13 +74,13 @@ def test_the_builders_rule_names_the_command_and_its_flag():
 def test_the_verify_skill_says_what_each_verdict_means():
     """The section a reader opens to learn the command: the command line and
     its verdicts with their exit codes. The section is
-    `skills/verify/seal-mutate.md`'s since #1312, and runs to the end of that
+    `skills/verify/agentic-mutate.md`'s since #1312, and runs to the end of that
     file; its bound is the next case's."""
-    skill = flat("skills", "verify", "seal-mutate.md")
-    section = skill[skill.index("## `seal mutate`") :]
+    skill = flat("skills", "verify", "agentic-mutate.md")
+    section = skill[skill.index("## `agentic mutate`") :]
     for said in (
         # The command line a reader copies for each break.
-        "seal mutate <file> --replace",
+        "agentic mutate <file> --replace",
         # The verdicts `skills/verify/scripts/mutation_check.py#RED` and
         # `skills/verify/scripts/mutation_check.py#SURVIVED` print, with the
         # exit codes a caller's `&&` chain acts on.
@@ -119,4 +119,4 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     # `--timeout`.
     assert f" {bound} s " in flat("skills", "implement", "SKILL.md")
     # The same bound, which a reader of the command's section waits on.
-    assert f" {bound} seconds " in flat("skills", "verify", "seal-mutate.md")
+    assert f" {bound} seconds " in flat("skills", "verify", "agentic-mutate.md")

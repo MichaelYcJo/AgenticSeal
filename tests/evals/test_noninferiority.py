@@ -943,7 +943,7 @@ class Test_kind:
     def test_accepts_the_three_prefixes(self, name, k):
         assert NI.kind(name) == k
 
-    @pytest.mark.parametrize("name", ["truthy-1", "seal-x", "x"])
+    @pytest.mark.parametrize("name", ["truthy-1", "inspect-x", "x"])
     def test_refuses_any_other_name(self, name):
         assert NI.kind(name) is None
 
@@ -959,7 +959,10 @@ RECORD_TRUTH = {
     "type": "regex",
     "weight": 1,
     "config": {
-        "target": {"source": "file", "path": "seal/threads/i/trail/rounds/round-1.md"},
+        "target": {
+            "source": "file",
+            "path": "agentory/threads/i/trail/rounds/round-1.md",
+        },
         "pattern": TRUTH,
         "flags": "m",
         "match": "contains",
@@ -1117,7 +1120,7 @@ VERDICTS = {
         numbers(
             graders={
                 ("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2),
-                ("c1", "reach-sealer"): ("reach", 0, 0, 2, 2),
+                ("c1", "reach-inspector"): ("reach", 0, 0, 2, 2),
             }
         ),
         "fail",
@@ -1127,7 +1130,7 @@ VERDICTS = {
         "pass",
     ),
     "rule 3: a reach grader the baseline lacks, short of every new run": (
-        numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
+        numbers(graders={("c1", "reach-inspector"): ("reach", 0, 0, 1, 2)}),
         "fail",
     ),
     "rule 1: a shape grader only the baseline carried, in a case both sides ran": (
@@ -1204,7 +1207,7 @@ class Test_verdict:
                 {
                     ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
                     ("c1", "reach-proofer"): ("reach", 2, 2, 1, 2),
-                    ("c1", "reach-sealer"): ("reach", 0, 0, 1, 2),
+                    ("c1", "reach-inspector"): ("reach", 0, 0, 1, 2),
                 },
                 [
                     "shape and reach graders passed 1/4 runs on the new side, fewer than "
@@ -1212,7 +1215,7 @@ class Test_verdict:
                     "c1/shape-report-exists 0/2 against 2/2",
                     "shape grader c1/shape-report-exists failed every new run (0/2) "
                     "where the baseline passed it 2/2 (rule 2)",
-                    "reach grader c1/reach-sealer, which the baseline lacks, failed on "
+                    "reach grader c1/reach-inspector, which the baseline lacks, failed on "
                     "the new side (1/2) (rule 3)",
                 ],
             ),
@@ -1449,7 +1452,7 @@ class Test_check_record:
 MODEL_GRADERS = {
     ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
     ("c1", "shape-commits-nothing"): ("shape", 2, 2, 2, 2),
-    ("c1", "reach-sealer"): ("reach", 2, 2, 2, 2),
+    ("c1", "reach-inspector"): ("reach", 2, 2, 2, 2),
     ("c1", "reach-framer"): ("reach", 0, 0, 1, 2),
 }
 
@@ -1501,7 +1504,7 @@ class Test_cheaper_model:
                 {
                     "graders": {
                         **MODEL_GRADERS,
-                        ("c1", "reach-sealer"): ("reach", 2, 2, 1, 2),
+                        ("c1", "reach-inspector"): ("reach", 2, 2, 1, 2),
                     }
                 },
                 "reach grader",
@@ -1609,7 +1612,7 @@ class Test_check:
         """A record written before #1487 carries the four row counts and the
         two `tokens per true find` rows; `check` and `model` read past them
         and give what they give the same record without them."""
-        now = NI.render("sealer", 4, side(GRADED), side(GRADED, spend=5.0))
+        now = NI.render("inspector", 4, side(GRADED), side(GRADED, spend=5.0))
         before = now.replace(
             "| New cut short | no |\n",
             "| New cut short | no |\n| Baseline report rows | 20 |\n"
@@ -1654,7 +1657,7 @@ class Test_model:
     ):
         path = tmp_path / "m.md"
         path.write_text(
-            NI.render("sealer", 4, side(GRADED), side(GRADED, spend=5.0)),
+            NI.render("inspector", 4, side(GRADED), side(GRADED, spend=5.0)),
             encoding="utf-8",
         )
         assert NI.main(["model", str(path)]) == 0
@@ -1667,14 +1670,14 @@ class Test_model:
     def test_refuses_a_record_it_cannot_read_or_trust(self, tmp_path, capsys, shape):
         path = tmp_path / "m.md"
         if shape == "edited":
-            text = NI.render("sealer", 4, side(GRADED), side(SHAPE_FELL, spend=5.0))
+            text = NI.render("inspector", 4, side(GRADED), side(SHAPE_FELL, spend=5.0))
             path.write_text(
                 text.replace("Verdict: fail", "Verdict: pass"), encoding="utf-8"
             )
         elif shape == "two suites":
             other = {"rev": "3" * 40, "tree": "4" * 40}
             path.write_text(
-                NI.render("sealer", 4, side(GRADED), side(GRADED, suite=other)),
+                NI.render("inspector", 4, side(GRADED), side(GRADED, suite=other)),
                 encoding="utf-8",
             )
         assert NI.main(["model", str(path)]) == 2

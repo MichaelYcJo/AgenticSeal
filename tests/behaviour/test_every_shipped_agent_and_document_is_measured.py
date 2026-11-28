@@ -1,6 +1,6 @@
 """The two meters read this repository's own tree whole: the release table
 has a row for every agent `agents/` defines and every policy document, and
-`seal payload` names every shipped agent.
+`agentic payload` names every shipped agent.
 
 Each case lists `agents/` or `docs/`, so it stands in a file that declares no
 `TARGET`. Each meter's cases over fixtures, and the helpers these cases

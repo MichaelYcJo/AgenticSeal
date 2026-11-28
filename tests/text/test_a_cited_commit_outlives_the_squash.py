@@ -1,4 +1,4 @@
-"""A `<commit>:<path>` citation, and a commit named bare outside `seal/`,
+"""A `<commit>:<path>` citation, and a commit named bare outside `agentory/`,
 name a commit that outlives the squash.
 
 A feature branch squashes into its release branch, and the squash discards
@@ -6,21 +6,21 @@ every commit the branch wrote (`docs/releasing/branch-and-release.md` *Work accu
 on a release branch*). A citation of one of those commits opens in no clone
 after the merge, and a reader sent to it finds no source. Before #1270 no
 check read the form, and three work items reached a release with such a
-citation in their frame, each through a sealed chain.
+citation in their frame, each through a cleared chain.
 
 `cited(root)` reads each token `tests/censuses.py#COMMIT_PATH` matches, in
 every tracked file that is on disk and decodes as UTF-8, read as
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py#corpus` reads its
 files. Three kinds of file are left out: anything under `evals/behaviour/`, a
-work item's `trail/` and its `guarantee.md`. Those record what a party ran at
+work item's `trail/` and its `inspection.md`. Those record what a party ran at
 the branch's own commits, which the squash orphans as it orphans a round's
 `target:` line, and they leave with the work item.
 
-`cited(root)` also reads each `BARE` token outside `seal/` and outside a
+`cited(root)` also reads each `BARE` token outside `agentory/` and outside a
 `COMMIT_PATH` token, and keeps each that names a commit, as one `git
-cat-file --batch-check` answers for all of them. Outside `seal/` no file
+cat-file --batch-check` answers for all of them. Outside `agentory/` no file
 has a reason to name a commit that no clone will hold. A token that names no
-commit, such as a fixture's synthetic value, is not read. Under `seal/` a
+commit, such as a fixture's synthetic value, is not read. Under `agentory/` a
 bare commit is not read, since a plan's Status cell and a round's `fixed`
 line name the branch's own commits by rule.
 
@@ -83,12 +83,12 @@ def git(root, *args):
 
 def read_here(rel):
     """Whether the check reads the tracked file REL: not under
-    `evals/behaviour/`, a work item's `trail/` or its `guarantee.md`."""
+    `evals/behaviour/`, a work item's `trail/` or its `inspection.md`."""
     if rel.startswith("evals/behaviour/"):
         return False
     parts = rel.split("/")
-    if len(parts) > 3 and parts[:2] == ["seal", "threads"]:
-        return parts[3:] != ["guarantee.md"] and not (
+    if len(parts) > 3 and parts[:2] == ["agentory", "threads"]:
+        return parts[3:] != ["inspection.md"] and not (
             parts[3] == "trail" and len(parts) > 4
         )
     return True
@@ -97,7 +97,7 @@ def read_here(rel):
 def cited(root):
     """`[(rel, line, commit)]` for each commit the files `read_here` admits
     cite, where they are on disk and decode as UTF-8: each `COMMIT_PATH`
-    token, then each `BARE` token outside `seal/` and outside a
+    token, then each `BARE` token outside `agentory/` and outside a
     `COMMIT_PATH` token that `resolving` names a commit."""
     listed = subprocess.run(
         ["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True
@@ -116,7 +116,7 @@ def cited(root):
             spans.append(m.span())
             line = text.count("\n", 0, m.start()) + 1
             found.append((rel, line, m.group().split(":", 1)[0]))
-        if not rel.startswith("seal/"):
+        if not rel.startswith("agentory/"):
             loose.extend((rel, text, at, token) for at, token in bare(text, spans))
     commits = resolving(root, {token for *_, token in loose})
     found.extend(
@@ -196,7 +196,7 @@ def refusal(found):
     return "\n".join(
         [
             "each commit below, cited as `<commit>:<path>` or named bare "
-            "outside `seal/`, is one that no `main` or release ref contains, "
+            "outside `agentory/`, is one that no `main` or release ref contains, "
             "so it opens in no clone once its branch is squashed:",
             *(f"  {rel}:{line} cites {commit}" for rel, line, commit in found),
             REPAIR,
@@ -235,7 +235,7 @@ def verdict(root):
 
 def test_every_cited_commit_outlives_the_squash():
     """S1: every `<commit>:<path>` this tree reads, and every commit it
-    names bare outside `seal/`, is one `main` or a release branch contains.
+    names bare outside `agentory/`, is one `main` or a release branch contains.
     A checkout with no such ref is not judged (S6)."""
     assert_outlives(ROOT)
 
@@ -317,20 +317,20 @@ def test_a_citation_of_the_squash_is_accepted(tmp_path, ref):
 
 
 NOT_READ = (
-    "seal/threads/1-x/trail/rounds/round-1.md",
-    "seal/threads/1-x/trail/phases/phase-1.md",
-    "seal/threads/1-x/guarantee.md",
+    "agentory/threads/1-x/trail/rounds/round-1.md",
+    "agentory/threads/1-x/trail/phases/phase-1.md",
+    "agentory/threads/1-x/inspection.md",
     "evals/behaviour/crafter/rule-x/x.md",
 )
 READ = (
-    "seal/threads/1-x/frame/plan.md",
-    "seal/threads/1-x/changelog.md",
-    "seal/threads/1-x/gaps.md",
+    "agentory/threads/1-x/frame/plan.md",
+    "agentory/threads/1-x/changelog.md",
+    "agentory/threads/1-x/gaps.md",
 )
 
 
 def test_a_record_of_what_a_party_ran_is_not_read(tmp_path):
-    """S4: a dead citation in a work item's `trail/`, its `guarantee.md` or
+    """S4: a dead citation in a work item's `trail/`, its `inspection.md` or
     under `evals/behaviour/` is not read."""
     root, commit = planted(tmp_path)
     cite(root, dict.fromkeys(NOT_READ, citing(commit)))
@@ -391,23 +391,23 @@ def naming(commit):
 @pytest.mark.parametrize("rel", ["docs/a.md", "hooks/a.py"])
 def test_a_bare_commit_of_a_feature_branch_is_refused(tmp_path, rel):
     """A commit only the feature branch and a remote feature ref contain,
-    named bare outside `seal/`, is named with its file, line and token, in
+    named bare outside `agentory/`, is named with its file, line and token, in
     a `.md` and a `.py` alike."""
     root, commit = planted(tmp_path, reach=("refs/remotes/origin/feature/x",))
     cite(root, {rel: naming(commit)})
     assert unreached(root) == [(rel, 2, commit[:8])]
 
 
-def test_a_bare_commit_under_seal_is_not_read(tmp_path):
+def test_a_bare_commit_under_agentory_is_not_read(tmp_path):
     """An unreached commit named bare in a work item's plan, as a Status
-    cell names a phase's commit, and in `seal/follow-up.md` is not read,
-    while the same commit named bare outside `seal/` is."""
+    cell names a phase's commit, and in `agentory/follow-up.md` is not read,
+    while the same commit named bare outside `agentory/` is."""
     root, commit = planted(tmp_path)
     cite(
         root,
         {
-            "seal/threads/1-x/frame/plan.md": f"| Phase | Status |\n| 1 | {commit[:8]} |\n",
-            "seal/follow-up.md": naming(commit),
+            "agentory/threads/1-x/frame/plan.md": f"| Phase | Status |\n| 1 | {commit[:8]} |\n",
+            "agentory/follow-up.md": naming(commit),
             "docs/a.md": naming(commit),
         },
     )
@@ -434,7 +434,7 @@ def test_the_refusal_of_a_bare_commit_says_where_and_the_repair(tmp_path):
     outcome, message = verdict(root)
     assert outcome == "failed"
     for part in (
-        "named bare outside `seal/`",
+        "named bare outside `agentory/`",
         "docs/a.md:2",
         commit[:8],
         "state in the sentence what its reader needs",

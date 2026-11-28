@@ -1,6 +1,6 @@
 """The `Broad gate` key is asked for, and it runs as the command it reads as.
 
-Two tickets about one key of `seal/config.json`, in causal order. Nothing ever
+Two tickets about one key of `agentory/config.json`, in causal order. Nothing ever
 asks a person for it (#401), so the first repository to fill it in by hand
 filled it in the way every command in every document here is written — wrapped
 in backticks — and nothing looked at what was written (#402). A shell reads

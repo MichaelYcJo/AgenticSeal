@@ -87,7 +87,7 @@ def test_what_runs_before_any_floor_is_linted_at_the_floor():
     unfloored, missing = before_any_floor()
     targets = ruff_targets(RUFF)
     assert {
-        "skills/verify/scripts/seal_stamp.py",
+        "skills/verify/scripts/stamp.py",
         "hooks/core-start.py",
         "lib/core.py",
         "lib/launch.py",
@@ -105,7 +105,7 @@ def test_what_runs_before_any_floor_is_linted_at_the_floor():
 
 def test_a_script_reaches_the_modules_under_lib():
     """#1060. A script that puts `lib/` on its `sys.path` imports a module
-    there by its bare name, as `skills/implement/scripts/seal.py` does, so
+    there by its bare name, as `skills/implement/scripts/agentic.py` does, so
     `loaded_by` follows that import into `lib/`. A walk that looked only
     beside the script would find none of them, and the set above would
     shrink without failing."""

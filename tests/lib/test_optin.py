@@ -1,9 +1,9 @@
-"""`lib/optin.py`: one opt-in signal, read one way, `seal/` at the first of
-three places.
+"""`lib/optin.py`: one opt-in signal, read one way, `agentory/` at the first of
+two places.
 
-`<repo>/seal/` is what shared mode commits, `<repo>/agentic-seal/` where the
-project's own `seal/` stands (#1059), and `<git-common-dir>/seal/` is where
-local mode keeps it (#80). The root's presence is the whole declaration, and
+`<repo>/agentory/` is what shared mode commits, and `<git-common-dir>/agentory/` is
+where local mode keeps it (#80), and where a repository whose own `agentory/`
+stands keeps it (#1651). The root's presence is the whole declaration, and
 there is no config key. `.specseal/` and `_ai/` are not addresses at all, and
 the throwaway opt-out is a file under the git directory, where nothing can
 commit it. A reader that decoded nothing answers "not opted in" and never
@@ -37,14 +37,14 @@ from conftest import (
 
 TARGET = "lib/optin.py"
 
-STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "stamp.py")
 STAMP_VALUES = {
     "tree": "aaa1111",
     "base": "bbb2222",
     "from": "origin/base",
-    "item": "/x/seal/threads/1799000000-an-item",
+    "item": "/x/agentory/threads/1799000000-an-item",
     "scale": 0.9,
-    "rows": [("SEALED", ""), None, ("tree", "aaa1111")],
+    "rows": [("CLEARED", ""), None, ("tree", "aaa1111")],
 }
 
 
@@ -71,7 +71,7 @@ class Test_repo_root:
         substitution in this work item.
         """
         repo = git_repo(tmp_path / KOREAN / "repo")
-        mark_root(repo / "seal")
+        mark_root(repo / "agentory")
         got = optin.repo_root(str(repo))
         assert got, "the root came back empty for a repository that is right there"
         assert os.path.isdir(got), (
@@ -268,15 +268,15 @@ class Test_git_common_dir:
 
 class Test_home_paths:
     def test_accepts_the_two_places_shared_first(self, optin, repo):
-        """#81. `seal import --into shared|local` has to be able to CREATE the
+        """#81. `agentic import --into shared|local` has to be able to CREATE the
         root the user named, which `home_at` cannot answer: it reports where the
         root is, and the other mode's root is exactly the one that is not there.
 
         The pair is produced here so that command spells neither path itself.
         """
         shared, local = optin.home_paths(str(repo))
-        assert shared == os.path.join(str(repo), "seal")
-        assert local == os.path.join(str(repo), ".git", "seal")
+        assert shared == os.path.join(str(repo), "agentory")
+        assert local == os.path.join(str(repo), ".git", "agentory")
         assert not os.path.isdir(shared) and not os.path.isdir(local), (
             "home_paths answers where a root WOULD be; nothing here exists yet"
         )
@@ -301,7 +301,7 @@ class Test_home_paths:
         optin.gitcmd.subprocess.run, saved = refuse, optin.gitcmd.subprocess.run
         try:
             assert optin.home_paths(str(repo), common)[1] == os.path.join(
-                common, "seal"
+                common, "agentory"
             )
         finally:
             optin.gitcmd.subprocess.run = saved
@@ -314,47 +314,33 @@ class Test_home_paths:
         row)."""
         common = str(tmp_path) + "/x/../.git"
         assert optin.home_paths(str(tmp_path), common)[1] == os.path.join(
-            str(tmp_path), ".git", "seal"
+            str(tmp_path), ".git", "agentory"
         )
 
-    @pytest.mark.parametrize(
-        "seal, second, shared",
-        [
-            ("marked", "marked", "seal"),
-            ("marked", "absent", "seal"),
-            ("foreign", "marked", "agentic-seal"),
-            ("absent", "marked", "agentic-seal"),
-            ("absent", "absent", "seal"),
-            ("foreign", "absent", "agentic-seal"),
-            ("a file", "absent", "agentic-seal"),
-            ("foreign", "foreign", "agentic-seal"),
-        ],
-    )
-    def test_accepts_the_shared_place_the_tree_leaves_free(
-        self, optin, repo, seal, second, shared
+    @pytest.mark.parametrize("agentory", ["marked", "foreign", "absent", "a file"])
+    def test_accepts_agentory_as_the_shared_place_whatever_stands_there(
+        self, optin, repo, agentory
     ):
-        """S2 of #1059. The shared entry is a marked `seal/`, else a marked
-        `agentic-seal/`, else `seal/` where nothing stands at that path, else
-        `agentic-seal/`; the local entry stays `seal` under the common
-        directory in every state."""
-        for name, state in (("seal", seal), ("agentic-seal", second)):
-            if state == "marked":
-                mark_root(repo / name)
-            elif state == "foreign":
-                readme_at(repo / name, FOREIGN)
-            elif state == "a file":
-                (repo / name).write_text("", encoding="utf-8")
+        """The shared entry is `<repo>/agentory` and the local entry `agentory` under
+        the common directory, whatever stands at the shared one: a project's
+        own `agentory/` moves the shared root to no other name (#1651)."""
+        if agentory == "marked":
+            mark_root(repo / "agentory")
+        elif agentory == "foreign":
+            readme_at(repo / "agentory", FOREIGN)
+        elif agentory == "a file":
+            (repo / "agentory").write_text("", encoding="utf-8")
         assert optin.home_paths(str(repo)) == (
-            os.path.join(str(repo), shared),
-            os.path.join(str(repo), ".git", "seal"),
+            os.path.join(str(repo), "agentory"),
+            os.path.join(str(repo), ".git", "agentory"),
         )
 
     def test_refuses_an_empty_root(self, optin):
         assert optin.home_paths("") == ("", "")
 
 
-# The README a project keeps in a `seal/` of its own, which carries no marker.
-FOREIGN = "# seal\n\nThis package's own notes.\n"
+# The README a project keeps in an `agentory/` of its own, which carries no marker.
+FOREIGN = "# agentory\n\nThis package's own notes.\n"
 
 
 def readme_at(root, data):
@@ -377,13 +363,13 @@ class Test_marked:
         """The marker is the first line with its line end stripped, so either
         line end and a file of that one line all carry it, and a byte below
         the line that does not decode does not take it away."""
-        readme_at(tmp_path / "seal", optin.MARKER.encode("utf-8") + tail)
-        assert optin.marked(str(tmp_path / "seal"))
+        readme_at(tmp_path / "agentory", optin.MARKER.encode("utf-8") + tail)
+        assert optin.marked(str(tmp_path / "agentory"))
 
     @pytest.mark.parametrize(
         "text",
         [
-            "# seal\n\nThis package's own notes.\n",
+            "# agentory\n\nThis package's own notes.\n",
             "\n{marker}\n",
             "{marker} of a fork\n",
             "{marker} \n",
@@ -400,13 +386,13 @@ class Test_marked:
         ],
     )
     def test_refuses_a_readme_whose_first_line_is_another(self, optin, tmp_path, text):
-        """A `seal/` a project or a package keeps for itself is not the
+        """An `agentory/` a project or a package keeps for itself is not the
         plugin's root, whatever it holds below its first line. The line is
         compared whole with its line end alone taken off, so a space after the
         marker, a byte order mark before it and a blank line above it each
-        make it another line, as `templates/setup/seal-README.md` says."""
-        readme_at(tmp_path / "seal", text.format(marker=optin.MARKER))
-        assert not optin.marked(str(tmp_path / "seal"))
+        make it another line, as `templates/setup/agentory-README.md` says."""
+        readme_at(tmp_path / "agentory", text.format(marker=optin.MARKER))
+        assert not optin.marked(str(tmp_path / "agentory"))
 
     @pytest.mark.parametrize("shape", ["no README.md", "a directory", "not UTF-8"])
     def test_refuses_a_readme_there_is_no_first_line_to_read_in(
@@ -415,12 +401,12 @@ class Test_marked:
         """No file, a directory of that name, and a first line that does not
         decode are no marker, and nothing raises: the module fails toward
         "not opted in"."""
-        (tmp_path / "seal").mkdir()
+        (tmp_path / "agentory").mkdir()
         if shape == "a directory":
-            (tmp_path / "seal" / "README.md").mkdir()
+            (tmp_path / "agentory" / "README.md").mkdir()
         elif shape == "not UTF-8":
-            (tmp_path / "seal" / "README.md").write_bytes(b"\xff\xfe# What\n")
-        assert not optin.marked(str(tmp_path / "seal"))
+            (tmp_path / "agentory" / "README.md").write_bytes(b"\xff\xfe# What\n")
+        assert not optin.marked(str(tmp_path / "agentory"))
 
     def test_refuses_an_empty_path_wherever_the_process_stands(
         self, optin, tmp_path, monkeypatch
@@ -460,107 +446,56 @@ class Test_marked_home:
         home(repo)
         scratch(repo)
         assert optin.home_at(str(repo)) == ""
-        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "seal")
+        assert optin.marked_home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_refuses_a_place_whose_readme_is_not_the_marker(self, optin, repo):
         """A directory at a place `home_paths` names, here the local one,
         whose README is not the marker is no root here either."""
-        readme_at(repo / ".git" / "seal", FOREIGN)
+        readme_at(repo / ".git" / "agentory", FOREIGN)
         assert optin.marked_home(str(repo)) == ""
 
 
 class Test_home_at:
     def test_refuses_a_shared_root_without_the_marker(self, optin, repo):
-        """`<repo>/seal/` holding a README of the project's own is not the
+        """`<repo>/agentory/` holding a README of the project's own is not the
         root, and with no other place holding one the repository is out."""
-        readme_at(repo / "seal", "# seal\n\nThis package's own notes.\n")
+        readme_at(repo / "agentory", "# agentory\n\nThis package's own notes.\n")
         assert optin.home_at(str(repo)) == ""
         assert not optin.opted_in(str(repo))
 
-    def test_accepts_the_local_root_beside_a_projects_own_seal(self, optin, repo):
-        """A project's own `<repo>/seal/` is passed over, and the local root
-        under the common git directory is the answer where no
-        `<repo>/agentic-seal/` carries the marker."""
-        readme_at(repo / "seal", "# seal\n")
-        readme_at(repo / ".git" / "seal", optin.MARKER + "\n")
-        assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "seal")
+    def test_accepts_the_local_root_beside_a_projects_own_agentory(self, optin, repo):
+        """A project's own `<repo>/agentory/` is passed over, and the local root
+        under the common git directory is the answer."""
+        readme_at(repo / "agentory", "# agentory\n")
+        readme_at(repo / ".git" / "agentory", optin.MARKER + "\n")
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "agentory")
 
-    @pytest.mark.parametrize(
-        "seal, second, local, found",
-        [
-            ("marked", "marked", False, "seal"),
-            ("foreign", "marked", True, "agentic-seal"),
-            ("foreign", "foreign", True, ".git/seal"),
-        ],
-        ids=[
-            "a marked seal over a marked agentic-seal",
-            "a marked agentic-seal over the local root",
-            "the local root where both are the project's own",
-        ],
-    )
-    def test_accepts_the_three_places_in_their_order(
-        self, optin, repo, seal, second, local, found
-    ):
-        """S2 of #1059: a marked `seal/`, then a marked `agentic-seal/`, then
-        the local root."""
-        for name, state in (("seal", seal), ("agentic-seal", second)):
-            if state == "marked":
-                mark_root(repo / name)
-            else:
-                readme_at(repo / name, FOREIGN)
-        if local:
-            local_home(repo)
-        assert optin.home_at(str(repo)) == os.path.join(str(repo), *found.split("/"))
-
-
-class Test_home_name_in:
-    def test_accepts_the_first_name_whose_readme_opens_with_the_marker(self, optin):
-        """The tree is read through a callable, as `chain_check.py` reads one
-        at a commit: `seal` where its README carries the marker, else
-        `agentic-seal`, and either line end."""
-        both = {
-            "seal/README.md": optin.MARKER + "\n",
-            "agentic-seal/README.md": optin.MARKER + "\n",
-        }
-        assert optin.home_name_in(both.get) == "seal"
-        second = {
-            "seal/README.md": FOREIGN,
-            "agentic-seal/README.md": optin.MARKER + "\r\n\r\nWhat it holds.\r\n",
-        }
-        assert optin.home_name_in(second.get) == "agentic-seal"
-
-    def test_refuses_a_tree_where_neither_readme_opens_with_the_marker(self, optin):
-        """No README, a project's own and the marker on line two are no root,
-        and the answer is "" rather than a guess."""
-        tree = {
-            "seal/README.md": FOREIGN,
-            "agentic-seal/README.md": "\n" + optin.MARKER + "\n",
-        }
-        assert optin.home_name_in(tree.get) == ""
-        assert optin.home_name_in({}.get) == ""
+    def test_accepts_a_marked_agentory_over_the_local_root(self, optin, repo):
+        """The two places in their order: a marked `agentory/`, then the local
+        root."""
+        mark_root(repo / "agentory")
+        local_home(repo)
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), "agentory")
 
 
 class Test_home_name:
-    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
-    def test_accepts_the_shared_root_in_force_by_its_name(self, optin, repo, name):
+    def test_accepts_the_shared_root_in_force_by_its_name(self, optin, repo):
         """The name a reader classifying paths as git prints them takes:
-        `agentic-seal` beside a project's own `seal/`, and `seal` where that
-        one carries the marker."""
-        if name == "agentic-seal":
-            readme_at(repo / "seal", FOREIGN)
-        mark_root(repo / name)
+        `agentory`, where that directory carries the marker."""
+        mark_root(repo / "agentory")
         local_home(repo)
-        assert optin.home_name(str(repo)) == name
+        assert optin.home_name(str(repo)) == "agentory"
 
     @pytest.mark.parametrize("shape", ["local", "absent", "scratch"])
     def test_refuses_a_root_that_is_not_the_shared_one(self, optin, repo, shape):
-        """A local root, no root and a repository marked throwaway have no
-        repository-relative name, so the answer is ""."""
-        readme_at(repo / "seal", FOREIGN)
+        """A local root beside a project's own `agentory/`, no root and a
+        repository marked throwaway have no repository-relative name, so the
+        answer is ""."""
         if shape == "local":
+            readme_at(repo / "agentory", FOREIGN)
             local_home(repo)
         elif shape == "scratch":
-            mark_root(repo / "agentic-seal")
+            mark_root(repo / "agentory")
             scratch(repo)
         assert optin.home_name(str(repo)) == ""
 
@@ -569,22 +504,22 @@ class Test_home:
     def test_accepts_the_shared_root_where_both_exist(self, optin, repo):
         home(repo)
         local_home(repo)
-        assert optin.home(str(repo)) == os.path.join(str(repo), "seal")
+        assert optin.home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_accepts_the_worktrees_own_shared_root_over_the_common_local_one(
         self, optin, repo, tmp_path
     ):
-        """S1's order, from a linked worktree: `<repo>/seal/` is read first, and
+        """S1's order, from a linked worktree: `<repo>/agentory/` is read first, and
         the worktree's own tree is the repository here."""
         local_home(repo)
         other = linked_worktree(repo, tmp_path)
-        mark_root(other / "seal")
-        assert os.path.samefile(optin.home(str(other)), other / "seal")
+        mark_root(other / "agentory")
+        assert os.path.samefile(optin.home(str(other)), other / "agentory")
 
-    def test_refuses_a_file_named_seal_under_the_git_directory(self, optin, repo):
+    def test_refuses_a_file_named_agentory_under_the_git_directory(self, optin, repo):
         """The signal is a DIRECTORY at either place. A file of that name under
         the common directory is not a home, and nothing raises over it."""
-        (repo / ".git" / "seal").write_text("", encoding="utf-8")
+        (repo / ".git" / "agentory").write_text("", encoding="utf-8")
         assert not optin.opted_in(str(repo))
         assert optin.home(str(repo)) == ""
 
@@ -593,15 +528,15 @@ class Test_opted_in:
     def test_accepts_the_new_home(self, optin, repo):
         home(repo)
         assert optin.opted_in(str(repo))
-        assert optin.home(str(repo)) == os.path.join(str(repo), "seal")
+        assert optin.home(str(repo)) == os.path.join(str(repo), "agentory")
 
     def test_accepts_the_git_directory_as_the_second_place(self, optin, repo):
-        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/seal/`; the scripts read it
+        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/agentory/`; the scripts read it
         so that #80 changes where the folder is created and nothing that reads
         it."""
         local_home(repo)
         assert optin.opted_in(str(repo))
-        assert optin.home(str(repo)) == os.path.join(str(repo), ".git", "seal")
+        assert optin.home(str(repo)) == os.path.join(str(repo), ".git", "agentory")
 
     def test_accepts_the_same_answer_from_a_subdirectory(self, optin, repo):
         home(repo)
@@ -612,13 +547,13 @@ class Test_opted_in:
     def test_accepts_a_linked_worktree_through_the_main_trees_common_root(
         self, optin, repo, tmp_path
     ):
-        """S2. `.git/seal/` is under the COMMON git directory, so a linked
+        """S2. `.git/agentory/` is under the COMMON git directory, so a linked
         worktree, whose `.git` is a file, reads the main tree's root."""
         home = local_home(repo)
         other = linked_worktree(repo, tmp_path)
         assert optin.opted_in(str(other))
         assert os.path.samefile(optin.home(str(other)), home)
-        assert os.path.samefile(home, repo / ".git" / "seal")
+        assert os.path.samefile(home, repo / ".git" / "agentory")
 
     def test_accepts_the_answer_it_always_gave_without_the_scratch_file(
         self, optin, repo
@@ -635,7 +570,7 @@ class Test_opted_in:
 
         A directory created where the marker used to live turned every gate off
         in every clone of the repository — a kill switch nobody typed. Both the
-        module's own docstring and `seal/README.md` say "file"; this is the read
+        module's own docstring and `agentory/README.md` say "file"; this is the read
         catching up with them.
         """
         home(repo)
@@ -647,7 +582,7 @@ class Test_opted_in:
         directory. A file of that name under the root is an ordinary file now,
         and nothing reads the old one."""
         home(repo)
-        (repo / "seal" / "scratch").write_text("", encoding="utf-8")
+        (repo / "agentory" / "scratch").write_text("", encoding="utf-8")
         (repo / ".specseal").mkdir()
         (repo / ".specseal" / "scratch").write_text("", encoding="utf-8")
         assert optin.opted_in(str(repo))
@@ -677,7 +612,7 @@ class Test_opted_in:
         """S1. The place the root is at says both "on" and which mode; nothing
         else is read. Asked two ways: the module's source names no config key
         and no environment variable, and a repository carrying both a git config
-        answer and an environment variable, with `seal/` at neither place, is
+        answer and an environment variable, with `agentory/` at neither place, is
         still out."""
         src = open(optin.__file__, encoding="utf-8").read()
         for word in ('"config"', "'config'", "environ", "getenv"):
@@ -692,7 +627,7 @@ class Test_opted_in:
         assert optin.home(str(repo)) == ""
 
     def test_refuses_a_repository_carrying_the_scratch_marker(self, optin, repo):
-        """S4. A `seal/` directory is the whole opt-in signal, so a git
+        """S4. An `agentory/` directory is the whole opt-in signal, so a git
         repository that exists for thirty seconds as a fixture is indistinguishable
         from a repository under review — and reproducing a gate decision by hand,
         which is what developing these gates consists of, cost a waiver on every
@@ -726,7 +661,7 @@ class Test_opted_in:
             check=True,
             capture_output=True,
         )
-        mark_root(other / "seal")
+        mark_root(other / "agentory")
         assert not optin.opted_in(str(other))
 
 
@@ -735,7 +670,8 @@ class Test_module:
         """The template is what first setup writes into a root, so its first
         line and the constant are one value, pinned here."""
         with open(
-            os.path.join(ROOT, "templates", "setup", "seal-README.md"), encoding="utf-8"
+            os.path.join(ROOT, "templates", "setup", "agentory-README.md"),
+            encoding="utf-8",
         ) as f:
             assert f.readline().rstrip("\r\n") == optin.MARKER
 
@@ -773,12 +709,12 @@ class Test_module:
     def test_a_scratch_marker_under_the_common_directory_keeps_the_stamp_silent(
         self, local
     ):
-        """The stamp's drawer, `seal stamp --stop`, asks `opted_in` before it
+        """The stamp's drawer, `agentic stamp --stop`, asks `opted_in` before it
         speaks. A stamp waits in the clone in local mode, and nothing is drawn
         while the scratch marker stands under the common directory; with the
         marker gone, the same `Stop` draws it."""
         repo, _home = local
-        stamp = load_module(STAMP, "seal_stamp_for_the_scratch_marker")
+        stamp = load_module(STAMP, "stamp_for_the_scratch_marker")
         stamp.write_values(str(repo / ".git"), STAMP_VALUES)
         marker = repo / ".git" / "agentic-scratch"
         marker.write_text("", encoding="utf-8")
@@ -786,7 +722,7 @@ class Test_module:
 
         assert stamp.drawn_at_stop(stop) is None
         marker.unlink()
-        assert stamp.drawn_at_stop(stop).startswith("SEALED aaa1111")
+        assert stamp.drawn_at_stop(stop).startswith("CLEARED aaa1111")
 
 
 test_census = census_case(TARGET)

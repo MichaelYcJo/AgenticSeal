@@ -1,12 +1,12 @@
 ---
 name: config
-description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads seal/config.json, and routes a change to whatever owns that key.
+description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads agentory/config.json, and routes a change to whatever owns that key.
 disable-model-invocation: true
 ---
 
 # /agentic:config, what this repository decided and how to decide otherwise
 
-`seal/config.json` holds what a repository says about itself, one JSON
+`agentory/config.json` holds what a repository says about itself, one JSON
 object with one key per item. Four keys have no default, the two language
 keys, `Mode` and `Broad gate`, and the table below says what each absent key
 means. A person runs this command to see every key and to change one; the
@@ -24,8 +24,8 @@ stopping.
 **No root at any of those places** means this repository has not been set
 up. Say so, name the `implement` skill's bootstrap as what does it, and
 stop. Do not create the file: the root at one of those places, with the
-README first setup copies from `templates/setup/seal-README.md`, is what
-opts a repository in, so a root is the bootstrap's to create, and a `seal/`
+README first setup copies from `templates/setup/agentory-README.md`, is what
+opts a repository in, so a root is the bootstrap's to create, and an `agentory/`
 made here without that README would read as the project's own directory.
 
 ## Procedure
@@ -41,30 +41,30 @@ present hides exactly those.
 | `Commit and pull request language` | *none, as the paragraph below the table says* | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
 | `Record language` | *none, as the paragraph below the table says* | the prose of the work-item records `templates/setup/config.md` *Record language* lists |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
-| `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
-| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a document of the policy root or of one of its groups as one to split |
+| `Broad gate` | *none: `agentic gate` refuses without it* | the one shell command line `agentic gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
+| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `agentic fold` reports a document of the policy root or of one of its groups as one to split |
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
-| `Pact signers` | *none: in a repository holding `seal/pact.md`, `seal pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
-| `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
-| `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
+| `Pact signers` | *none: in a repository holding `agentory/pact.md`, `agentic pact` refuses the pact without it* | in the pact's repository, the origin remote URL of every other signer, separated by `;` |
+| `Pull request inspection mark` | *off: no mark* | whether `agentic pr-body` writes the plugin's inspection mark under the pull request body's `## From the records` heading once the work item is cleared at HEAD; `yes` turns it on |
+| `Release note inspection mark` | *off: no image* | whether the release's `mark` job attaches the mark image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a key in any other repository changes nothing |
 
 **The two language keys are required.** The ways a key is absent, and what
 an absent one does, are `templates/setup/config.md` *An absent language key
 is a refusal at the pull request body, and never at a commit*, and the
 orchestrator asks for both in the batch of the next request, before its first
 edit. Show each as absent and say what happens without it. **The `Broad gate` key
-has no default at all**: absent, `seal gate` names the key and exits 2 with
+has no default at all**: absent, `agentic gate` names the key and exits 2 with
 nothing run, because what a command nobody chose reports proves nothing.
 Show it as absent and say what happens without it.
 
 **2. For the mode, show what is true as well as what is written.** That key is
 what the repository *wants*; the folder's location is what it *has*, and the
-two are separate on purpose. Run `seal mode` and report what it says: the
+two are separate on purpose. Run `agentic mode` and report what it says: the
 folder, the key, and whether they agree. Do not read the key directly for
-this one: `seal mode` is what the pull-request checks run, and a second
-reader is a second answer. Then run `seal pr-checks` and report its line:
+this one: `agentic mode` is what the pull-request checks run, and a second
+reader is a second answer. Then run `agentic pr-checks` and report its line:
 whether `.github/workflows/hygiene.yml` is this plugin's, and the release it
 pins. No key records that; the file is the record.
 
@@ -72,7 +72,7 @@ pins. No key records that; the file is the record.
 
 - **A language key, or the `Broad gate` key,** is only a key. Edit the value
   in place, leaving the rest of the file as it is. Where the file carries no
-  such key at all (the file `seal mode` writes holds only `Mode`), add it to
+  such key at all (the file `agentic mode` writes holds only `Mode`), add it to
   the object as a key alone, `"<key>": "<value>"`, because
   `templates/setup/config.md` is the documentation of every key and the
   root's `README.md` already names it. A JSON file carries no prose, so
@@ -118,19 +118,19 @@ pins. No key records that; the file is the record.
   too. Edit or add it in place, and point at
   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *The fold's values* for what
   each accepts and what an absent one means, rather than restating it. A
-  value `seal fold` will not parse makes it exit 2 naming the key, so run it
+  value `agentic fold` will not parse makes it exit 2 naming the key, so run it
   once after the edit.
 - **`Reference specs`, `Pact` or `Pact signers`** is only a key too. Edit
   or add it in place, and point at
   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *Reference specs* or *Pact*
   for what each accepts and what an absent one means. `Pact` and `Pact
-  signers` are read strictly by `seal pact` at the pact's repository, so a
+  signers` are read strictly by `agentic pact` at the pact's repository, so a
   value it will not parse is named there.
-- **The `Mode` key moves files.** Run `seal mode local` or `seal mode shared`.
+- **The `Mode` key moves files.** Run `agentic mode local` or `agentic mode shared`.
   It moves the root, stages the change and writes the key, so the file and
   the folder agree afterwards, and it leaves `.github/` alone. Do not do any
   of that by hand. A person who wants the pull-request checks added or taken
-  out is sent to `seal pr-checks install` or `seal pr-checks remove`.
+  out is sent to `agentic pr-checks install` or `agentic pr-checks remove`.
 
 **4. Say what happened beyond the key.** A language key changes a key. The
 `Mode` key moves a directory and stages a commit, and the line the switch
@@ -142,9 +142,9 @@ The person needs to see that list rather than *done*.
 Going to shared puts the records in the tree. **The commit is the point of no
 return, not the move**: once it lands, the records stay in the history
 whatever later leaves the tree. `docs/layout/one-root-by-lifetime.md` *Shared or
-local* holds that rule. Until that commit, `git reset -- :/seal` and then
-`seal mode local` walk the whole thing back. The reset comes first because
-the switch stages the move, and `seal mode` refuses a switch over a staged
+local* holds that rule. Until that commit, `git reset -- :/agentory` and then
+`agentic mode local` walk the whole thing back. The reset comes first because
+the switch stages the move, and `agentic mode` refuses a switch over a staged
 change under the root. The pathspec is there because a bare `git reset`
 unstages the whole index, and the guard has never looked outside the root.
 
@@ -153,8 +153,8 @@ repository whose tree must not carry this plugin's files, and shared is the
 direction that cannot be walked back.
 
 Going the other way costs something different and it is not a secret either:
-every other clone loses the records at the next pull. `seal export` here and
-`seal import` there is how a teammate gets a copy.
+every other clone loses the records at the next pull. `agentic export` here and
+`agentic import` there is how a teammate gets a copy.
 
 ## What this does not do
 
@@ -163,6 +163,6 @@ every other clone loses the records at the next pull. `seal export` here and
   and would invite a short file to drift into settings nobody documents.
 - **It does not start over.** Discarding the records means discarding the
   evidence chain every gate here reads. That stays a deliberate act done by
-  hand, and `seal export` first is the order.
+  hand, and `agentic export` first is the order.
 - **It does not replace the file.** A person can still open `config.json` and
   edit it. This is a door to the room, not a gate in front of it.

@@ -35,7 +35,7 @@ prints to the job's summary.
                       too, as `<leg>` leg
   `<document>`        the bytes of the core (`skills/core/SKILL.md`),
                       `CLAUDE.md`, `CONTRIBUTING.md` and each document of
-                      the policy root that `seal fold` reads
+                      the policy root that `agentic fold` reads
                       (`skills/settle/scripts/fold_check.py#documents`),
                       each CRLF counted as the LF git stores
 
@@ -238,9 +238,7 @@ def documents(root):
     config = module(CONFIG)
     optin = module(OPTIN)
     gitcmd = module(GITCMD)
-    # The shared root's name, or `optin.HOME` where none is marked, so an
-    # unmarked `seal/` is read under the name `seal`.
-    home = os.path.join(root, optin.home_name(root) or optin.HOME)
+    home = os.path.join(root, optin.HOME)
     policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
         fold = module(FOLD)

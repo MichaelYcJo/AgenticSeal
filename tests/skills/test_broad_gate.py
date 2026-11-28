@@ -10,7 +10,7 @@ The cases about what the recorder writes for a session an act ended run a
 real pytest with the recorder in a directory with no git, and read the
 record back through `read_record`. The gate's own runs are one per kind of
 answer it gives a run; where a case's fact is one arm, the other arms are
-answered for it (`arms_answered`), and `a_recorded_run`, `a_sealed_run`, the
+answered for it (`arms_answered`), and `a_recorded_run`, `a_cleared_run`, the
 preflight and the runs of a copied plugin keep every arm real. Each copy is
 the reset.
 
@@ -20,11 +20,7 @@ drive the Windows half with the platform passed in as an argument and a root
 built for the case; two cases of `run` run the machine's real shell, and only
 CI's `windows-latest` leg runs their `cmd.exe` path. The cases of `main` that
 run the command run it over a repository with a `feature` branch, built once
-(`_sealable_template`) and copied by the cases that write into it.
-
-The case that runs the command beside a project's own `seal/` package
-(#1059) builds `tests/conftest.py`'s `package` repository, whose root stands
-at `agentic-seal/`.
+(`_clearable_template`) and copied by the cases that write into it.
 """
 
 import argparse
@@ -47,12 +43,10 @@ from conftest import (
     git_out,
     load_module,
     mark_root,
-    records_at,
     symlink_or_skip,
     write,
 )
 from conftest import commit_everything_as_e as commit
-from test_seal import configured, tool
 from test_settle import past_the_bound, unanswered
 
 TARGET = "skills/verify/scripts/broad_gate.py"
@@ -60,7 +54,7 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 ROOT = pathlib.Path(conftest.ROOT)
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "lib" / "lines.py"
-ITEM = "seal/threads/1799000001-a-gated-work-item"
+ITEM = "agentory/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
 RECORD_REL = os.path.join(*ITEM.split("/"), "trail", "gate.md")
@@ -70,7 +64,7 @@ gate = load_module(ROOT / TARGET, "broad_gate_under_test")
 chain = load_module(CHAIN, "chain_check_beside_broad_gate")
 stamp = gate.stamp_module()
 GATE = str(ROOT / TARGET)
-STAMP = str(ROOT / "skills" / "verify" / "scripts" / "seal_stamp.py")
+STAMP = str(ROOT / "skills" / "verify" / "scripts" / "stamp.py")
 
 
 def gate_module():
@@ -92,7 +86,7 @@ AMBIENT = ("CLAUDE_CODE_SESSION_ID",)
 
 
 def config_of(row=SUITE_ROW, *more):
-    """A `seal/config.json` with the `Broad gate` key ROW, or none where ROW
+    """An `agentory/config.json` with the `Broad gate` key ROW, or none where ROW
     is None, after `Mode` and before each pair of MORE."""
     pairs = [("Mode", "shared")]
     if row is not None:
@@ -101,9 +95,9 @@ def config_of(row=SUITE_ROW, *more):
 
 
 def home_with(tmp_path, text, name="config.json"):
-    """A `seal/` root holding TEXT as its config NAME; its path."""
-    write(tmp_path, f"seal/{name}", text)
-    return str(mark_root(tmp_path / "seal"))
+    """An `agentory/` root holding TEXT as its config NAME; its path."""
+    write(tmp_path, f"agentory/{name}", text)
+    return str(mark_root(tmp_path / "agentory"))
 
 
 def a_record(**fields):
@@ -390,7 +384,7 @@ class Test_moved_line:
         )
         line = gate.moved_line(root, base)
         assert line == (
-            f"seal gate: --base solo is {base.given_commit} in this checkout; CI "
+            f"agentic gate: --base solo is {base.given_commit} in this checkout; CI "
             f"reads origin/solo, which is {base.commit} — origin/solo is 1 ahead "
             "and 0 behind solo. Every check below was asked about origin/solo."
         )
@@ -408,7 +402,7 @@ class Test_moved_line:
         root, _first, _second = refs
         base = gate.Base("gone", None, "origin/gone", short(root, "origin/gone"))
         assert gate.moved_line(root, base).startswith(
-            "seal gate: --base gone names no commit in this checkout; CI reads"
+            "agentic gate: --base gone names no commit in this checkout; CI reads"
         )
 
     def test_accepts_a_spelling_no_runner_could_hold_without_naming_one(self, refs):
@@ -484,29 +478,29 @@ class Test_resolve_base:
 # --- the row ------------------------------------------------------------------------
 
 
-class Test_seal_home:
+class Test_agentory_home:
     def test_accepts_the_shared_root_and_then_the_local_one(self, tmp_path):
-        mark_root(tmp_path / "shared" / "seal")
-        assert gate.seal_home(str(tmp_path / "shared")) == str(
-            tmp_path / "shared" / "seal"
+        mark_root(tmp_path / "shared" / "agentory")
+        assert gate.agentory_home(str(tmp_path / "shared")) == str(
+            tmp_path / "shared" / "agentory"
         )
         local = tmp_path / "local"
         local.mkdir()
         git(local, "init", "-q")
-        (local / "seal").mkdir()
-        mark_root(local / ".git" / "seal")
-        assert gate.seal_home(str(local)) == os.path.normpath(
-            str(local / ".git" / "seal")
+        (local / "agentory").mkdir()
+        mark_root(local / ".git" / "agentory")
+        assert gate.agentory_home(str(local)) == os.path.normpath(
+            str(local / ".git" / "agentory")
         )
 
     def test_refuses_a_repository_with_neither(self, tmp_path):
-        """No `seal/` at all, and a `seal/` the project keeps for itself,
+        """No `agentory/` at all, and an `agentory/` the project keeps for itself,
         whose README does not open with the marker, are no root to read a
         command from."""
         git(tmp_path, "init", "-q")
-        assert gate.seal_home(str(tmp_path)) is None
-        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
-        assert gate.seal_home(str(tmp_path)) is None
+        assert gate.agentory_home(str(tmp_path)) is None
+        write(tmp_path, "agentory/config.json", config_of("bin/test -q"))
+        assert gate.agentory_home(str(tmp_path)) is None
 
 
 class Test_broad_command:
@@ -534,7 +528,7 @@ class Test_broad_command:
         with pytest.raises(gate.Refused, match="Nothing ran") as refused:
             gate.broad_command(home)
         assert str(refused.value).startswith(
-            f"seal gate: {os.path.join(home, 'config.json')}: {said}"
+            f"agentic gate: {os.path.join(home, 'config.json')}: {said}"
         ), refused.value
 
     @pytest.mark.parametrize(
@@ -549,12 +543,12 @@ class Test_broad_command:
         """S2. A file the reader refuses is refused for the gate, in the
         reader's sentence opening with the `config.json` path, so the gate
         exits 2 with nothing run."""
-        mark_root(tmp_path / "seal")
-        (tmp_path / "seal" / name).write_bytes(data)
-        path = os.path.join(str(tmp_path / "seal"), "config.json")
+        mark_root(tmp_path / "agentory")
+        (tmp_path / "agentory" / name).write_bytes(data)
+        path = os.path.join(str(tmp_path / "agentory"), "config.json")
         with pytest.raises(gate.Refused, match=r"Nothing ran$") as refused:
-            gate.broad_command(str(tmp_path / "seal"))
-        assert str(refused.value).startswith(f"seal gate: {path} "), refused.value
+            gate.broad_command(str(tmp_path / "agentory"))
+        assert str(refused.value).startswith(f"agentic gate: {path} "), refused.value
         assert said in str(refused.value), refused.value
 
 
@@ -578,7 +572,7 @@ def missing_row_text():
     spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return unquoted_flat(module.missing_row("/seal"))
+    return unquoted_flat(module.missing_row("/agentory"))
 
 
 class Test_missing_row:
@@ -596,7 +590,7 @@ class Test_missing_row:
         opens to add the key."""
         home = home_with(tmp_path, config_of(None))
         said = gate.missing_row(home)
-        assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
+        assert f"agentic gate: {os.path.join(home, 'config.json')} has no" in said
 
     def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered(
         self,
@@ -617,7 +611,7 @@ class Test_missing_row:
             "`templates/setup/config.md` *The criterion for choosing a value* is what "
             "they choose against"
         ) in said
-        assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
+        assert "(`skills/verify/SKILL.md` *The Inspection Test*)" in said
         assert "Nothing ran" in said
 
 
@@ -637,7 +631,7 @@ class Test_wholly_substituted:
 CMD = r"C:\Windows\System32\cmd.exe"
 # The key as #448 measured it, with its suite command after a separator.
 OLD_KEY = "uvx ruff check . && bin/test -q"
-# The `seal/` root a refusal names, which no case opens.
+# The `agentory/` root a refusal names, which no case opens.
 HOME = "home"
 CONFIG_PATH = os.path.join(HOME, "config.json")
 
@@ -661,7 +655,7 @@ def not_read_line(char, *words):
     """The line naming WORDS as not read past the first CHAR."""
     listed = " and ".join(f"`{word}`" for word in words)
     return (
-        f"seal gate: the gate stopped reading the `{ROW}` key in {CONFIG_PATH} "
+        f"agentic gate: the gate stopped reading the `{ROW}` key in {CONFIG_PATH} "
         f"at its first `{char}`, which can move where cmd.exe ends a command, "
         f"so it did not read {listed}. Read as a command name, each starts in a "
         "directory, and cmd.exe would read its `/` as the start of a switch."
@@ -724,7 +718,7 @@ class Test_not_as_written:
         key as meant."""
         said = on_cmd_exe(OLD_KEY, a_root(tmp_path, "bin"))
         assert said == (
-            f"seal gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            f"agentic gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
             "in a directory with `/`: `bin/test`, and the shell here is cmd.exe, "
             "which reads a `/` in a command name as the start of a switch, so it "
             "runs the part before the `/` as the command, which fails before any "
@@ -844,7 +838,7 @@ class Test_not_as_written:
     def test_a_refusal_carries_what_it_did_not_read(self, tmp_path, capsys):
         said = on_cmd_exe('bin/test "a b" && bin/x', a_root(tmp_path, "bin"))
         assert said.startswith(
-            f"seal gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
+            f"agentic gate: the `{ROW}` key in {CONFIG_PATH} starts a command name "
             "in a directory with `/`: `bin/test`, and"
         ), said
         assert said.endswith("door to the key.\n" + not_read_line('"', "bin/x")), said
@@ -1275,25 +1269,25 @@ def a_round(*verdicts):
     is `open`."""
     fence = "`" * 3
     found = "".join(
-        f"### {n}. x\n\n{fence}seal\nseverity: should\nlocation: `a:{n}`\n"
+        f"### {n}. x\n\n{fence}iadd\nseverity: should\nlocation: `a:{n}`\n"
         f"evidence: read `a:{n}`\n{fence}\n\nwhy\n\n"
         + (
             ""
             if verdict == "open"
-            else f"{fence}seal\nverdict: {verdict}\nanswer:\n{fence}\n\n"
+            else f"{fence}iadd\nverdict: {verdict}\nanswer:\n{fence}\n\n"
         )
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
         "# r — review round 1\n\n"
-        f"{fence}seal\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
+        f"{fence}iadd\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
 
 
 # A run block naming the run `write_gate_file(..., "aaa1111", "bbb2222")`
 # writes, held as the last block of a gate record.
-SAME_RUN = "`" * 3 + "seal\nrun: aaa1111 against bbb2222\n" + "`" * 3 + "\n"
+SAME_RUN = "`" * 3 + "iadd\nrun: aaa1111 against bbb2222\n" + "`" * 3 + "\n"
 
 
 class Test_write_gate_file:
@@ -1322,7 +1316,7 @@ class Test_write_gate_file:
         path = gate.write_gate_file(str(item), "aaa1111", "bbb2222")
         assert pathlib.Path(path).read_text(encoding="utf-8") == (
             "# 1799000000-an-item \u2014 broad gate\n\n"
-            "```seal\nrun: aaa1111 against bbb2222\n```\n"
+            "```iadd\nrun: aaa1111 against bbb2222\n```\n"
         )
 
     def test_refuses_to_record_one_run_twice(self, tmp_path):
@@ -1689,8 +1683,8 @@ def _repo_template(tmp_path_factory):
             None,
             {
                 "tests/test_one.py": PASSING_TEST,
-                "seal/config.json": config_of(),
-                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                "agentory/config.json": config_of(),
+                "agentory/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -1714,7 +1708,7 @@ def failing_here(repo):
 def arms_answered(monkeypatch, *names):
     """The arms NAMES answered as passed for the case, and every other run
     the gate starts real, the row again at the base among them. For a case
-    whose fact is another arm: `a_recorded_run`, `a_sealed_run`, the
+    whose fact is another arm: `a_recorded_run`, `a_cleared_run`, the
     preflight and the runs of a copied plugin keep every arm real."""
     real = gate.run
 
@@ -1799,7 +1793,7 @@ class Test_compare_at_base:
         (held,) = asked
         scratch = held[-1]
         assert capsys.readouterr().err == (
-            f"seal gate: the scratch worktree {scratch} was not removed: "
+            f"agentic gate: the scratch worktree {scratch} was not removed: "
             f"{past_the_bound(held)}\n"
         )
         shutil.rmtree(scratch, ignore_errors=True)
@@ -1873,12 +1867,12 @@ class Test_gate:
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
         # The chain arm passes the check's own flag, which `main` loads the
         # check for (#1575).
-        assert chain_kept.splitlines()[0].endswith(f" {chain.SEALING}")
+        assert chain_kept.splitlines()[0].endswith(f" {chain.INSPECTING}")
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
         record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
-        assert f"```seal\nrun: {tree} against {base}\n```\n" in record
-        assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
+        assert f"```iadd\nrun: {tree} against {base}\n```\n" in record
+        assert f"agentic gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_refuses_a_failing_test_the_base_lacks_as_new(
         self, repo, tmp_path, monkeypatch, capsys
@@ -1929,7 +1923,7 @@ class Test_gate:
         `Test_read_record::test_refuses_a_red_session_an_act_after_the_run_loop_turned_to_exit_0`."""
         suite_alone(monkeypatch)
         failing_here(repo)
-        write(repo, "seal/config.json", config_of(ROW_OR_INTERPRETER))
+        write(repo, "agentory/config.json", config_of(ROW_OR_INTERPRETER))
         keep = tmp_path / "out"
         ran = namespace(repo, keep, base="red-base", record=str(repo / ITEM))
         assert gate.gate(ran) == 1
@@ -1963,7 +1957,7 @@ class Test_gate:
         preflight, and the chain arm's quoted lines name the record and the
         verifying round owed. The broad run builds the same arms and skips
         only the command, so this case holds its chain arm too. Seen red
-        against `chain_check.py` before #1620, whose `--sealing` run judged
+        against `chain_check.py` before #1620, whose `--inspecting` run judged
         no pull request and exited 0, so the preflight passed."""
         write(
             repo,
@@ -2029,7 +2023,7 @@ class Test_gate:
             monkeypatch.setattr(gate, "cmd_exe_reads", lambda *_: True)
             (repo / "bin").mkdir(exist_ok=True)
             monkeypatch.chdir(tmp_path)
-        write(repo, "seal/config.json", config)
+        write(repo, "agentory/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(repo, keep))
@@ -2056,23 +2050,21 @@ class Test_gate:
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         git(tmp_path, "init", "-q")
 
-        def said(shared):
-            """The refusal naming the two places `optin.home_paths` gives:
-            SHARED under the repository git resolves, then the local one."""
-            top = os.path.realpath(str(tmp_path))
-            return re.escape(
-                "has no seal/ root at either place a root lives "
-                f"(`{os.path.join(top, shared)}`, "
-                f"`{os.path.join(top, '.git', 'seal')}`, its "
-                "README.md opening with the marker)"
-            )
-
-        with pytest.raises(gate.Refused, match=said("seal")):
+        # The refusal names the two places `optin.home_paths` gives under the
+        # repository git resolves, the shared one and then the local one.
+        top = os.path.realpath(str(tmp_path))
+        said = re.escape(
+            "has no agentory/ root at either place a root lives "
+            f"(`{os.path.join(top, 'agentory')}`, "
+            f"`{os.path.join(top, '.git', 'agentory')}`, its "
+            "README.md opening with the marker)"
+        )
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
-        # A `seal/` with no marker is the project's own, so the shared place
-        # the refusal names is the second one.
-        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
-        with pytest.raises(gate.Refused, match=said("agentic-seal")):
+        # An `agentory/` with no marker is the project's own and no root, and the
+        # refusal names the same two places (#1651).
+        write(tmp_path, "agentory/config.json", config_of("bin/test -q"))
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
@@ -2080,12 +2072,12 @@ CONFIG = config_json(("Mode", "shared"), ("Broad gate", f"{sys.executable} -c pa
 
 
 @pytest.fixture(scope="module")
-def _sealable_template(tmp_path_factory):
+def _clearable_template(tmp_path_factory):
     """A repository on `feature`, one commit ahead of `base`, on which every
     arm passes; built once. A run of the gate with no `--record` writes
     nothing into it, so a case that only runs the gate reads it as it
-    stands, and `sealable` copies it for a case that writes."""
-    repo = tmp_path_factory.mktemp("sealable") / "repo"
+    stands, and `clearable` copies it for a case that writes."""
+    repo = tmp_path_factory.mktemp("clearable") / "repo"
     history(
         repo,
         (
@@ -2093,8 +2085,8 @@ def _sealable_template(tmp_path_factory):
             None,
             {
                 "src/service.py": "def handler(x):\n    return x + 1\n",
-                "seal/config.json": CONFIG,
-                "seal/README.md": conftest.ROOT_MARKER + "\n",
+                "agentory/config.json": CONFIG,
+                "agentory/README.md": conftest.ROOT_MARKER + "\n",
                 f"{ITEM}/gaps.md": OVERVIEW,
             },
         ),
@@ -2105,10 +2097,10 @@ def _sealable_template(tmp_path_factory):
 
 
 @pytest.fixture
-def sealable(tmp_path, _sealable_template):
-    """A copy of `_sealable_template` for the case to write into."""
+def clearable(tmp_path, _clearable_template):
+    """A copy of `_clearable_template` for the case to write into."""
     repo = tmp_path / "repo"
-    shutil.copytree(_sealable_template, repo)
+    shutil.copytree(_clearable_template, repo)
     return repo
 
 
@@ -2134,10 +2126,10 @@ def run_gate(repo, keep, base="base", script=GATE):
 
 
 @pytest.fixture(scope="module")
-def a_sealed_run(tmp_path_factory, _sealable_template):
-    """One run of the shipped gate over `_sealable_template`, started as a
+def a_cleared_run(tmp_path_factory, _clearable_template):
+    """One run of the shipped gate over `_clearable_template`, started as a
     person starts it, read by the cases that only read what it printed."""
-    return run_gate(_sealable_template, tmp_path_factory.mktemp("sealed") / "out")
+    return run_gate(_clearable_template, tmp_path_factory.mktemp("cleared") / "out")
 
 
 def gated(repo, keep, capsys):
@@ -2186,7 +2178,7 @@ def with_workflow(repo):
 # row's exit code from `row` to the row under `suite` — which this fixture's
 # empty output, carrying no pytest counts, does not have. No row here is
 # about a workflow: #1483 took the `CI also` row off with the gate's copy of
-# AgenticSeal's `release` steps, and the gate reads no workflow. #717 took
+# the plugin's `release` steps, and the gate reads no workflow. #717 took
 # `chain` off, because a drawn panel is green by construction and its title
 # already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
 # put it back with a `✓`, and the base's ref beside its commit on one row.
@@ -2214,7 +2206,7 @@ class Test_main:
         )
         assert out.returncode == 3
         assert "STUB GATE RAN" in out.stdout and "'--x'" in out.stdout
-        assert f"seal gate: {repo} ships its own gate; running" in out.stderr
+        assert f"agentic gate: {repo} ships its own gate; running" in out.stderr
 
     def test_refuses_to_leave_the_invoked_path_for_a_check_to_read(
         self, tmp_path, monkeypatch, capsys
@@ -2224,7 +2216,7 @@ class Test_main:
         assert gate.main(["--base", "base", "--root", str(tmp_path)]) == 2
         assert gate.INVOKED_AS_VAR not in os.environ
         err = capsys.readouterr().err
-        assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
+        assert f"agentic gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
     @pytest.mark.parametrize(
         "words",
@@ -2246,13 +2238,13 @@ class Test_main:
         asked = unanswered(monkeypatch, *words)
         assert gate.main(args_for(repo, tmp_path / "out")) == 2
         err = capsys.readouterr().err
-        assert err.endswith(f"seal gate: {past_the_bound(asked[0])}\n"), err
+        assert err.endswith(f"agentic gate: {past_the_bound(asked[0])}\n"), err
         assert len(asked) == 1 and "not in a git repository" not in err
 
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with
         `lib/gitcmd.py#argv`, and `main` asks git for the root before
-        anything runs. A copy whose `seal_stamp.py` loads and whose plugin
+        anything runs. A copy whose `stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
         traceback, which reads as a gate that ran and failed. The copy holds
         `lib/console.py`, which the gate loads at import since #1575, and
@@ -2263,7 +2255,7 @@ class Test_main:
         (tmp_path / "plugin" / "lib").mkdir()
         for name in ("sibling.py", "console.py"):
             shutil.copy(ROOT / "lib" / name, tmp_path / "plugin" / "lib")
-        write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
+        write(scripts, "stamp.py", "def is_utf8(stream):\n    return True\n")
         keep = tmp_path / "out"
         out = subprocess.run(
             [
@@ -2286,9 +2278,9 @@ class Test_main:
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_refuses_a_copy_without_its_chain_check_before_any_arm(
-        self, tmp_path, _sealable_template
+        self, tmp_path, _clearable_template
     ):
-        """#1575 S6. The chain arm passes `chain_check.py#SEALING`, and the
+        """#1575 S6. The chain arm passes `chain_check.py#INSPECTING`, and the
         gate loads the check for it before the first arm runs. A copy of the
         plugin without the check, run over the fixture branch every arm
         passes, exits 2 with the loader's sentence naming it, and runs no
@@ -2304,13 +2296,13 @@ class Test_main:
         check = plugin / "skills" / "code-review" / "scripts" / "chain_check.py"
         check.unlink()
         keep = tmp_path / "out"
-        out = run_gate(_sealable_template, keep, script=plugin / TARGET)
+        out = run_gate(_clearable_template, keep, script=plugin / TARGET)
         assert out.returncode == 2, out.stdout + out.stderr
         assert gate.sibling.MISSING.format(path=str(check)) in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
     def test_accepts_the_command_a_person_types(self):
-        wrapper = ROOT / "bin" / "seal"
+        wrapper = ROOT / "bin" / "agentic"
         command = (
             [
                 os.environ.get("COMSPEC", "cmd.exe"),
@@ -2330,23 +2322,23 @@ class Test_main:
             timeout=120,
         )
         assert out.returncode == 0, out.stderr
-        assert out.stdout.startswith("usage: seal gate")
+        assert out.stdout.startswith("usage: agentic gate")
 
-    def test_the_fixture_branch_passes(self, a_sealed_run):
+    def test_the_fixture_branch_passes(self, a_cleared_run):
         """The other cases' starting point: every arm passes on the fixture, so a
         refusal below is the one thing each case changed."""
-        result = a_sealed_run
+        result = a_cleared_run
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
     def test_a_malformed_sprite_leaves_the_verdict_and_the_report_as_they_were(
-        self, tmp_path, _sealable_template, a_sealed_run
+        self, tmp_path, _clearable_template, a_cleared_run
     ):
         """#1582 S1. The gate draws nothing, so the disc's mark sprite is no
-        input of its verdict: a copy of the plugin whose `seal-mark.txt` is
+        input of its verdict: a copy of the plugin whose `stamp-mark.txt` is
         cut to one line passes the fixture branch and prints the report the
-        shipped gate prints over it in `a_sealed_run`. It exited 2 before,
-        because loading `seal_stamp.py` read the sprite and refused it."""
+        shipped gate prints over it in `a_cleared_run`. It exited 2 before,
+        because loading `stamp.py` read the sprite and refused it."""
         plugin = tmp_path / "plugin"
         for part in ("lib", "skills", ".claude-plugin"):
             shutil.copytree(
@@ -2355,33 +2347,33 @@ class Test_main:
                 ignore=shutil.ignore_patterns("__pycache__"),
             )
         copy = plugin / TARGET
-        sprite = copy.parent / "seal-mark.txt"
+        sprite = copy.parent / "stamp-mark.txt"
         first = sprite.read_text(encoding="utf-8").split("\n")[0]
         sprite.write_text(first + "\n", encoding="utf-8")
-        cut = run_gate(_sealable_template, tmp_path / "cut", script=copy)
-        shipped = a_sealed_run
+        cut = run_gate(_clearable_template, tmp_path / "cut", script=copy)
+        shipped = a_cleared_run
         assert shipped.returncode == 0, shipped.stdout + shipped.stderr
         assert cut.returncode == 0, cut.stdout + cut.stderr
         assert cut.stdout == shipped.stdout
 
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(
-        self, sealable, tmp_path, monkeypatch, capsys
+        self, clearable, tmp_path, monkeypatch, capsys
     ):
-        """A3's behavioural half for the other arm #468 added. `seal/config.json`
+        """A3's behavioural half for the other arm #468 added. `agentory/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
         reach — and the gate said nothing about it until this arm existed. The
         key is written in the working tree, which the mode arm reads, and the
         chain arm is answered for the case.
 
-        Red against the gate as it stood: this fixture sealed green."""
+        Red against the gate as it stood: this fixture passed green."""
         arms_answered(monkeypatch, gate.CHAIN_NAME)
         write(
-            sealable,
-            "seal/config.json",
+            clearable,
+            "agentory/config.json",
             CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
-        code, out, err = gated(sealable, tmp_path / "out", capsys)
+        code, out, err = gated(clearable, tmp_path / "out", capsys)
         assert code == 1, out + err
         assert out.startswith("BROAD GATE FAILED   "), out
         assert gate.MODE_NAME in out, (
@@ -2389,14 +2381,14 @@ class Test_main:
         )
 
     def test_a_workflow_with_a_release_job_leaves_the_run_as_it_was(
-        self, sealable, tmp_path, monkeypatch, capsys
+        self, clearable, tmp_path, monkeypatch, capsys
     ):
         """#1483's S3, the issue's third *Done when*. The gate reads no
         workflow, so a repository whose `hygiene.yml` holds a `release` job is
         gated as one with none: its report carries `HISTORICAL_ROWS` and its
         stderr names neither the workflow, nor the job, nor a step of it.
 
-        Seen red against the gate that kept a copy of AgenticSeal's `release`
+        Seen red against the gate that kept a copy of the plugin's `release`
         steps, which printed a `CI also` row and a line counting the steps for
         this fixture. The searched names are the job as that line spelled it,
         the workflow's path and the fixture's step names, never a bare
@@ -2405,7 +2397,7 @@ class Test_main:
         arm prints goes to its kept file, so stderr and the report are the
         gate's own, and the copy #1483 removed was the gate's."""
         arms_answered(monkeypatch, gate.CHAIN_NAME, gate.MODE_NAME)
-        code, out, err = gated(with_workflow(sealable), tmp_path / "out", capsys)
+        code, out, err = gated(with_workflow(clearable), tmp_path / "out", capsys)
         assert code == 0, out + err
         steps = re.findall(r"^\s*- name: (.+)$", FIXTURE_WORKFLOW, re.M)
         assert steps, "the fixture names no step"
@@ -2430,26 +2422,6 @@ class Test_main:
         assert labels == HISTORICAL_ROWS, (
             f"the report of a run over a workflow is not the report it was: {labels}"
         )
-
-    def test_s5_gate_reads_its_key_from_agentic_seal_and_names_it_where_none_is(
-        self, package
-    ):
-        """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
-        the shared place a root would stand, not the package's `seal/`; with
-        the root there, the gate's root is `agentic-seal/` and its command the
-        `Broad gate` key of `agentic-seal/config.json`, read by `seal_home`
-        and `broad_command`, which `gate` asks before anything runs."""
-        top = os.path.realpath(package)
-        code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
-        assert code == 2, err
-        shared = os.path.join(top, "agentic-seal")
-        assert f"at either place a root lives (`{shared}`, `" in err, err
-        command = f"{sys.executable} -c pass"
-        root = records_at(package / "agentic-seal")
-        configured(root, ("Broad gate", command))
-        home = gate.seal_home(str(package))
-        assert home == str(root), home
-        assert gate.broad_command(home) == command
 
 
 test_census = census_case(TARGET)

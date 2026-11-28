@@ -2,7 +2,7 @@
 
 A case whose call runs past `SLOW_CASE_S` is named in the run's terminal
 summary with its seconds, and nothing fails for it: a time reading is noisy,
-and on 2026-10-16 a loaded machine failed a guarantor's run on time alone.
+and on 2026-10-16 a loaded machine failed an inspector's run on time alone.
 The summary hook is driven through one inner pytest run, built once for the
 module, that loads this repository's `conftest.py` with the value lowered
 so the run takes a second.
@@ -21,7 +21,7 @@ round 9 fix pass, each a case of one helper of this module.
 
 Seen red before they were committed (contract rule 15): the three accepting
 cases failed against the conftest that still held the failing ceiling, which
-had neither `SLOW_CASE_S` nor a summary hook, and `seal mutate` turned
+had neither `SLOW_CASE_S` nor a summary hook, and `agentic mutate` turned
 each refusing case red by breaking the condition it pins.
 """
 
@@ -367,10 +367,11 @@ class Test_module:
         that is the one direction a checker of claims must not fail in. The
         reader needs the paths in order to judge them by hand."""
         reason = shrunken_corpus(
-            ["seal/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
+            ["agentory/ledger/two.md", "docs/one.md"],
+            "the KEEP allowlist's liveness check",
         )
         assert "docs/one.md" in reason
-        assert "seal/ledger/two.md" in reason
+        assert "agentory/ledger/two.md" in reason
         assert "2 tracked path(s)" in reason
         assert "the KEEP allowlist's liveness check" in reason
         assert "not judging" in reason

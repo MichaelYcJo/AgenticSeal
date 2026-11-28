@@ -7,7 +7,7 @@ split it reads through. Its callers read records and policy documents: the
 pact anchor table of a work item's `frame/design.md`
 (`skills/verify/scripts/pact_check.py`), a plan's *Judgments of the run*
 (`skills/settle/scripts/settle.py`), the row `settle --draft` places
-(`skills/settle/scripts/rule_changes.py`) and the lines `seal rules` reads
+(`skills/settle/scripts/rule_changes.py`) and the lines `agentic rules` reads
 (`skills/settle/scripts/rules.py`). No setting is read through this
 module: `lib/config.py` reads `config.json` with the standard library's
 JSON parser.
@@ -479,7 +479,7 @@ def gfm_table(text, header, beside=False):
     see** is block state none of those three carries; a generator over
     600,000 documents found none.
 
-    Each refusal reads after a noun naming the file, as `seal pact` prints
+    Each refusal reads after a noun naming the file, as `agentic pact` prints
     the anchor table's after "the frame ".
     """
     name = " | ".join(header)

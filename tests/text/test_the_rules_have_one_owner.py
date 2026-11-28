@@ -58,7 +58,7 @@ ORCH_IMPL = ("skills", "implement", "orchestration.md")
 # #1046.
 BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
-SEALER = ("agents", "sealer.md")
+INSPECTOR = ("agents", "inspector.md")
 FRAMER = ("agents", "framer.md")
 # The framer's fold and reframe, cut from `agents/framer.md` in #1473 so a
 # first frame does not preload it; the definition names it in one sentence.
@@ -81,13 +81,13 @@ AGENT_SET = ("docs", "running", "the-agent-set.md")
 
 # Each link is the owner's path and section, the citation a reader of the
 # linking carrier resolves; the sentence around it is the proofer's to read.
-ONE_SEAL_IS_FINAL = (
+ONE_INSPECTION_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
-    "the one seal is the sealer's*"
+    "the one inspection is the inspector's*"
 )
-AFTER_THE_SEAL = (
+AFTER_THE_INSPECTION = (
     "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals*"
+    "opens once the work item is cleared*"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value*"
@@ -123,21 +123,21 @@ NARROWING = (
 RULES = {
     # #943: a pull request opened before round 1 ran the suite on three
     # platforms at every push of every round, and its Ready press once more.
-    "6 the pull request opens once the sealer has sealed": (
+    "6 the pull request opens once the work item is cleared": (
         ORCH,
         (),
-        {ORCH_IMPL: AFTER_THE_SEAL, CONTRIBUTING: AFTER_THE_SEAL},
+        {ORCH_IMPL: AFTER_THE_INSPECTION, CONTRIBUTING: AFTER_THE_INSPECTION},
     ),
     # Since #967 an agent's hand-back carries its claims under the three
-    # labels and no agent but the sealer takes a seal.
-    "10 the hand-back's labels carry the claims, and one seal is the sealer's": (
+    # labels and no agent but the inspector makes an inspection.
+    "10 the hand-back's labels carry the claims, and one inspection is the inspector's": (
         VERIFY,
         (
-            # The file the sealer writes its seal into, which the chain
-            # check's guarantee arm reads.
-            "`guarantee.md`",
+            # The file the inspector writes its inspection into, which the chain
+            # check's inspection arm reads.
+            "`inspection.md`",
         ),
-        {SEALER: ONE_SEAL_IS_FINAL},
+        {INSPECTOR: ONE_INSPECTION_IS_FINAL},
     ),
     # From #401: the `Broad gate` key is the one value only a person can
     # write, and the criterion for it is folded into one owner.
@@ -202,7 +202,7 @@ RULES = {
     # verifying round, and the core's row gave one half of it. The row
     # states both halves, as the check holds them, and each other file names
     # the row.
-    "22 a change after the last round is read by a round, or by the sealer": (
+    "22 a change after the last round is read by a round, or by the inspector": (
         CORE,
         (),
         {
@@ -213,7 +213,7 @@ RULES = {
         },
     ),
     # #1478: four findings and one withheld verdict of 0.37.0 named a
-    # changelog sentence a second time at its quote in `pr.md`. `seal
+    # changelog sentence a second time at its quote in `pr.md`. `agentic
     # pr-body` writes the fragment above the fold, so `pr.md` quotes none of
     # it, and the files that said what `pr.md` holds name the owner.
     "23 pr.md quotes no sentence of changelog.md": (
@@ -225,31 +225,29 @@ RULES = {
             "`changelog.md`",
             # The command that writes the fragment into the body, and the
             # constant that holds the line it writes it under.
-            "`seal pr-body`",
+            "`agentic pr-body`",
             "`skills/code-review/scripts/pr_body.py#HEADING`",
         ),
         {
-            CONVENTION: AFTER_THE_SEAL,
-            IMPLEMENT: AFTER_THE_SEAL,
-            CONFIG_TEMPLATE: AFTER_THE_SEAL,
-            OUTSIDE_THE_REVIEW: AFTER_THE_SEAL,
+            CONVENTION: AFTER_THE_INSPECTION,
+            IMPLEMENT: AFTER_THE_INSPECTION,
+            CONFIG_TEMPLATE: AFTER_THE_INSPECTION,
+            OUTSIDE_THE_REVIEW: AFTER_THE_INSPECTION,
         },
     ),
-    # #1578: eleven files each spelt where the root is found with
-    # `<repo>/seal/` as the shared place, and none named the second name
-    # #1059 gave it. The core reaches every agent and every session where a
-    # root stands, and is the one file the second name may stand in, so its
-    # opening paragraph names the places and each of the eleven names that
-    # paragraph. The six links below each replace a case that pinned that
-    # file's copy of the places.
+    # #1578: eleven files each spelt where the root is found, and none of
+    # their copies held the place #1059 had added. The core reaches every
+    # agent and every session where a root stands, so its opening paragraph
+    # names the places and each of the eleven names that paragraph. The six
+    # links below each replace a case that pinned that file's copy of the
+    # places.
     "24 where the records root is found": (
         CORE,
         (
-            # The three places, in the order the gates read them, which an
+            # The two places, in the order the gates read them, which an
             # agent opens or runs.
-            "`<repo>/seal/`",
-            "`agentic-seal/`",
-            "`$(git rev-parse --git-common-dir)/seal/`",
+            "`<repo>/agentory/`",
+            "`$(git rev-parse --git-common-dir)/agentory/`",
             # The function that reads them, which a reader resolves for the
             # order.
             "`lib/optin.py#home_at`",
@@ -280,7 +278,7 @@ RULES = {
     # key is absent or what an absent one does, and the commit skill's four
     # ways were the only complete list. The template's paragraph states
     # both, and each fact here is spelt as that paragraph alone spells it,
-    # since the file names `no such key` and `seal pr-body` in other
+    # since the file names `no such key` and `agentic pr-body` in other
     # sentences too.
     "26 what an absent language key is and does": (
         CONFIG_TEMPLATE,
@@ -294,7 +292,7 @@ RULES = {
             "for these two keys it counts as absent",
             # What absence does at the pull request body, and at a commit or
             # a record.
-            "`seal pr-body` refuses with nothing written",
+            "`agentic pr-body` refuses with nothing written",
             "commit or a record is written in English",
         ),
         {},
@@ -317,7 +315,7 @@ RULES = {
     ),
     # #1578: four files each gave the order the gate resolves its base in,
     # and one left out the ref as given. The policy spells the refs, the
-    # sealer keeps the steps it types itself, and
+    # inspector keeps the steps it types itself, and
     # each link replaces `DESCRIBES_THE_BASE` of
     # `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py`, which
     # held both orchestration files to their copies.
@@ -325,7 +323,7 @@ RULES = {
         BROAD_GATE,
         (
             # The two refs `broad_gate.py#resolve_base` tries before the ref
-            # as given, which a person doubting a seal checks the printed
+            # as given, which a person doubting an inspection checks the printed
             # base against.
             "`<base>@{upstream}`",
             "`origin/<base>`",
@@ -457,7 +455,7 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
     section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
     for fact in (
         # The command the orchestrator runs over the implementer's transcript.
-        "`seal cost --segments <the implementer's agent-*.jsonl>`",
+        "`agentic cost --segments <the implementer's agent-*.jsonl>`",
         # The column of its output the orchestrator reads.
         "`context`",
         # The section the orchestrator resolves for how it folds a file that
@@ -547,7 +545,7 @@ def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit(
         )
 
 
-def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
+def test_the_orchestrator_writes_the_body_file_the_inspector_reads():
     """S8 of #943 and S12 of #1044, the orchestrator's half. The steps from
     the preflight to the open pull request name the commands that write the
     pull request body's file and send it, and the constant that marks where
@@ -563,8 +561,8 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
         # repaired body.
         "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`",
         # The command the orchestrator types to write the body's copy of the
-        # records, with the scratchpad path the sealer's spawn names.
-        "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
+        # records, with the scratchpad path the inspector's spawn names.
+        "`agentic pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
         # The citation the orchestrator resolves to find the line its own
         # part goes above.
         "`skills/code-review/scripts/pr_body.py#HEADING`",
@@ -596,7 +594,7 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     round. #1222 adds a poll before the wait, because the wait run before a
     check has reported exits 1 without waiting, and counts the checks of
     `pull_request` runs alone. #1494 replaces the read, the poll and the wait
-    with `seal pr-wait`, which reads `gh`'s JSON and answers with an exit
+    with `agentic pr-wait`, which reads `gh`'s JSON and answers with an exit
     code: `gh pr checks --watch` exits 0 where the only bad check was
     cancelled, and ends before a job that waits on another has its check.
     The command's reads, its limit and their reasons stand in its docstring
@@ -609,9 +607,9 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     preflight to the open pull request, so the case reads both."""
     text = flat(*ORCH)
     owner = text[
-        text.index("## Orchestrator: the pull request opens once the sealer seals") : (
-            text.index("## Orchestrator: verify before posting")
-        )
+        text.index(
+            "## Orchestrator: the pull request opens once the work item is cleared"
+        ) : (text.index("## Orchestrator: verify before posting"))
     ]
     steps = flat(*GATE_TO_PR).split(
         "## Orchestrator: from the preflight to the open pull request", 1
@@ -632,8 +630,8 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     for said in (
         # The read the orchestrator types before each push, and the wait it
         # types when the pull request opens and after each push.
-        "`seal pr-wait <N> --once`",
-        "`seal pr-wait <N>`",
+        "`agentic pr-wait <N> --once`",
+        "`agentic pr-wait <N>`",
         # Each exit code the command answers with, as a row of the table that
         # gives the orchestrator's act at it.
         *(

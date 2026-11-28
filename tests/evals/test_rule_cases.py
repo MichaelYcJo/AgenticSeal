@@ -24,7 +24,7 @@ PR = load_module(
 
 RULE = "rule-proofer-one-finding"
 
-# The two ways a sealer case's scaffold leaves a file: a heredoc writes it,
+# The two ways an inspector case's scaffold leaves a file: a heredoc writes it,
 # and a `sed` fills a placeholder of a file already written.
 WRITTEN = re.compile(
     r"^cat > '([^']+)' <<'AGENTIC_EOF'\n(.*?)\nAGENTIC_EOF$", re.M | re.S
@@ -85,29 +85,29 @@ class Test_main:
             RC.main(["--out"])
         assert stopped.value.code == 2
 
-    def test_a_sealer_case_body_is_its_own_part_then_its_records(
+    def test_an_inspector_case_body_is_its_own_part_then_its_records(
         self, tmp_path, capsys
     ):
-        """Guards #1044 S14 and #1148 S6: each sealer case's pull request
+        """Guards #1044 S14 and #1148 S6: each inspector case's pull request
         body, its placeholders filled as its scaffold fills its records, is
-        what `seal pr-body --check` accepts over the records that scaffold
+        what `agentic pr-body --check` accepts over the records that scaffold
         writes, its `pr.md` among them, in a repository holding the
-        scaffold's `seal/` root, whose `config.json` gives the language keys
+        scaffold's `agentory/` root, whose `config.json` gives the language keys
         the first part is composed from (#1453); the part above `HEADING`
         ends with `Closes #101.` and holds the README sentence the tree
         lacks in the untrue-body case alone."""
-        sealer = [(n, c) for n, c in RC.cases() if c["agent"] == "sealer"]
-        assert sealer
-        for name, case in sealer:
+        inspector = [(n, c) for n, c in RC.cases() if c["agent"] == "inspector"]
+        assert inspector
+        for name, case in inspector:
             files = scaffold_files(case["scaffold"])
-            folder = next(p for p in files if p.startswith("seal/threads/"))
+            folder = next(p for p in files if p.startswith("agentory/threads/"))
             folder = "/".join(folder.split("/")[:3])
             work_item = folder.split("/")[-1]
             body = files[RC.EVIDENCE.format(item=work_item) + "/pr-body.md"]
             subprocess.run(["git", "init", "-q", str(tmp_path / name)], check=True)
             item = tmp_path / name / folder
             for path, text in files.items():
-                if path.startswith("seal/"):
+                if path.startswith("agentory/"):
                     record = tmp_path / name / path
                     record.parent.mkdir(parents=True, exist_ok=True)
                     record.write_text(text, encoding="utf-8")
@@ -201,7 +201,7 @@ FENCE = "`" * 3
 # appends.
 OPEN_FINDING = (
     "## Findings\n\n### 1. `shout_twice` joins with no space\n\n"
-    f"{FENCE}seal\nseverity: should\nlocation: `src/textutil.py:9`\n"
+    f"{FENCE}iadd\nseverity: should\nlocation: `src/textutil.py:9`\n"
     f"evidence: read `src/textutil.py:9`\n{FENCE}\n\nWhy it matters: S2.\n\n"
     "## Confirmations\n"
 )
@@ -242,43 +242,43 @@ class Test_proofer_case:
         assert not found.search(closed_only), "a close block and no finding block"
 
 
-class Test_sealer_case:
+class Test_inspector_case:
     def shapes(self):
-        """`(name, pattern, match, sealed, line, block)` for each sealer
+        """`(name, pattern, match, cleared, line, block)` for each inspector
         case: its `shape-verdict` grader read back, and the verdict line
         the case expects inside a verdict block."""
-        sealer = [n for n, c in RC.cases() if c["agent"] == "sealer"]
-        assert len(sealer) == len(RC.SEALER_RUNS)
-        for name in sealer:
+        inspector = [n for n, c in RC.cases() if c["agent"] == "inspector"]
+        assert len(inspector) == len(RC.INSPECTOR_RUNS)
+        for name in inspector:
             found, match = case_graders(name)["shape-verdict"]
-            sealed = name.endswith("-sealed")
-            line = "Verdict: sealed" if sealed else "Verdict: withheld reason: x"
-            block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
-            yield name, found, match, sealed, line, block
+            cleared = name.endswith("-cleared")
+            line = "Verdict: cleared" if cleared else "Verdict: withheld reason: x"
+            block = f"{FENCE}iadd\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
+            yield name, found, match, cleared, line, block
 
     def test_accepts_the_verdict_in_its_block(self):
-        """#1198 phase 3: each sealer case's `shape-verdict` finds the
+        """#1198 phase 3: each inspector case's `shape-verdict` finds the
         verdict the case expects on the `Verdict:` line of a verdict block.
-        Seen red against a grader whose opener read `Seal`."""
-        for name, found, match, _sealed, _line, block in self.shapes():
+        Seen red against a grader whose opener read `Iadd`."""
+        for name, found, match, _cleared, _line, block in self.shapes():
             assert match == "contains"
-            assert found.search("# Guarantee: i\n\n" + block), name
+            assert found.search("# Inspection: i\n\n" + block), name
 
     def test_refuses_the_line_outside_a_block_or_another_verdict(self):
-        """#1198 phase 3: each sealer case's `shape-verdict` finds none on
+        """#1198 phase 3: each inspector case's `shape-verdict` finds none on
         the same line outside a block, which the check reads as no verdict,
         none on another verdict or a word the block reader refuses, and none
         below a block that closed above it. Seen red against the grader that
         read a `Verdict:` line anywhere."""
-        for name, found, _match, sealed, line, block in self.shapes():
-            assert not found.search(f"# Guarantee: i\n\n{line}\n"), name
-            other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
+        for name, found, _match, cleared, line, block in self.shapes():
+            assert not found.search(f"# Inspection: i\n\n{line}\n"), name
+            other = "Verdict: withheld reason: x" if cleared else "Verdict: cleared"
             assert not found.search(block.replace(line, other)), name
             # A word the block reader refuses is no verdict either.
             for near in (
                 "Verdict: withheld",
-                "Verdict: **sealed**",
-                "Verdict: sealed.",
+                "Verdict: **cleared**",
+                "Verdict: cleared.",
             ):
                 assert not found.search(block.replace(line, near)), (name, near)
             # Nor is the line below a block that closed above it.

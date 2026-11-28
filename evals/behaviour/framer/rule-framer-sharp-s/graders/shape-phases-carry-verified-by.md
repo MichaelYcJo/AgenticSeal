@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000025-sharp-s/frame/plan.md'}
+target: {source: 'file', path: 'agentory/threads/1790000025-sharp-s/frame/plan.md'}
 pattern: '^\| Phase \| Delivers \| Verified by \| Status \|'
 flags: 'm'
 ---

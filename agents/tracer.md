@@ -2,7 +2,7 @@
 name: tracer
 description: |
   Migration fact-finder. Spawned by the session that orchestrates the work,
-  only in a repository that declares seal/parity.json, before a phase is built
+  only in a repository that declares agentory/parity.json, before a phase is built
   or for a parity review: it establishes what the original code does, as
   facts with coordinates and no verdicts.
 skills:

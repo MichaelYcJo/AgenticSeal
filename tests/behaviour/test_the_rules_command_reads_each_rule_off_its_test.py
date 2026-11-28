@@ -30,7 +30,7 @@ def test_settle_owns_the_grammar():
         # marker, which `rules.py` reads off the collected tests.
         '`@pytest.mark.rule("<marker>")`',
         # The command a person runs to read every check line.
-        "`seal rules --check`",
+        "`agentic rules --check`",
     ):
         assert phrase in section, f"settle no longer says: {phrase!r}"
 

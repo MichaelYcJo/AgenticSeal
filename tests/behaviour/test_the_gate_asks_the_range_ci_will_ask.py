@@ -172,8 +172,8 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
 
 # --- the documents say which base, and go red if they stop ---------------------
 
-# #969 moved the base rule with the run, from the sealer's step 1 to the
-# orchestration that runs the gate before the sealer is spawned. #1578 gave
+# #969 moved the base rule with the run, from the inspector's step 1 to the
+# orchestration that runs the gate before the inspector is spawned. #1578 gave
 # the order one statement, in the policy's *What the gate runs*, and the two
 # orchestration files cite it, which `RULES` row 28 of
 # `tests/text/test_the_rules_have_one_owner.py` holds.
@@ -187,7 +187,7 @@ POLICY = os.path.join(ROOT, "docs", "running", "the-broad-gate.md")
 # `REMOTE_BASE` and `UPSTREAM_BASE` constants sit in one block and carry both
 # words between them, so a whole-file block walk passes on the code whatever
 # the docstring says — a check that cannot fail, which is the counterfeit
-# `skills/verify/SKILL.md` *The Seal Test* is about. Measured: deleting the
+# `skills/verify/SKILL.md` *The Inspection Test* is about. Measured: deleting the
 # docstring's paragraph left this case green.
 DESCRIBES_THE_BASE = (POLICY,)
 
@@ -195,7 +195,7 @@ DESCRIBES_THE_BASE = (POLICY,)
 def says_what_the_base_resolves_to(text):
     """True where one block of `text` carries both halves of the fact: the
     `origin/` and `@{upstream}` refs the gate resolves the base to, which a
-    reader doubting a seal checks the printed base against."""
+    reader doubting an inspection checks the printed base against."""
     return any("origin/" in b and "upstream" in b for b in text.split("\n\n"))
 
 
@@ -208,9 +208,9 @@ def test_the_block_reader_can_fail():
 
 
 def test_no_document_leaves_the_base_reading_as_the_ref_you_typed():
-    """Contract rule 14. The resolution is a change to what a person reads — the sealer
+    """Contract rule 14. The resolution is a change to what a person reads — the inspector
     passes the base, and the panel and the printed line are read by whoever
-    doubts a seal. A document that still describes the base as the ref as
+    doubts an inspection. A document that still describes the base as the ref as
     typed is a false sentence, and this is what makes that red rather than
     quiet."""
     missing = [
@@ -246,7 +246,7 @@ def test_the_gates_own_docstring_says_the_base_is_resolved():
 WORKFLOW_SHAPES = [
     (
         {
-            "run": 'python3 x.py \\\n  --baseline "origin/${{ github.base_ref }}" seal/threads/\n'
+            "run": 'python3 x.py \\\n  --baseline "origin/${{ github.base_ref }}" agentory/threads/\n'
         },
         "origin/${{ github.base_ref }}",
     ),

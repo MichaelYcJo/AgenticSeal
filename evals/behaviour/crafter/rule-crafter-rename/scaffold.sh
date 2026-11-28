@@ -42,19 +42,19 @@ cat > 'CONTRIBUTING.md' <<'AGENTIC_EOF'
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/README.md')"
-cat > 'seal/README.md' <<'AGENTIC_EOF'
-# What AgenticSeal maintains in seal/
+mkdir -p "$(dirname 'agentory/README.md')"
+cat > 'agentory/README.md' <<'AGENTIC_EOF'
+# What IADD keeps in agentory/
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/config.json')"
-cat > 'seal/config.json' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/config.json')"
+cat > 'agentory/config.json' <<'AGENTIC_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/routing.md')"
-cat > 'seal/threads/1790000015-rename/routing.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000015-rename/routing.md')"
+cat > 'agentory/threads/1790000015-rename/routing.md' <<'AGENTIC_EOF'
 # Routing: 1790000015-rename
 
 | Axis | Answer |
@@ -77,8 +77,8 @@ Small text helpers.
 
 - `shout(text)` returns TEXT upper-cased, followed by one `!`.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/frame/design.md')"
-cat > 'seal/threads/1790000015-rename/frame/design.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000015-rename/frame/design.md')"
+cat > 'agentory/threads/1790000015-rename/frame/design.md' <<'AGENTIC_EOF'
 # Design: shout is renamed exclaim
 
 ## Scope
@@ -95,8 +95,8 @@ What it returns does not change.
 
 Framed 2026-10-14 by framer, before the build.
 AGENTIC_EOF
-mkdir -p "$(dirname 'seal/threads/1790000015-rename/frame/plan.md')"
-cat > 'seal/threads/1790000015-rename/frame/plan.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname 'agentory/threads/1790000015-rename/frame/plan.md')"
+cat > 'agentory/threads/1790000015-rename/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: exclaim
 
 ## Phases

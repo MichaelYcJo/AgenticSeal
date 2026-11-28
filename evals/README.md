@@ -79,8 +79,8 @@ grader for each defect it holds, and no script writes one again.
 
 ```bash
 python3 evals/scripts/noninferiority.py run --agent proofer --rev <merge base> \
-  --out seal/threads/<id>/evals/baseline-proofer.json
+  --out agentory/threads/<id>/evals/baseline-proofer.json
 python3 evals/scripts/noninferiority.py compare --agent proofer --phase N \
-  --old seal/threads/<id>/evals/baseline-proofer.json --new <new side>.json \
-  --out seal/threads/<id>/evals/proofer-phase-N.md
+  --old agentory/threads/<id>/evals/baseline-proofer.json --new <new side>.json \
+  --out agentory/threads/<id>/evals/proofer-phase-N.md
 ```

@@ -21,7 +21,7 @@
 # shell builtin above, not the path.
 #
 # The full suite is the orchestrator's, run once after the review rounds
-# settle and before the sealer is spawned -- skills/agent-contract/SKILL.md
+# settle and before the inspector is spawned -- skills/agent-contract/SKILL.md
 # forbids it to every agent. Name a module to run one.
 # Either form runs in parallel (`-n auto`) unless you pass your own `-n`,
 # `-p no:xdist` or `--pdb`; the runner installs pytest-xdist where the
@@ -29,7 +29,7 @@
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 script="$here/../tests/run_tests.py"
 if [ ! -f "$script" ]; then
-    printf '%s\n' "bin/test runs AgenticSeal's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of the AgenticSeal repository." >&2
+    printf '%s\n' "bin/test runs the plugin's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of MichaelYcJo/AgenticSeal." >&2
     exit 2
 fi
 # Not through lib/launch.py, alone of bin/: its docstring says why.

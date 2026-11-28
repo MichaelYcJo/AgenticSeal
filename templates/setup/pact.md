@@ -1,6 +1,6 @@
 # Pact
 
-<!-- seal/pact.md is the one copy of what two or more repositories keep
+<!-- agentory/pact.md is the one copy of what two or more repositories keep
 together (`docs/layout/the-pact.md`). It lives in one of them, the pact's
 repository, and every repository of a work item that keeps it is a
 signer, that one included.
@@ -10,7 +10,7 @@ would be wrong if it changed. A sentence only this repository's code depends
 on belongs in this repository's own documents, and a pact that collects those
 is a pact every signer has to re-read for changes that were never theirs.
 
-**The signers are listed in this repository's `seal/config.json`**, in its
+**The signers are listed in this repository's `agentory/config.json`**, in its
 `Pact signers` key (`templates/setup/config.md` *Pact*).
 
 **Every `##` heading is a clause**, and a `###` under it
@@ -22,8 +22,8 @@ a work item's `frame/design.md`, each cell written bare:
     | <this repository's origin URL> | ## Clause / ### Narrower | <hash> |
 
 where `<hash>` is the eight lowercase hex digits of the clause region's
-content hash that `seal pact` prints. A `SUPERSEDED` or `UNMATCHED` line from
-`seal pact` names the clause's current hash, so a new citation can be written
+content hash that `agentic pact` prints. A `SUPERSEDED` or `UNMATCHED` line from
+`agentic pact` names the clause's current hash, so a new citation can be written
 with `00000000` and corrected from its first report.
 
 **A heading is an address.** Rewording a clause's prose is a change every

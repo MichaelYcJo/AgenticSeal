@@ -14,7 +14,7 @@ a `v*` tag pushed by hand passes that tag on.
 
 **The body is built from the release's changelog fragments, read from the
 history at the tag.** A change writes its note once, in
-`seal/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
+`agentory/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
 in the tree. The fragments are the ones the commits after the previous
 `vX.Y.Z` tag added and that tag does not already hold, each read at the
 newest commit of that range whose tree holds it, so a work item a settle
@@ -22,7 +22,7 @@ removed before the tag still has its entry.
 Each opens with a link to the pull request that added it. The range's
 commit that adds a fragment is its pull request's squash commit, whose
 subject GitHub ends with `(#N)`, so the number is read here, once, from the
-history. The pull request's body holds the work item's records (`seal
+history. The pull request's body holds the work item's records (`agentic
 pr-body`), so one click leads from an entry to the reasons behind it. A
 fragment whose adding commit names no pull request is its text alone.
 
@@ -84,11 +84,11 @@ tag is not.
 
 **It says whether it created the release.** `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
-`seal` job in the same workflow runs only on `true`: the seal edits the note,
+`mark` job in the same workflow runs only on `true`: the mark edits the note,
 so it is held to the line above and never touches a release this run did
-not write. The header is built by `header`, and the seal's replacement for
-it by `sealed_header`, with the seal's image or without it, so every
-shape lives in the file that owns the counts and the seal finds the header
+not write. The header is built by `header`, and the mark's replacement for
+it by `marked_header`, with the mark's image or without it, so every
+shape lives in the file that owns the counts and the mark finds the header
 by the function that wrote it.
 
 `DRY_RUN=1` prints the note it would create and writes nothing, for the reason
@@ -126,7 +126,7 @@ closing = sibling.load("lib/closing.py")
 SPAN, keywords_in = closing.SPAN, closing.keywords_in
 heading_level = sibling.load("lib/lines.py").heading_level
 
-# `seal settle`, for `adding_commit`: the one reader of the commit that adds
+# `agentic settle`, for `adding_commit`: the one reader of the commit that adds
 # a fragment and the pull request it names, kept in the settle so that the
 # note and the settle read one number.
 SETTLE = "skills/settle/scripts/settle.py"
@@ -136,12 +136,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def fragment_re():
-    """A work item's changelog fragment, its id captured, under the name
-    `lib/optin.py#home_name` gives the shared root at `ROOT`, or
-    `optin.HOME` where none is marked."""
-    name = optin.home_name(ROOT) or optin.HOME
+    """A work item's changelog fragment, its id captured, under the root's
+    name, `lib/optin.py#HOME`."""
     return re.compile(
-        rf"^{re.escape(name)}/{re.escape(optin.WORK_ITEMS)}/([^/]+)/changelog\.md$"
+        rf"^{re.escape(optin.HOME)}/{re.escape(optin.WORK_ITEMS)}/([^/]+)/changelog\.md$"
     )
 
 
@@ -156,7 +154,7 @@ PURPOSE_LABEL = "Purpose:"
 # this cannot name a version for, and it says so rather than guessing one.
 # `label_merged_on_release_branch.py#version_of` refuses a branch name the
 # same way and for the same reason. It is `settle.py#VERSION_RE`, so the
-# note is published at the version whose note `seal settle --apply` reads.
+# note is published at the version whose note `agentic settle --apply` reads.
 TAG_RE = settle.VERSION_RE
 
 
@@ -290,7 +288,7 @@ def process_shape():
 
 
 # An entry's first line: the pull request that added its fragment. It is
-# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `seal settle --apply` that a
+# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `agentic settle --apply` that a
 # note was built from the fragments.
 PULL_LINK = settle.PULL_LINK
 
@@ -498,8 +496,8 @@ def merged_pulls(repo, version):
             "--limit",
             "500",
             "--json",
-            # `labels` and `headRefName` are read by the seal, not here
-            # (`.github/scripts/release_seal.py#chain_counts`): one call
+            # `labels` and `headRefName` are read by the mark, not here
+            # (`.github/scripts/release_mark.py#chain_counts`): one call
             # serves both, so the two cannot disagree about the set.
             "number,title,author,body,labels,headRefName",
         )
@@ -620,7 +618,7 @@ def counts(work, closed, people):
     """The release's counts in words, one line each: the pull requests
     merged, the issues they closed, and the outside contributors only where
     there are some. `header` states them in these words, and
-    `sealed_header` states the same counts as badges (`count_badges`)."""
+    `marked_header` states the same counts as badges (`count_badges`)."""
     lines = [
         console.plural(len(work), "pull request") + " merged",
         console.plural(len(closed), "issue") + " closed",
@@ -644,31 +642,31 @@ def paragraph(lines, before="", after=""):
 
 def header(work, closed, people):
     """The header the note opens with, exactly as the note carries it: a
-    paragraph holding `counts`. `release_seal.py` finds the header in a
+    paragraph holding `counts`. `release_mark.py` finds the header in a
     published note by this text, so a note edited by hand afterwards, or one
-    whose header a run of the seal already replaced, is left alone. The
-    paragraph's `<p>` and `</p>` bound the text, so the header the seal
+    whose header a run of the mark already replaced, is left alone. The
+    paragraph's `<p>` and `</p>` bound the text, so the header the mark
     computes never matches inside a longer header line, such as one that
-    holds an outside contributors line the seal's header lacks, or one whose
+    holds an outside contributors line the mark's header lacks, or one whose
     count has one more leading digit."""
     return paragraph([html.escape(line) for line in counts(work, closed, people)])
 
 
-# The sealed header's badges, drawn by the Shields badge service from their
+# The marked header's badges, drawn by the Shields badge service from their
 # address alone. A badge's two colours, the value's and then the label's, are
 # read by its label from `BADGE_COLOURS`, so that a passing result does not
-# read like a failure (#1496). Every label is grey except `SEALED`'s. The
+# read like a failure (#1496). Every label is grey except `CLEARED`'s. The
 # suite's passed count is green, and the skipped, capped and deferred counts
 # are grey. Every other label has no entry, so its value takes
 # `BADGE_DEFAULT_COLOURS`, which is blue.
 BADGE_LABEL_GREY = "555555"
 BADGE_COLOURS = {
-    # The seal's reds, read from `assets/seals/owl.svg`: the label's is the
+    # The wax seal's reds, read from `assets/seals/owl.svg`: the label's is the
     # wax's dark outer edge, the gradient's outer stop, and the value's is
     # the raised relief of the owl and its border. The owner chose the
-    # stamp's reds for every colour of the seal (#857), so a seal redrawn in
+    # stamp's reds for every colour of the wax seal (#857), so a wax seal redrawn in
     # other colours is a new icon, and the redraw edits this entry with it.
-    "SEALED": ("d42420", "8e0c12"),
+    "CLEARED": ("d42420", "8e0c12"),
     "suite": ("2ea44f", BADGE_LABEL_GREY),
     "skipped": ("6e7781", BADGE_LABEL_GREY),
     "capped": ("6e7781", BADGE_LABEL_GREY),
@@ -721,15 +719,15 @@ def count_badges(work, closed, people):
     return lines
 
 
-def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
-    """What replaces `header`'s paragraph once the release seal has run: a
+def marked_header(image_url, alt, width, cleared, results, work, closed, people):
+    """What replaces `header`'s paragraph once the release mark has run: a
     paragraph of the same shape holding the stamp's results as badges.
-    `sealed` and `results` are badge lines, each a list of `(label, value)`
-    pairs, as `release_seal.py#results` hands them: `sealed` the sealed
+    `cleared` and `results` are badge lines, each a list of `(label, value)`
+    pairs, as `release_mark.py#results` hands them: `cleared` the cleared
     version, then the commit and its branch; then the counts `count_badges`
     states; then `results`, the stamp's other rows. The badges of one line
     are parted by a space, and the lines by `<br>`. Given an `image_url`,
-    the paragraph opens with the seal as an `<img>` `width` CSS pixels wide
+    the paragraph opens with the mark as an `<img>` `width` CSS pixels wide
     with `alt` as its text (the PNG is drawn at twice that for a
     high-density screen), floated left by `align="left"` so the badges stand
     beside it, and ends with a `<br clear="left">` that clears the float
@@ -741,7 +739,7 @@ def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     cannot end an attribute and a `<` opens no tag."""
     lines = [
         " ".join(badge(label, value) for label, value in line)
-        for line in [*sealed, *count_badges(work, closed, people), *results]
+        for line in [*cleared, *count_badges(work, closed, people), *results]
     ]
     if image_url is None:
         return paragraph(lines)
@@ -757,7 +755,7 @@ def release_body(theme, rendered, pulls, owner):
     scans, and the fragments they can open.
 
     Read top to bottom it answers, in order, how big the release is -- the
-    header `header` writes, which the seal later replaces -- what it is for,
+    header `header` writes, which the mark later replaces -- what it is for,
     what changed -- one fold per type, its summary the type's
     name and the number of pull requests in it, holding one line per pull
     request with the issues it closed -- who outside the project
@@ -773,7 +771,7 @@ def release_body(theme, rendered, pulls, owner):
     outside a code span written `&lt;` (`kind_and_text`), so a tag it quotes
     is text, inside a code span or out of one, and opens or closes no fold.
     A fragment is not escaped: it is the records' own text, and one holding
-    a bare `details` tag is refused at `seal pr-body` before its pull
+    a bare `details` tag is refused at `agentic pr-body` before its pull
     request opens.
 
     With no pull request to read -- the list failed, or a release was cut
@@ -871,7 +869,7 @@ def main(argv=None):
         held = f" that {previous} does not already hold" if previous else ""
         print(
             f"{tag} was pushed and no commit {span} added a changelog fragment"
-            f"{held}, seal/threads/<work-item-id>/changelog.md, so this release "
+            f"{held}, agentory/threads/<work-item-id>/changelog.md, so this release "
             "would be published with no notes at all."
         )
         return 1

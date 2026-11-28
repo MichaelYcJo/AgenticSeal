@@ -11,7 +11,7 @@ on:
     #
     # `edited` is here for the two steps below that read the pull request
     # body: the issue-claims step, and `chain_check.py`, which reads the body
-    # against what `seal pr-body` composes at HEAD. Rewriting the body is an
+    # against what `agentic pr-body` composes at HEAD. Rewriting the body is an
     # edit and no commit, and a re-run replays the event the run began with,
     # body and all, so without it both read the old body until the next push.
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
@@ -167,9 +167,9 @@ jobs:
       - name: the mode the key declares is the mode the folder is in
         shell: bash
         run: |
-          python3 skills/implement/scripts/seal.py mode --check
+          python3 skills/implement/scripts/agentic.py mode --check
 
-      # A report, not a gate: `seal rules --check` gates inside
+      # A report, not a gate: `agentic rules --check` gates inside
       # `tests/behaviour/test_this_repository_passes_its_own_checks.py`, whose
       # capture keeps its output, so the
       # lines it names as not read are printed here as notices (#1167).
@@ -178,7 +178,7 @@ jobs:
         shell: bash
         run: |
           out=$(python3 skills/settle/scripts/rules.py --check) || true
-          printf '%s\n' "$out" | sed -n 's/^seal rules: not read: \([^:]*\):\([0-9]*\): /::notice file=\1,line=\2::not read: /p'
+          printf '%s\n' "$out" | sed -n 's/^agentic rules: not read: \([^:]*\):\([0-9]*\): /::notice file=\1,line=\2::not read: /p'
 
       # A reminder, not a gate: the language policy keeps the Korean README a
       # human-facing mirror, and mirrors drift one edit at a time.

@@ -50,7 +50,7 @@ MOVED_OUT_OF_CRAFTER = {
     # own, so its lead with the bold marks stands for it, which a citation
     # in italics does not hold.
     "the frame rule": ("**The frame is judged before it is built to.**",),
-    "the rule on a new test's group": ("`seal layout --pairs`",),
+    "the rule on a new test's group": ("`agentic layout --pairs`",),
     "the rule on committing before a mutation": ("`git checkout -- <file>`",),
     "the mutation rule": ("`--timeout`", "`-p no:xdist`"),
     "the runner rule": ("`bin/`",),
@@ -195,18 +195,18 @@ CRAFTERS_RULES = {
 BUILDERS_RULES = {
     # The lead `skills/verify/scripts/mutation_check.py` and step 6 of
     # `agents/crafter.md` cite in italics.
-    "Commit before you mutate, and restore from `seal mutate`'s copy.": (
+    "Commit before you mutate, and restore from `agentic mutate`'s copy.": (
         # The command whose revert the rule warns of, and the command whose
         # copy restores the file.
         "`git checkout -- <file>`",
-        "`seal mutate`",
+        "`agentic mutate`",
     ),
     # #1629 listed it among the rules that bound no orchestrator that
     # builds, and it had no case in the definition (round 1 finding 2).
     "A new test starts from its group.": (
         # The command a builder runs for a new case's group where the test
         # files declare `TARGET`.
-        "`seal layout --pairs`",
+        "`agentic layout --pairs`",
     ),
 }
 
@@ -254,7 +254,7 @@ def test_the_builder_reads_its_range_and_the_records_whole_before_it_closes():
     whole is rule 12's second method, and neither a sample's unreached part
     nor what is not finished is left to the proofer. #1628 and #1629 moved
     the rule to `skills/implement/SKILL.md`, said of the builder, so that an
-    orchestrator that builds a phase reads it too, and gave it `seal range`,
+    orchestrator that builds a phase reads it too, and gave it `agentic range`,
     the command that prints what it asks to be read (#1624). Step 10 of
     `agents/crafter.md` cites it, not restating it."""
     paragraph = builder_rule(READ_WHOLE)
@@ -266,9 +266,9 @@ def test_the_builder_reads_its_range_and_the_records_whole_before_it_closes():
     said = flat(paragraph)
     for fact in (
         # The command the builder runs to print the read, as it types it.
-        "seal range <item> --from <commit> --out <file>",
+        "agentic range <item> --from <commit> --out <file>",
         # The directory whose files the builder reads whole.
-        "`seal/threads/<work-item-id>/`",
+        "`agentory/threads/<work-item-id>/`",
         # The command the builder runs for the other statements of a rule.
         "`git grep`",
         # The file and the heading the builder writes what it did not finish
@@ -295,7 +295,7 @@ def test_the_account_of_the_read_quotes_its_commands_where_each_builder_writes_i
     said = flat(builder_rule(ACCOUNT))
     for fact in (
         # The command whose line the account quotes as typed.
-        "`seal range`",
+        "`agentic range`",
         # The command of the sample the account quotes.
         "`git grep`",
         # Where the orchestrator writes the account for a phase.
@@ -357,7 +357,7 @@ def test_the_fix_pass_follows_its_own_file_and_the_form_states_the_close_block()
         "and severity is for people*",
         "`docs/forms/the-round-record.md` *The fix pass appends one close block "
         "per finding and edits nothing else in the file*",
-        # The contract rule a fix pass resolves for the two `seal/` roots a
+        # The contract rule a fix pass resolves for the two `agentory/` roots a
         # procedure step is read in.
         "contract rule 11",
         # The field the fix pass writes its own wording of a fix into.
@@ -428,9 +428,9 @@ def test_the_crafters_hand_back_names_the_follow_up_file():
     files from."""
     text = read(CRAFTER)
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
-    # The path `seal/follow-up.md`, the code span, where the orchestrator
+    # The path `agentory/follow-up.md`, the code span, where the orchestrator
     # files a leftover the hand-back names.
-    assert "a leftover for `seal/follow-up.md`" in order, (
+    assert "a leftover for `agentory/follow-up.md`" in order, (
         "step 10 no longer names the file a leftover goes to"
     )
 

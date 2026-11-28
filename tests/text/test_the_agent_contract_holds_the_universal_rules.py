@@ -30,7 +30,7 @@ command forms, two that Claude Code's parser reads and one it cannot, which
 an agent copies into a shell. Each is scoped to its section's BODY, not the
 file and not the heading: a fact that moves to another section breaks the
 number a round record cited, and a heading that outlives its rule is a
-section that says nothing. Rule 11 spelt the places the `seal/` root
+section that says nothing. Rule 11 spelt the places the `agentory/` root
 resolves to until #1578, and now cites the opening paragraph of
 `skills/core/SKILL.md`, which states them;
 `tests/text/test_the_rules_have_one_owner.py` holds the places there and

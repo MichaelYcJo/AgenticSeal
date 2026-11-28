@@ -141,9 +141,9 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 **① 줄표 삽입구가 목적어와 조사를 갈라놓는다.** 영어는 동격구를 `—` 로 끼워 넣어도 어순이 유지되지만, 한국어는 조사가 뒤에 붙으므로 삽입구가 길면 조사를 만나기 전에 문장이 끊긴다.
 
 ```
-나쁨   `seal/parity.json` 을 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
+나쁨   `agentory/parity.json` 을 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
        기본값은 원본 보존 — 을 얻고, tracer 가 사실을 가져옵니다.
-좋음   `seal/parity.json` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
+좋음   `agentory/parity.json` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
        있습니다. 정책서와 원본, 신규 코드를 나란히 놓고 판정하며, 판단이 갈리면
        원본을 보존하는 쪽이 기본값입니다.
 ```
@@ -172,7 +172,7 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 세 가지를 판별한다.
 
-- **고유 용어인가** — 그 제품이 만들어 낸 말(`mark`, `seal`, `crafter`)이면 영어를 그대로 쓰고 첫 등장에서 실체를 괄호로 푼다. 억지 번역어를 만들면 원문 문서·코드와 대조가 끊긴다.
+- **고유 용어인가** — 그 제품이 만들어 낸 말(`mark`, `proofer`, `crafter`)이면 영어를 그대로 쓰고 첫 등장에서 실체를 괄호로 푼다. 억지 번역어를 만들면 원문 문서·코드와 대조가 끊긴다.
 - **일반 명사인가** — 영어에서도 평범한 단어면 한국어도 평범한 말로 옮긴다.
 - **동음이의어가 있는가** — 그 분야 밖에서 다른 뜻이 먼저 떠오르는 말은 피한다.
 
@@ -232,12 +232,12 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 | 나쁨 | 좋음 |
 |---|---|
-| the seal | the sealer's seal · the proofer's round record · the crafter's labels |
+| the inspection | the inspector's inspection · the proofer's round record · the crafter's labels |
 | 회차 기록 | proofer 가 쓰는 회차 기록 |
 
 판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
 쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the proofer's audit of the
-seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
+inspection* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 
 **이 문장은 보장이 아니다.** 주인이 익명으로 남은 문장은 리뷰에서 proofer
 가 읽어 찾는다. 아래 절 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게
@@ -260,8 +260,8 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 쓴다. 계약의 규칙은 `contract rule <N>` 으로, 계약 안과 `agents/` 에서는
 `rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
 그 파일의 제목이나 규칙을 여는 굵은 문장을 기울인 글자로 옮겨 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
-골라야 한다. 회차 기록, `guarantee.md`, `trail/gate.md` 에서 검사가 읽는
-필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
+골라야 한다. 회차 기록, `inspection.md`, `trail/gate.md` 에서 검사가 읽는
+필드는 `iadd` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
 그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
 줄을 필드로 읽지 않는다.
 check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
@@ -270,11 +270,11 @@ check: tests/skills/test_rules.py tests/skills/test_chain_check.py tests/skills/
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한
 낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
 것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
-절의 `seal` 이다.
+절의 `inspection` 이다.
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
-crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
+crafter, proofer, inspector 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
 "you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
 누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
 

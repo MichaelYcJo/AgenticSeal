@@ -3,7 +3,7 @@
 (#1223).
 
 Each case builds a repository in a temporary directory: work items under
-`seal/threads/`, each with its `routing.md` and its round records, committed
+`agentory/threads/`, each with its `routing.md` and its round records, committed
 so `--released-at` has a commit to read, and runs `main` in the process. The
 scenarios are work item 1793521559's S1 to S6.
 """
@@ -18,11 +18,10 @@ from conftest import (
     commit_everything,
     git_out,
     git_repo,
-    mark_root,
     symlink_or_skip,
 )
+from conftest import iadd_block as block
 from conftest import load_module as load
-from conftest import seal_block as block
 
 TARGET = ".github/scripts/finding_counts.py"
 
@@ -79,7 +78,7 @@ def record(*findings):
     )
 
 
-def item(root, name=ITEM, rounds=(), review=CHAIN, home="seal"):
+def item(root, name=ITEM, rounds=(), review=CHAIN, home="agentory"):
     """The work item `name` under `root`'s `<home>/threads/`, routed
     `review`, holding one round record per text of `rounds`; its directory."""
     where = root / home / "threads" / name
@@ -117,14 +116,14 @@ def table(root, capsys):
 
 
 def in_records(name, rel):
-    return f"`seal/threads/{name}/{rel}`"
+    return f"`agentory/threads/{name}/{rel}`"
 
 
 class Test_main:
     def test_a_close_blocks_location_does_not_count_a_finding_twice(
         self, tmp_path, capsys
     ):
-        """S1. One finding located under `seal/threads/`, whose close block
+        """S1. One finding located under `agentory/threads/`, whose close block
         names another path there: one finding, in records alone once. Seen
         red with the records-alone count reading each `location:` line."""
         root = git_repo(tmp_path / "repo")
@@ -159,20 +158,6 @@ class Test_main:
         item(root, rounds=[record(finding(1, located, close_location=fixed_at))])
         assert table(root, capsys) == ([f"| {ITEM} | 1 | 0 | {alone} | 1 |"], [])
 
-    def test_the_work_items_under_agentic_seal_are_counted_beside_a_package(
-        self, tmp_path, capsys
-    ):
-        """#1059: beside a project's own `seal/`, a package with no marker,
-        the work items are read under the marked `agentic-seal/threads/`, and
-        a finding located there is in records alone."""
-        root = git_repo(tmp_path / "repo")
-        (root / "seal").mkdir()
-        (root / "seal" / "__init__.py").write_text("VERSION = 1\n", encoding="utf-8")
-        mark_root(root / "agentic-seal")
-        located = f"`agentic-seal/threads/{ITEM}/frame/design.md`"
-        item(root, rounds=[record(finding(1, located))], home="agentic-seal")
-        assert table(root, capsys) == ([f"| {ITEM} | 1 | 0 | 1 | 1 |"], [])
-
     def test_prose_and_a_fix_fence_are_not_fields(self, tmp_path, capsys):
         """S3. A `regression:` line in prose, and a finding heading and a
         `location:` line inside the paste-ready fix's fence, count nothing:
@@ -204,7 +189,7 @@ class Test_main:
         assert table(root, capsys) == ([f"| {ITEM} | 3 | 2 | 0 | 2 |"], [])
 
     def test_a_record_the_reader_refuses_is_not_counted_short(self, tmp_path, capsys):
-        """S4. A `seal` block line the reader refuses leaves the three finding
+        """S4. An `iadd` block line the reader refuses leaves the three finding
         cells `not read`, the rounds cell holds the count, the line under the
         table names the record, the line and the refusal, and the exit is 0."""
         refused = record(finding(1, "`f.py:1`")).replace(
@@ -215,7 +200,7 @@ class Test_main:
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | 2 |"]
         line = refused.split("\n").index("location: f.py:1") + 1
-        path = f"seal/threads/{ITEM}/trail/rounds/round-2.md"
+        path = f"agentory/threads/{ITEM}/trail/rounds/round-2.md"
         assert len(under) == 1, under
         assert under[0].startswith(f"{path}:{line}: "), under
         assert "a location is one or more of" in under[0], under
@@ -249,7 +234,7 @@ class Test_main:
                 why = problem.strerror
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | 2 |"]
-        path = f"seal/threads/{ITEM}/trail/rounds/round-2.md"
+        path = f"agentory/threads/{ITEM}/trail/rounds/round-2.md"
         assert under == [f"{path}: {why}"], under
         assert str(root) not in "\n".join(under), under
 
@@ -275,7 +260,7 @@ class Test_main:
         symlink_or_skip("held", rounds, directory=True)
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | not read |"]
-        path = f"seal/threads/{ITEM}/trail/rounds"
+        path = f"agentory/threads/{ITEM}/trail/rounds"
         assert under == [
             f"{path}: the round records cannot be listed: it is a link or a "
             "directory nothing can list"
@@ -306,7 +291,7 @@ class Test_main:
         whether it went through the review chain is not known, and the line
         under the table names its `routing.md` and why. One routed straight
         to the pull request is no row and no line, and one released and
-        since removed from the tree is neither, as `seal settle` lists it
+        since removed from the tree is neither, as `agentic settle` lists it
         nowhere. Seen red against the loop that skipped all of them alike
         (round 1, finding 2)."""
         root = git_repo(tmp_path / "repo")
@@ -319,7 +304,7 @@ class Test_main:
         (broken / "routing.md").write_text("# routing\n\nnone\n", encoding="utf-8")
         item(root, "1700000006-removed", rounds=[one])
         released = commit_everything(str(root), "the work items")
-        git_out(str(root), "rm", "-rq", "seal/threads/1700000006-removed")
+        git_out(str(root), "rm", "-rq", "agentory/threads/1700000006-removed")
         commit_everything(str(root), "a work item removed after the release")
         code, lines, err = run(root, capsys, ref=released)
         assert code == 0, err
@@ -329,12 +314,12 @@ class Test_main:
         # text carries, since the table is pasted into a public issue (round
         # 2, finding 1).
         assert lines[4] == (
-            f"seal/threads/1700000004-no-routing/routing.md: {said}: "
+            f"agentory/threads/1700000004-no-routing/routing.md: {said}: "
             + os.strerror(errno.ENOENT)
         ), lines
         assert str(root) not in "\n".join(lines), lines
         assert lines[5:] == [
-            "seal/threads/1700000005-no-declaration/routing.md: "
+            "agentory/threads/1700000005-no-declaration/routing.md: "
             f"{said}: it is no declaration `lib/routing.py#parse` reads",
             "",
         ], lines

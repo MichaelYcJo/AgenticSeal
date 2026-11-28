@@ -1,11 +1,11 @@
 ---
 name: A gate blocked or allowed the wrong thing
-about: The pull request's check, `seal gate` or another `seal` command made a wrong call
+about: The pull request's check, `agentic gate` or another `agentic` command made a wrong call
 labels: hooks-gates
 ---
 
 **Which gate, and which direction was it wrong?**
-<!-- e.g. the pull request's check failed a branch a routing.md names, or `seal gate` passed a run it should have refused -->
+<!-- e.g. the pull request's check failed a branch a routing.md names, or `agentic gate` passed a run it should have refused -->
 
 **The command you ran**
 ```

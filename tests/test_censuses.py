@@ -16,7 +16,7 @@ The cases came from the modules that held each census whole:
 names every old case and where it went.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without `tests/censuses.py`, and `seal mutate` broke each
+against the tree without `tests/censuses.py`, and `agentic mutate` broke each
 census's refusal in turn and watched a case of its class fail.
 `vacated_paths` (#1060) failed its cases before the census existed, and was
 seen red over the tree after `templates/` moved and before its citations were
@@ -775,7 +775,7 @@ class Test_newer_than:
 class Test_matches:
     def test_accepts_a_star_across_a_slash_and_a_bare_name(self):
         assert censuses.matches("hooks/*.py", "hooks/git/pre-commit.py")
-        assert censuses.matches("seal_stamp.py", "skills/verify/scripts/seal_stamp.py")
+        assert censuses.matches("stamp.py", "skills/verify/scripts/stamp.py")
 
     def test_refuses_another_directory(self):
         assert not censuses.matches("hooks/*.py", "skills/verify/scripts/broad_gate.py")
@@ -802,12 +802,12 @@ class Test_floor_syntax:
 
 class Test_section_sign:
     def test_accepts_a_record_a_clean_file_and_one_that_is_not_text(self, tmp_path):
-        plant(tmp_path, "seal/threads/1-x/frame/design.md", f"see {SIGN}3\n")
+        plant(tmp_path, "agentory/threads/1-x/frame/design.md", f"see {SIGN}3\n")
         plant(tmp_path, "evals/behaviour/c.md", f"see {SIGN}3\n")
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff")
         root = plant(tmp_path, "hooks/b.py", "# clean\n")
         for rel in (
-            "seal/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
             "evals/behaviour/c.md",
             "x.png",
             "hooks/b.py",
@@ -815,9 +815,9 @@ class Test_section_sign:
             assert censuses.section_sign(rel, root) == [], rel
 
     def test_refuses_the_sign_at_its_line(self, tmp_path):
-        root = plant(tmp_path, "seal/follow-up.md", f"clean\nsee {SIGN}3\n")
-        assert censuses.section_sign("seal/follow-up.md", root) == [
-            "seal/follow-up.md:2: section_sign: a living file writes the section "
+        root = plant(tmp_path, "agentory/follow-up.md", f"clean\nsee {SIGN}3\n")
+        assert censuses.section_sign("agentory/follow-up.md", root) == [
+            "agentory/follow-up.md:2: section_sign: a living file writes the section "
             "sign. Cite a contract rule as `contract rule <N>`, and another "
             "file's section by its path and its heading text in italics"
         ]
@@ -958,7 +958,7 @@ class Test_vacated_paths:
     def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
         root = plant_moved(tmp_path)
         records = (
-            "seal/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
         )
         for rel in records:
@@ -1073,7 +1073,7 @@ def spelled(value):
     string VALUE."""
     return (
         f'`"{value}"` spells the records root\'s name, which only '
-        "`lib/optin.py` says; read it from `optin.home_name` or "
+        "`lib/optin.py` says; read it from `optin.HOME` or "
         "`optin.home_paths`, or put `# exempt from root_name: <why>` on its "
         "own line above it"
     )
@@ -1082,27 +1082,25 @@ def spelled(value):
 # Each source spells a name of the root on its second line, in a shape a
 # reader of the records takes it.
 ROOT_SPELLED = {
-    "the-name-as-a-path-part": ('import os\nos.path.join(r, "seal")\n', "seal"),
-    "the-second-name": ('X = 1\nNAME = "agentic-seal"\n', "agentic-seal"),
-    "a-path-under-the-root": ('X = 1\nTHREADS = "seal/threads"\n', "seal/threads"),
-    "a-path-under-the-second-name": (
-        'X = 1\nPACT = "agentic-seal/pact.md"\n',
-        "agentic-seal/pact.md",
+    "the-name-as-a-path-part": ('import os\nos.path.join(r, "agentory")\n', "agentory"),
+    "a-path-under-the-root": (
+        'X = 1\nTHREADS = "agentory/threads"\n',
+        "agentory/threads",
     ),
-    "an-f-strings-literal-part": ('X = 1\nshown = f"seal/{name}"\n', "seal/"),
+    "an-f-strings-literal-part": ('X = 1\nshown = f"agentory/{name}"\n', "agentory/"),
     "a-basename-compared": (
-        'import os\nif os.path.basename(p) == "seal":\n    pass\n',
-        "seal",
+        'import os\nif os.path.basename(p) == "agentory":\n    pass\n',
+        "agentory",
     ),
 }
 # Each source names the root only in text a person reads, or spells
 # something else that opens with the same letters.
 ROOT_NOT_SPELLED = {
-    "a-docstring": '"""Reads `seal/threads/`."""\n\n\ndef f():\n    """seal"""\n',
-    "a-comment": "# under seal/threads/\nX = 1\n",
-    "a-message": 'X = "no seal/ root here"\nY = "the `seal/` root"\n',
-    "a-subcommand": 'X = "seal mode"\nY = "sealed"\nZ = "seals/x"\n',
-    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no seal/threads/"\n',
+    "a-docstring": '"""Reads `agentory/threads/`."""\n\n\ndef f():\n    """agentory"""\n',
+    "a-comment": "# under agentory/threads/\nX = 1\n",
+    "a-message": 'X = "no agentory/ root here"\nY = "the `agentory/` root"\n',
+    "a-longer-word": 'X = "agentory mode"\nY = "agentory-scratch"\nZ = "agentorys/x"\n',
+    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no agentory/threads/"\n',
 }
 
 
@@ -1129,28 +1127,28 @@ class Test_root_name:
     ):
         """`lib/optin.py` is where the names live, `tests/` and `evals/`
         build roots by name, and a document names the root in text."""
-        root = plant(tmp_path, rel, 'HOME = "seal"\n')
+        root = plant(tmp_path, rel, 'HOME = "agentory"\n')
         assert censuses.root_name(rel, root) == []
 
     def test_accepts_a_line_an_exemption_excuses_and_refuses_one_that_excuses_nothing(
         self, tmp_path
     ):
         source = (
-            "# exempt from root_name: a fenced block's info string\n"
-            'INFO = "seal"\n'
+            "# exempt from root_name: a value that names no directory\n"
+            'NAME = "agentory"\n'
             "# exempt from root_name: nothing here\n"
-            'OTHER = "sealed"\n'
+            'OTHER = "agentory-scratch"\n'
         )
         root = plant(tmp_path, ".github/scripts/x.py", source)
         assert lines_of(censuses.root_name(".github/scripts/x.py", root)) == [
             ".github/scripts/x.py:3"
         ]
 
-    def test_accepts_the_names_lib_optin_holds(self):
-        """The names are read from `lib/optin.py`, so a rename there moves
-        the census with it."""
+    def test_accepts_the_name_lib_optin_holds(self):
+        """The name is read from `lib/optin.py`, so a rename there moves the
+        census with it."""
         optin = load_lib_module("optin.py", "optin_for_the_root_name_census")
-        assert censuses._root_names() == (optin.HOME, optin.SECOND_HOME)
+        assert censuses._root_names() == (optin.HOME,)
 
 
 class Test_module:

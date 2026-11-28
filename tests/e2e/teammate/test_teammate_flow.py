@@ -40,7 +40,7 @@ pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run the steps 
 BASE = "main"
 BRANCH = "teammate"
 SWITCH = "to-local"
-SEAL = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
+AGENTIC = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
 # The one expression the template's `run:` blocks carry, and what GitHub
 # puts in its place for a pull request into BASE.
 BASE_REF = "${{ github.base_ref }}"
@@ -85,18 +85,18 @@ target: 1a2b3c4 against main
 none
 """
 
-ITEM = f"seal/threads/{WORK}"
+ITEM = f"agentory/threads/{WORK}"
 OPEN_ROW_AND_ROUND = "a work item with an open row and a round record"
 BASES = {
     "no root": {},
-    "a root holding only its config": {"seal/config.json": CONFIG},
+    "a root holding only its config": {"agentory/config.json": CONFIG},
     "a work item with no overview": {
-        "seal/config.json": CONFIG,
+        "agentory/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
     },
     OPEN_ROW_AND_ROUND: {
-        "seal/config.json": CONFIG,
+        "agentory/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
         f"{ITEM}/gaps.md": OVERVIEW,
@@ -123,10 +123,10 @@ def without_this_run(environ):
     return {k: v for k, v in environ.items() if not k.startswith(("GIT_", "RUNNER_"))}
 
 
-def seal(repo, *argv):
-    """`seal <argv>` from the tree under test, run in REPO; it has to exit 0."""
+def agentic(repo, *argv):
+    """`agentic <argv>` from the tree under test, run in REPO; it has to exit 0."""
     ran = subprocess.run(
-        [sys.executable, SEAL, *argv],
+        [sys.executable, AGENTIC, *argv],
         cwd=repo,
         env=without_this_run(os.environ),
         capture_output=True,
@@ -134,12 +134,12 @@ def seal(repo, *argv):
         errors="replace",
         timeout=120,
     )
-    assert ran.returncode == 0, f"seal {' '.join(argv)}: {ran.stdout}{ran.stderr}"
+    assert ran.returncode == 0, f"agentic {' '.join(argv)}: {ran.stdout}{ran.stderr}"
 
 
 def base_repository(tmp_path, files, checks=False):
     """A repository whose `main` holds FILES and a README, reachable as
-    `origin/main`; where CHECKS, `seal pr-checks install` wrote the plugin's
+    `origin/main`; where CHECKS, `agentic pr-checks install` wrote the plugin's
     workflow into the same commit."""
     d = tmp_path / "repo"
     d.mkdir()
@@ -147,10 +147,10 @@ def base_repository(tmp_path, files, checks=False):
     write(d, "README.md", "# a project\n")
     for rel, text in files.items():
         write(d, rel, text)
-    if (d / "seal").is_dir():
-        mark_root(d / "seal")
+    if (d / "agentory").is_dir():
+        mark_root(d / "agentory")
     if checks:
-        seal(d, "pr-checks", "install")
+        agentic(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")
     git(d, "update-ref", f"refs/remotes/origin/{BASE}", BASE)
     return d
@@ -169,14 +169,14 @@ def teammate_repository(tmp_path, files):
 def switching_repository(tmp_path):
     """`base_repository` on the base with an open row and a round record and
     the plugin's workflow, with a branch whose one commit is what
-    `seal mode local` staged. The local root is moved aside afterwards, as a
+    `agentic mode local` staged. The local root is moved aside afterwards, as a
     checkout in CI holds none."""
     d = base_repository(tmp_path, BASES[OPEN_ROW_AND_ROUND], checks=True)
     git(d, "switch", "-qc", SWITCH)
-    seal(d, "mode", "local")
+    agentic(d, "mode", "local")
     commit_everything_as_e(d, "the switch to local")
     common = git(d, "rev-parse", "--path-format=absolute", "--git-common-dir")
-    os.rename(os.path.join(common.stdout.strip(), "seal"), tmp_path / "local-root")
+    os.rename(os.path.join(common.stdout.strip(), "agentory"), tmp_path / "local-root")
     return d
 
 
@@ -261,7 +261,7 @@ class Test_a_pull_request_that_declares_nothing_owes_nothing:
         """Round 1 of #952, finding 1: the switch deletes every `routing.md`
         with the root, and with no root at HEAD nothing is declared."""
         repo = switching_repository(tmp_path)
-        assert not (repo / "seal").exists()
+        assert not (repo / "agentory").exists()
         failed = failed_steps(repo, runner_env(tmp_path, SWITCH))
         assert not failed, "\n\n".join(failed)
 

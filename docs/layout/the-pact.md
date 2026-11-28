@@ -9,10 +9,10 @@ contract lives, how each repository knows about it, and what checks it.
 
 **The pact is the one copy of what two or more repositories keep together,
 and every repository of such a work item is a signer, the one holding the
-pact included.** The pact is `seal/pact.md` in one of them. That repository
+pact included.** The pact is `agentory/pact.md` in one of them. That repository
 has no noun of its own: it is the pact's repository, identified by holding
 the file, and where more than one pact can be meant, a text says which by
-naming where it is held. `seal pact` is the command that reads every signer
+naming where it is held. `agentic pact` is the command that reads every signer
 from there.
 check: tests/lib/test_config.py
 
@@ -30,7 +30,7 @@ question, and a script answers the rest*).
 changed, and a pact exists only where a work item commits in more than one
 repository and those repositories share contract.** The rule is the owner's,
 and it decides two things: whether the structure exists, and which sentences
-go in `seal/pact.md`. A work item that only commits in several repositories
+go in `agentory/pact.md`. A work item that only commits in several repositories
 gets a routing declaration in each and nothing else. A sentence only one
 repository's code depends on stays in that repository's own documents,
 because a pact that collects those sends every signer to re-read changes
@@ -40,9 +40,9 @@ begun.
 ## One routing answer, one id, every gated repository
 
 **The routing question is asked once, the work-item id is minted once, and a declaration
-goes into every repository the work item commits in that already has a `seal/` root, and
-into no other.** The id names the directory in every repository, so each share's
-changelog fragment and changelog marker are keyed alike, and a directory named
+goes into every repository the work item commits in that already has an `agentory/`
+root, and into no other.** The id names the directory in every repository, so each
+share's changelog fragment and changelog marker are keyed alike, and a directory named
 differently in each would have to be renamed later, moving both. A repository with no
 root is named in the handback and left alone, because writing into it would create its
 root, which is the bootstrap's decision and the person's. Nothing checks that every
@@ -54,39 +54,39 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py
 ## How a signer names the pact
 
 **Every signer but the pact's repository names the pact in a `Pact` key
-of its `seal/config.json`, and one reader answers that key for every
+of its `agentory/config.json`, and one reader answers that key for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised, and a pact anchor names the pact by
 that same URL.
 `lib/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the key reads the same key. A `Pact`
 key written twice has no value at all. A config that holds no `Pact` key
-names no pact, so `seal pact` reads that signer as naming no pact, a
+names no pact, so `agentic pact` reads that signer as naming no pact, a
 relationship recorded on one side only.
 check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact_check.py tests/lib/test_config.py
 
 ## The pact anchor
 
 **A signer cites a clause as one row of a `| Pact | Clause | Hash |` table in
-a work item's `frame/design.md`, and `seal pact` reads the table with
+a work item's `frame/design.md`, and `agentic pact` reads the table with
 `lib/tables.py#gfm_table`.** The row is the pact anchor, and it records
 what the work was built against. `Pact` is the origin remote URL of the
 pact's repository, as the signer's `Pact` key writes it, compared
 normalised. `Clause` is the clause's heading path, such as
-`## Order response shape / ### Fields`: every `##` heading of `seal/pact.md`
+`## Order response shape / ### Fields`: every `##` heading of `agentory/pact.md`
 is a clause, and a `###` narrows inside one.
 `Hash` is the eight lowercase hex digits `coordinates.py#content_hash` gives
 the clause's region, `00000000` until the first report names the real one.
 The walker reads the table as GitHub renders it, as it reads every table
 of a record, so nothing in a row is quoted or escaped except a pipe, written
 `\|`. A row naming another pact the signer's `Pact` key declares is passed
-over, for that pact's `seal pact` to grade.
+over, for that pact's `agentic pact` to grade.
 check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/lib/test_config.py
 
 **The anchor table is the table whose header is `| Pact | Clause | Hash |`, cell for
 cell, and a table whose header is near it is named and not read.** A header whose cells,
 case folded and with one emphasis run removed, are those words is the near one:
-`seal pact` names it at its line, with the exact header to write, grades no row of it
+`agentic pact` names it at its line, with the exact header to write, grades no row of it
 and refuses nothing for it. Whether `| pact | clause | hash |` meant the anchor table is
 the judgment of the person reading the report and of the proofer reading the frame,
 never the tool's, so the tool carries no normalisation of the header
@@ -97,14 +97,14 @@ another order or another width is another table. A second exact header is refuse
 second anchor table.
 check: tests/skills/test_pact_check.py
 
-**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade,
+**`agentic pact` refuses, at exit 2, a row of the anchor table it cannot grade,
 and reads nothing outside the table as an anchor.** A row whose `Pact` cell
 is not one remote URL names no pact anybody can tell, and a row naming this
 pact whose `Clause` cell does not open with a heading, or whose `Hash` cell
 is not eight lowercase hex digits, grades nothing; each is refused at its
 line. A row whose `Pact` cell names a pact the signer's `Pact` key does not
 declare, such as a remote one letter off the pact's, is refused at its line,
-because no `seal pact` grades it: another pact's reports the signer
+because no `agentic pact` grades it: another pact's reports the signer
 `ONE-SIDED` and reads none of its frames.
 check: tests/skills/test_pact_check.py
 
@@ -112,14 +112,14 @@ check: tests/skills/test_pact_check.py
 
 **At a pull request nothing reads the pact, and no exit status moves on
 anything about it.** There is no token for a pull request to read another
-repository with, so a signer's CI could see one side only; `seal pact` at the
+repository with, so a signer's CI could see one side only; `agentic pact` at the
 pact's repository is where the reconciliation runs.
 `skills/code-review/scripts/chain_check.py` holds no pact arm.
 
-## `seal pact` reconciles, locally
+## `agentic pact` reconciles, locally
 
-**`seal pact`, run at the pact's repository, reads every signer the
-`Pact signers` key of that repository's `seal/config.json` lists and says
+**`agentic pact`, run at the pact's repository, reads every signer the
+`Pact signers` key of that repository's `agentory/config.json` lists and says
 which way each mismatch points.** It finds each checkout through
 `~/.claude/agentic/pact-paths.json`, a JSON object from remote URL to
 checkout path, or the one sibling directory with that origin, guessing
@@ -147,22 +147,22 @@ anchor to it.** A repository that squashes its pact edits loses the
 intermediate clauses, so a signer built against one reads `UNMATCHED`
 where `SUPERSEDED` was true; both are exit 1 and both say to read the two
 sides, so the reading degrades without going quiet. A pact under local mode
-has no history at all, and `seal pact` says so in its summary. A clause's
+has no history at all, and `agentic pact` says so in its summary. A clause's
 heading is its address, so rewording the prose is a change every citing
 signer re-reads, and renaming the heading is one each of them has to
-re-coordinate. And `seal pact` runs where a person runs it: nothing on a
+re-coordinate. And `agentic pact` runs where a person runs it: nothing on a
 pull request reconciles anything.
 check: tests/skills/test_pact_check.py
 
-**`seal pact` reads the anchor table and nothing else in a frame.** A table
+**`agentic pact` reads the anchor table and nothing else in a frame.** A table
 under a header outside the normalisation, such as `| Pact | Clause | Hashes |`,
 and a row no anchor table holds are neither graded nor refused, and the
 signer's `READ` line does not count them. Whether such a line was meant as an
 anchor is a judgment of meaning, and a grammar written to make it finds a new
 shape at every reading. So the proofer makes it, at stage 1 of the signer's
 own review. It reads the work item's `frame/design.md` against the shape
-`seal pact` reads and the signer's `Pact` key, and a line meant as an anchor
-that `seal pact` does not read is a finding. A signer whose work item goes
+`agentic pact` reads and the signer's `Pact` key, and a line meant as an anchor
+that `agentic pact` does not read is a finding. A signer whose work item goes
 straight to the pull request has no proofer, and there the `READ` line's
 count is the only sign.
 check: tests/skills/test_pact_check.py skills/code-review/SKILL.md

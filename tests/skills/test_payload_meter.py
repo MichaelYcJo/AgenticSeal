@@ -215,7 +215,7 @@ class Test_measure:
         assert meter.measure(str(root), str(home))["agents"] == {}
         done = run(["--root", str(root)], home, cwd=str(tmp_path))
         assert done.returncode == 1, (done.returncode, done.stderr)
-        assert done.stderr == f"seal payload: no agents/*.md under {root}\n", (
+        assert done.stderr == f"agentic payload: no agents/*.md under {root}\n", (
             done.stderr
         )
         assert done.stdout == "", done.stdout
@@ -379,7 +379,7 @@ class Test_measure:
         write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
         write(str(home / ".claude" / "rules" / "mine.md"), f"mine {ACCENT}\n")
         printed = hook_output(root)
-        assert printed.startswith("AgenticSeal core from "), printed
+        assert printed.startswith("IADD core from "), printed
         raw, chars = len(printed.encode("utf-8")), len(printed)
         data = meter.measure(str(root), str(home))
         hooks = [f for f in data["session"]["files"] if f["share"] == "hook"]
@@ -421,7 +421,7 @@ class Test_measure:
             f"---\nname: core\n---\n\n# The core {ACCENT}\n\n" + "x" * 10_000 + "\n",
         )
         printed = hook_output(root)
-        assert printed.startswith("AgenticSeal core: printing "), printed[:200]
+        assert printed.startswith("IADD core: printing "), printed[:200]
         data = meter.measure(str(root), str(home))
         (hook,) = [f for f in data["session"]["files"] if f["share"] == "hook"]
         assert hook["named"] is True, hook
@@ -1099,9 +1099,9 @@ class Test_module:
 
     def test_the_command_a_person_types_runs_the_meter(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves `bin/seal.cmd` through PATHEXT; `seal payload` hands
+        cmd.exe resolves `bin/agentic.cmd` through PATHEXT; `agentic payload` hands
         its arguments to THIS script, whose help names what it measures."""
-        wrapper = os.path.join(BIN, "seal")
+        wrapper = os.path.join(BIN, "agentic")
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
             if os.name == "nt"

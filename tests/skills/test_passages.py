@@ -73,7 +73,7 @@ class Test_in_corpus:
             # sample of the directories outside the list.
             "tests/README.md",
             "hooks/notes.md",
-            "seal/threads/1-x/frame/design.md",
+            "agentory/threads/1-x/frame/design.md",
         ],
         ids=[
             "the-md-suffix",

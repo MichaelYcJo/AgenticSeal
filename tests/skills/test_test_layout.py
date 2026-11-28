@@ -1,4 +1,4 @@
-"""`seal layout` holds the test layout, and these are its cases (#942).
+"""`agentic layout` holds the test layout, and these are its cases (#942).
 
 Every case outside `Test_main` reads fixture text handed to the script's
 functions, so it builds no repository and runs no git: `check` takes the
@@ -13,7 +13,7 @@ and the base read through git agreeing with the working tree read from the
 disk.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without the script, and `seal mutate` broke each refusal
+against the tree without the script, and `agentic mutate` broke each refusal
 in turn and watched a case of its class fail (the work item's
 `trail/phases/phase-1.md`).
 """
@@ -1139,7 +1139,7 @@ class Test_main:
         asked = unanswered(monkeypatch, *words)
         assert layout.main(args) == 2
         out = capsys.readouterr().out
-        assert out == f"seal layout: {past_the_bound(asked[0])}\n", out
+        assert out == f"agentic layout: {past_the_bound(asked[0])}\n", out
 
     def test_refuses_a_listing_git_refused_in_one_line(
         self, tmp_path, monkeypatch, capsys
@@ -1154,7 +1154,7 @@ class Test_main:
         monkeypatch.chdir(tmp_path)
         assert layout.main(["--check"]) == 2
         out = capsys.readouterr().out
-        assert out.startswith("seal layout: `git ls-files -z` exited 128: "), out
+        assert out.startswith("agentic layout: `git ls-files -z` exited 128: "), out
         assert out.count("\n") == 1, out
 
     @pytest.mark.parametrize(
@@ -1207,9 +1207,9 @@ class Test_main:
         )
         out = capsys.readouterr().out
         assert code == 0, out
-        assert "moved:" not in out.replace("seal layout: moved:", "")
+        assert "moved:" not in out.replace("agentic layout: moved:", "")
         assert out.splitlines()[-1] == (
-            f"seal layout: moved: {cases} old cases, {items} items against {items} "
+            f"agentic layout: moved: {cases} old cases, {items} items against {items} "
             f"at {base[:12]}, 0 failed"
         )
         assert others == 0, "the base's worktree was left behind"
@@ -1270,7 +1270,7 @@ class Test_main:
         assert out.splitlines()[-1].endswith(", 0 failed"), out
         (held,) = asked
         assert err == (
-            f"seal layout: the scratch worktree {held[-1]} was not removed: "
+            f"agentic layout: the scratch worktree {held[-1]} was not removed: "
             f"{past_the_bound(held)}\n"
         )
         assert others == 1, "the base's worktree is still in git's list"

@@ -4,18 +4,14 @@ Rebuilt by #942's phase 5. The printed paths, a clause's hash and an
 anchor's grade run in the process on text, a grade against a stand-in
 history. The checkout search, the history
 and `check` read a world built once for the module and copied for each case
-that writes into it: the pact's repository, whose `seal/config.json` lists
-the signer in its `Pact signers` key and whose `seal/pact.md` carries one
+that writes into it: the pact's repository, whose `agentory/config.json` lists
+the signer in its `Pact signers` key and whose `agentory/pact.md` carries one
 clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
 not hold, and the signer beside it, which names the pact in its
-`seal/config.json`. `HOME` is the world's own directory, so the machine-local
+`agentory/config.json`. `HOME` is the world's own directory, so the machine-local
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the cases of `lib/config.py` that run `check`
 over a signer's config are in `tests/lib/test_config.py` since #942's phase 6.
-
-The cases that run `check` beside a project's own `seal/` package
-(#1059) build `tests/conftest.py`'s `package` or `shared` repository for
-each case, whose root stands at `agentic-seal/`.
 """
 
 import io
@@ -32,7 +28,6 @@ from conftest import (
     MOBILE_URL,
     PACT,
     PACT_URL,
-    REMOTE,
     ROOT,
     SIGNER_URL,
     SPEC,
@@ -42,13 +37,11 @@ from conftest import (
     anchor_table,
     census_case,
     clause,
-    commit_everything_as_e,
     config_json,
     init,
     load_module,
     pact,
     pact_check_modules,
-    pact_config,
     signer_config,
     symlink_or_skip,
     write,
@@ -60,7 +53,7 @@ from test_settle import past_the_bound, unanswered
 TARGET = "skills/verify/scripts/pact_check.py"
 
 SCRIPT = os.path.join(ROOT, *TARGET.split("/"))
-WRAPPER = os.path.join(ROOT, "bin", "seal")
+WRAPPER = os.path.join(ROOT, "bin", "agentic")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so
 # the world's `check` runs and this file patches one module. The world, its
@@ -70,21 +63,21 @@ pc, checker = pact_check_modules()
 config = pc.sibling.load("lib/config.py")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
-SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
+SPEC_Y = "agentory/threads/1790000001-y/frame/design.md"
 # A second pact a signer's `Pact` key declares beside this one.
 BILLING = "git@example.com:org/billing.git"
 MAP = ".claude/agentic/pact-paths.json"
 MAP_REFUSED = "REFUSED ~/.claude/agentic/pact-paths.json — the map "
 # Two remotes the map's cases name.
 MAP_A, MAP_B = "https://example.com/org/a", "https://example.com/org/b"
-# The sentence `seal pact` refuses a pact no `Pact signers` key signs in,
+# The sentence `agentic pact` refuses a pact no `Pact signers` key signs in,
 # pinned whole (contract rule 14).
 NO_SIGNER = (
     "no `Pact signers` key names a signer, and a pact nobody signs is not a "
     "pact — write the origin remote URL of every other signer into that key, "
     "separated by `;`"
 )
-# The sentences `seal pact` refuses an anchor row in, pinned whole
+# The sentences `agentic pact` refuses an anchor row in, pinned whole
 # (contract rule 14).
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
@@ -100,15 +93,15 @@ NOT_A_HASH = (
     "until the first report names the real one"
 )
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
-    "does not declare in its `Pact` key, so no `seal pact` grades the row — "
+    "the `Pact` cell names `{cell}`, a pact this signer's `agentory/config.json` "
+    "does not declare in its `Pact` key, so no `agentic pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
 )
 
 
 def posix(path):
-    """A path as `seal pact` prints one outside HOME: every separator `/`."""
+    """A path as `agentic pact` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
 
 
@@ -173,7 +166,7 @@ class Test_module:
         """The command run as a person types it, from a directory that is
         not the pact's repository."""
         if os.name == "nt":
-            pytest.skip("the POSIX wrapper; bin/seal.cmd is its Windows twin")
+            pytest.skip("the POSIX wrapper; bin/agentic.cmd is its Windows twin")
         world.cite(clause(V2))
         done = subprocess.run(
             ["sh", WRAPPER, "pact", str(world.api)],
@@ -192,10 +185,10 @@ class Test_shown:
         "path, repo, home, want",
         [
             (
-                r"C:\Users\x\work\orders-web\seal\config.json",
+                r"C:\Users\x\work\orders-web\agentory\config.json",
                 r"C:\Users\x\work\orders-web",
                 r"C:\Users\x",
-                "seal/config.json",
+                "agentory/config.json",
             ),
             (
                 r"C:\Users\x\.claude\agentic\pact-paths.json",
@@ -502,7 +495,7 @@ class Test_History:
     def test_refuses_a_path_git_never_tracked_and_names_an_unheld_commit_by_sha(
         self, world
     ):
-        history = pc.History(str(world.api), "seal/nothing.md")
+        history = pc.History(str(world.api), "agentory/nothing.md")
         assert history.head() == [] and history.other() == []
         git(world.api, "switch", "-qc", "gone")
         write(world.api, "f.txt", "x\n")
@@ -626,7 +619,7 @@ class Test_check:
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
-            "seal/config.json",
+            "agentory/config.json",
             signer_config(("Pact", f"{PACT_URL}; {BILLING}; {legacy}")),
         )
         world.cite(clause(V2))
@@ -661,7 +654,7 @@ class Test_check:
         )
         write(
             world.web,
-            "seal/threads/1790000002-z/frame/design.md",
+            "agentory/threads/1790000002-z/frame/design.md",
             "# Z\n\n"
             + "".join(
                 f"## Table {n}\n\n{header}\n|---|---|---|\n{row}\n"
@@ -675,7 +668,7 @@ class Test_check:
             f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming this pact"
         ) in out, out
         assert out.endswith(
-            f"seal pact: the pact at {PACT_URL} — 1 of 1 signer read · 2 ok · 0 "
+            f"agentic pact: the pact at {PACT_URL} — 1 of 1 signer read · 2 ok · 0 "
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "REFUSED" not in out, out
@@ -764,11 +757,11 @@ class Test_check:
 
     def test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why(self, world):
         common = git(world.api, "rev-parse", "--git-common-dir")
-        local = os.path.join(str(world.api), common, "seal")
+        local = os.path.join(str(world.api), common, "agentory")
         os.makedirs(local)
         for name in ("pact.md", "config.json", "README.md"):
-            os.replace(str(world.api / "seal" / name), os.path.join(local, name))
-        os.rmdir(str(world.api / "seal"))
+            os.replace(str(world.api / "agentory" / name), os.path.join(local, name))
+        os.rmdir(str(world.api / "agentory"))
         world.cite(clause(V1))
         code, out = world.run()
         assert code == 1, out
@@ -805,7 +798,9 @@ class Test_check:
         code, out = world.run()
         assert code == 1, out
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
-        assert f"seal pact: the pact at {PACT_URL} — 1 of 2 signers read · " in out, out
+        assert (
+            f"agentic pact: the pact at {PACT_URL} — 1 of 2 signers read · " in out
+        ), out
 
     def test_refuses_a_pact_listing_its_own_repository(self, world):
         """Not `NOT FOUND`, which would send a person looking for a checkout
@@ -816,7 +811,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            f"REFUSED {PACT_URL} seal/config.json — the `Pact signers` key lists "
+            f"REFUSED {PACT_URL} agentory/config.json — the `Pact signers` key lists "
             "the pact's own repository, and that key lists every OTHER signer — "
             "take this entry out"
         ) in out, out
@@ -831,14 +826,14 @@ class Test_check:
         """S7: a pact whose repository lists no signer in a `Pact signers`
         key is refused at exit 2 in a sentence naming the key, and no signer
         is read."""
-        cfg = world.api / "seal" / "config.json"
+        cfg = world.api / "agentory" / "config.json"
         cfg.unlink()
         if config_text is not None:
             cfg.write_text(config_text, encoding="utf-8")
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
-        assert f"REFUSED seal/config.json — {NO_SIGNER}" in out, out
+        assert f"REFUSED agentory/config.json — {NO_SIGNER}" in out, out
         assert f"the pact at {PACT_URL} — 0 of 0 signers read" in out, out
 
     def test_refuses_each_signer_entry_that_will_not_read_and_reads_the_rest(
@@ -852,7 +847,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            "REFUSED seal/config.json — `orders-mobile` is not a remote URL — it "
+            "REFUSED agentory/config.json — `orders-mobile` is not a remote URL — it "
             "reduces to no host and path, so no repository can be found by it"
         ) in out, out
         assert f"READ {SIGNER_URL} " in out and " 1 ok " in out, out
@@ -861,33 +856,26 @@ class Test_check:
         """The pact's repository's config refused by
         `lib/config.py#config_pairs` is `UNREADABLE` at exit 2, in the
         reader's sentence after the path, and nothing else is read."""
-        write(world.api, "seal/config.json", '{"Pact signers": "x",}\n')
+        write(world.api, "agentory/config.json", '{"Pact signers": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert out.startswith(
-            "UNREADABLE seal/config.json — does not parse as JSON ("
+            "UNREADABLE agentory/config.json — does not parse as JSON ("
         ), out
         assert "READ" not in out.replace("UNREADABLE", ""), out
 
-    @pytest.mark.parametrize(
-        "side", ["no seal root", "no Pact key", "no Pact key under agentic-seal"]
-    )
+    @pytest.mark.parametrize("side", ["no agentory root", "no Pact key"])
     def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
-        """The third side is #1059's: a signer whose own `seal/` is a package
-        keeps its root at `agentic-seal/`, and the line names its config
-        there, not under the pact's root's name."""
-        if side == "no seal root":
-            shutil.rmtree(world.web / "seal")
-            where, said = posix(world.web), "it has no seal/ root to name this pact in"
+        if side == "no agentory root":
+            shutil.rmtree(world.web / "agentory")
+            where, said = (
+                posix(world.web),
+                "it has no agentory/ root to name this pact in",
+            )
         else:
-            home = "seal"
-            if side.endswith("agentic-seal"):
-                home = "agentic-seal"
-                shutil.move(str(world.web / "seal"), str(world.web / home))
-                write(world.web, "seal/__init__.py", "VERSION = 1\n")
-            write(world.web, f"{home}/config.json", signer_config())
-            where = f"{home}/config.json"
+            write(world.web, "agentory/config.json", signer_config())
+            where = "agentory/config.json"
             said = f"its config names no `Pact` key for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out
@@ -935,7 +923,7 @@ class Test_check:
     def test_refuses_a_row_it_cannot_grade_at_its_line(self, world, row, said):
         """S8: each shape is refused at the row's line, at exit 2. A
         remote the signer's `Pact` key does not declare is graded by no
-        `seal pact`, since another pact's reports the signer `ONE-SIDED`
+        `agentic pact`, since another pact's reports the signer `ONE-SIDED`
         (#1132, S1)."""
         write(world.web, SPEC, anchor_table(row))
         code, out = world.run()
@@ -1134,7 +1122,7 @@ class Test_check:
         """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
         `lib/config.py#config_pairs`, named relative to the signer's
         checkout and in POSIX form, and said in the reader's sentence."""
-        cfg = world.web / "seal" / "config.json"
+        cfg = world.web / "agentory" / "config.json"
         text = cfg.read_bytes()
         cfg.unlink()
         if shape == "directory":
@@ -1144,7 +1132,7 @@ class Test_check:
         code, out = world.run()
         assert code == 2, out
         assert (
-            f"UNREADABLE {SIGNER_URL} seal/config.json — is there and cannot be "
+            f"UNREADABLE {SIGNER_URL} agentory/config.json — is there and cannot be "
             "read as UTF-8 text"
         ) in out, out
 
@@ -1157,7 +1145,7 @@ class Test_check:
         (world.api / PACT).mkdir()
         code, out = world.run()
         assert code == 2, out
-        assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
+        assert out == "UNREADABLE agentory/pact.md — the pact could not be read", out
 
     def test_refuses_a_map_that_will_not_read(self, world):
         """S4: the path is printed once, and the sentence reads after the
@@ -1201,7 +1189,9 @@ class Test_check:
             "is not in a git repository — nothing was read"
         ), out
         code, out = world.run(root=world.web)
-        assert code == 2 and "holds no seal/pact.md, so there is no pact" in out, out
+        assert code == 2 and "holds no agentory/pact.md, so there is no pact" in out, (
+            out
+        )
         git(world.api, "remote", "remove", "origin")
         code, out = world.run()
         assert code == 2, out
@@ -1210,27 +1200,11 @@ class Test_check:
             "— set `origin` and run it again"
         ), out
 
-    def test_s5_pact_names_the_signers_key_under_agentic_seal(self, shared, tmp_path):
-        """`seal pact` reads `agentic-seal/pact.md` and the `Pact signers` key of
-        `agentic-seal/config.json`, and names the config by that path: a key
-        that lists the pact's own repository is refused at it."""
-        write(shared / "agentic-seal", "pact.md", pact(V2))
-        write(shared / "agentic-seal", "config.json", pact_config(REMOTE))
-        commit_everything_as_e(shared, "the pact")
-        out = io.StringIO()
-        code = pc.check(str(shared), out=out, home_dir=str(tmp_path))
-        assert code == 2, out.getvalue()
-        assert (
-            f"REFUSED {REMOTE} agentic-seal/config.json — the `Pact signers` key "
-            "lists the pact's own repository"
-        ) in out.getvalue(), out.getvalue()
-
 
 @pytest.fixture
 def printed(monkeypatch):
     """What `main` prints. `check` binds `sys.stdout` as it stood when the
     module loaded, under pytest's collection, so its default is replaced."""
-    import io
 
     out = io.StringIO()
     monkeypatch.setattr(pc.check, "__defaults__", (out, None))
@@ -1267,7 +1241,7 @@ class Test_main:
         world.cite(clause(V2))
         asked = unanswered(monkeypatch, *words)
         assert pc.main([str(world.api)]) == 2
-        assert capsys.readouterr().out == f"seal pact: {past_the_bound(asked[0])}\n"
+        assert capsys.readouterr().out == f"agentic pact: {past_the_bound(asked[0])}\n"
         assert printed.getvalue() == ""
 
 
@@ -1283,7 +1257,7 @@ def test_no_line_formats_a_path_without_the_helper():
     with open(SCRIPT, encoding="utf-8") as handle:
         tree = ast.parse(handle.read())
     # `where` is not among them: every value it holds is built by `shown`
-    # or is a literal `seal/...` label.
+    # or is a literal `agentory/...` label.
     paths = {
         "path",
         "repo",

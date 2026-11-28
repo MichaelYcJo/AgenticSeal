@@ -22,8 +22,8 @@ from (`templates/records/sdd-round.md`, seven mentions) was not among the three.
 
 Two rules, and the second is narrower than the first on purpose:
 
-  every script a shipped document names   has a `seal` subcommand in
-                                          `seal.py#TOOLS`, or is classified
+  every script a shipped document names   has an `agentic` subcommand in
+                                          `agentic.py#TOOLS`, or is classified
                                           below with its reason
 
   every shipped document that names a     carries the subcommand or the
@@ -48,8 +48,9 @@ Shown red before it was committed (contract rule 15): against the tree as it sto
 file failed on all nine of `round_record.py`'s documents and on
 `chain_check.py` having no classification, and the command-form case was
 driven red by planting an invocation in a shipped document. Since #1051 the
-commands are `seal` subcommands rather than one `bin/` wrapper each, and the
-cases read `seal.py#TOOLS` where they read `bin/`.
+commands are subcommands of one command, `agentic` since #1658, rather than one
+`bin/` wrapper each, and the
+cases read `agentic.py#TOOLS` where they read `bin/`.
 """
 
 import glob
@@ -61,22 +62,22 @@ from conftest import ROOT, load_module, read
 
 # No TARGET: its cases walk every shipped document under agents/, skills/ and templates/.
 
-SEAL = load_module(
-    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
-    "seal_for_the_locator_rule",
+AGENTIC = load_module(
+    os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
+    "agentic_for_the_locator_rule",
 )
 
 # The subcommand each script answers to, by the script's file name.
 SUBCOMMANDS = {
-    os.path.basename(script): name for name, (script, _) in SEAL.TOOLS.items()
+    os.path.basename(script): name for name, (script, _) in AGENTIC.TOOLS.items()
 }
 
 # What an agent's startup payload can contain. `docs/` is deliberately absent.
 SHIPPED_ROOTS = ("agents", "skills", "templates")
 
-# Scripts that ship without a `seal` subcommand, and the reason each one keeps
+# Scripts that ship without an `agentic` subcommand, and the reason each one keeps
 # none. A script named by a shipped document belongs here or in
-# `seal.py#TOOLS`; a third state is the one `bin/` itself was in before work
+# `agentic.py#TOOLS`; a third state is the one `bin/` itself was in before work
 # item 1788302682 -- a gap somebody notices while writing something up.
 NO_SUBCOMMAND = {
     "rule_changes.py": (
@@ -120,14 +121,14 @@ def shipped_documents():
 
 
 def command_name(script):
-    """The command a person types for `script`: `seal` and its subcommand,
-    or `seal` alone for `seal.py`, the script the command itself runs.
+    """The command a person types for `script`: `agentic` and its subcommand,
+    or `agentic` alone for `agentic.py`, the script the command itself runs.
     None for a script with no subcommand."""
     base = os.path.basename(script)
-    if base == "seal.py":
-        return "seal"
+    if base == "agentic.py":
+        return "agentic"
     name = SUBCOMMANDS.get(base)
-    return f"seal {name}" if name else None
+    return f"agentic {name}" if name else None
 
 
 def is_wrapped(script):
@@ -148,20 +149,21 @@ def reachable(text, script):
 
     Either accepted form counts. The subcommand is what a session with the
     plugin enabled can type, because the loader puts `bin/` on the Bash
-    tool's PATH and `bin/seal` is there. The repo-relative path is what a
+    tool's PATH and `bin/agentic` is there. The repo-relative path is what a
     session working inside a clone with the plugin disabled can open.
     """
     command = command_name(script)
-    # `seal` alone cannot be told from ordinary English -- this repository's
-    # prose is made of that word -- so this reader does not take the bare
-    # command as a locator for `seal.py`, and the path is the form that counts.
+    # `agentic` alone cannot be told from the plugin's name or from the routing
+    # question's first answer -- this repository's prose names both with the
+    # same word -- so this reader does not take the bare command as a locator
+    # for `agentic.py`, and the path is the form that counts.
     #
-    # A subcommand is two words, and two words can be prose too: *the seal
+    # A subcommand is two words, and two words can be prose too: *the agentic
     # stamp*. So the subcommand counts only where it is shown as a command,
     # opening an inline code span or a line of a code block, which is how
     # every document that teaches one writes it. It counts with arguments
     # after it and not inside a longer word.
-    if command == "seal":
+    if command == "agentic":
         return script in text
     shown = rf"(?:`|^[ \t]*){re.escape(command)}(?![\w-])"
     typed = re.search(shown, text, re.M) is not None
@@ -249,8 +251,8 @@ def test_every_script_a_shipped_document_names_has_a_subcommand_or_is_classified
         )
         return
     assert is_wrapped(script), (
-        f"a shipped document names {base} and no `seal` subcommand runs it. "
-        f"Add it to `TOOLS` in `skills/implement/scripts/seal.py`, or classify "
+        f"a shipped document names {base} and no `agentic` subcommand runs it. "
+        f"Add it to `TOOLS` in `skills/implement/scripts/agentic.py`, or classify "
         f"{base} in NO_SUBCOMMAND in {os.path.basename(__file__)} with the reason"
     )
 
@@ -258,10 +260,10 @@ def test_every_script_a_shipped_document_names_has_a_subcommand_or_is_classified
 def test_nothing_classified_has_grown_a_subcommand():
     """A classification is a claim about the tree, so it stops being true the
     moment somebody adds the subcommand. Left standing, it is a note nobody
-    re-reads that says the opposite of what `seal.py#TOOLS` holds."""
+    re-reads that says the opposite of what `agentic.py#TOOLS` holds."""
     stale = [b for b in NO_SUBCOMMAND if is_wrapped(f"skills/x/scripts/{b}")]
     assert not stale, (
-        f"{sorted(stale)} now have `seal` subcommands and are still classified "
+        f"{sorted(stale)} now have `agentic` subcommands and are still classified "
         f"as keeping none -- drop the rows from NO_SUBCOMMAND in "
         f"{os.path.basename(__file__)}"
     )
@@ -289,13 +291,14 @@ def test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(pair):
     document, script = pair
     command, text = command_name(script), read(os.path.join(ROOT, document))
     # The repair offered has to be one that works. `reachable` does not read
-    # the bare `seal` as a locator, so offering it to a reader who then adds
+    # the bare `agentic` as a locator, so offering it to a reader who then adds
     # it leaves them red with nothing saying why -- #318's own shape,
     # reproduced inside #318's fix.
     forms = (
-        f"the path `{script}`. `seal` alone is a word of prose, so this rule "
-        "does not read the bare command as a locator -- see `reachable`"
-        if command == "seal"
+        f"the path `{script}`. `agentic` alone is also the plugin's name and the "
+        "routing question's first answer, so this rule does not read the bare "
+        "command as a locator -- see `reachable`"
+        if command == "agentic"
         else f"either reachable form: the command `{command}`, shown in code, "
         f"or the path `{script}`"
     )
@@ -316,7 +319,7 @@ def no_command_form_message(document, script, shown):
         "subcommand because no document tells anybody to run it without "
         "saying where it is -- is no longer true:\n"
         + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
-        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
+        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/agentic.py`, "
         f"write the invocation with its path `{script}`, or take it out."
     )
 
@@ -340,8 +343,8 @@ def test_a_document_with_no_locator_is_caught():
     answered yes to any mention would make every case above vacuous."""
     mutate = "skills/x/scripts/mutation_check.py"
     assert not reachable("`mutation_check.py` breaks one unit.", mutate)
-    assert reachable("Run `seal mutate hooks/x.py`.", mutate)
-    assert reachable("```\nseal mutate hooks/x.py\n```\n", mutate)
+    assert reachable("Run `agentic mutate hooks/x.py`.", mutate)
+    assert reachable("```\nagentic mutate hooks/x.py\n```\n", mutate)
     assert reachable("It lives at `skills/x/scripts/mutation_check.py`.", mutate)
 
 
@@ -349,25 +352,26 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
     """Contract rule 14: a message a person reads and acts on is pinned by a case.
 
     The repair the message names has to be one the rule accepts. For the bare
-    `seal` it cannot be, so the message says the path and says why --
-    otherwise a reader adds `seal`, re-runs, is still red, and has been told
+    `agentic` it cannot be, so the message says the path and says why --
+    otherwise a reader adds `agentic`, re-runs, is still red, and has been told
     nothing. That is #318's own shape reproduced inside #318's fix.
 
     `templates/records/sdd-plan.md` is the document in both directions because it
     names neither script and carries neither command, so the case is
     guaranteed to fail and its message is the whole of what is being read.
     """
-    seal = "skills/implement/scripts/seal.py"
+    agentic = "skills/implement/scripts/agentic.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
-            ("templates/records/sdd-plan.md", seal)
+            ("templates/records/sdd-plan.md", agentic)
         )
     message = str(raised.value)
-    assert "the command `seal`" not in message, (
+    assert "the command `agentic`" not in message, (
         "the message offers a repair the rule rejects: a reader who adds the "
         f"bare command is still red and learns nothing from it -- {message}"
     )
-    assert seal in message and "a word of prose" in message, (
+    why = "also the plugin's name and the routing question's first answer"
+    assert agentic in message and why in message, (
         f"the message does not name the form that works, or why -- {message}"
     )
 
@@ -376,7 +380,7 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
         test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
             ("templates/records/sdd-plan.md", mutate)
         )
-    assert "the command `seal mutate`" in str(raised.value), (
+    assert "the command `agentic mutate`" in str(raised.value), (
         "a subcommand still has both accepted forms offered"
     )
 
@@ -394,7 +398,7 @@ def test_the_no_command_form_message_offers_every_repair_the_reader_accepts():
         "d.md shows chain_check.py being invoked without its path",
         "no document tells anybody to run it without saying where it is",
         "  d.md:3: chain_check.py -q",
-        "add it to `TOOLS` in `skills/implement/scripts/seal.py`",
+        "add it to `TOOLS` in `skills/implement/scripts/agentic.py`",
         f"write the invocation with its path `{script}`",
         "or take it out",
     ):
@@ -402,25 +406,25 @@ def test_the_no_command_form_message_offers_every_repair_the_reader_accepts():
 
 
 def test_the_bare_command_is_not_a_locator():
-    """`seal.py` answers to `seal`, and every document in this repository
-    contains that word. Read as a locator it makes the rule unfalsifiable for
-    that script, which is the one thing Q1's general form was chosen to
-    prevent."""
-    seal = "skills/implement/scripts/seal.py"
-    assert not reachable("The sealer takes the seal after the rounds.", seal)
-    assert not reachable("Run `seal mode` first.", seal)
-    assert reachable("It lives at `skills/implement/scripts/seal.py`.", seal)
+    """`agentic.py` answers to `agentic`, which is also the plugin's name and
+    the routing question's first answer, and the documents name both with the
+    same word. Read as a locator it makes the rule unfalsifiable for that
+    script, which is the one thing Q1's general form was chosen to prevent."""
+    agentic = "skills/implement/scripts/agentic.py"
+    assert not reachable("Route the work under agentic before the rounds.", agentic)
+    assert not reachable("Run `agentic mode` first.", agentic)
+    assert reachable("It lives at `skills/implement/scripts/agentic.py`.", agentic)
 
 
 def test_a_subcommand_in_prose_or_inside_a_longer_word_does_not_count():
-    """`seal stamp` in a sentence is two words of prose, and `seal mutate`
-    inside `seal mutate-length` is a different name; a substring test would
+    """`agentic stamp` in a sentence is two words of prose, and `agentic mutate`
+    inside `agentic mutate-length` is a different name; a substring test would
     let either satisfy the rule."""
-    stamp = "skills/x/scripts/seal_stamp.py"
-    assert not reachable("A seal stamp is drawn once.", stamp)
+    stamp = "skills/x/scripts/stamp.py"
+    assert not reachable("An agentic stamp is drawn once.", stamp)
     mutate = "skills/x/scripts/mutation_check.py"
-    assert not reachable("`seal mutate-length` is not a command", mutate)
-    assert not reachable("`unseal mutate` is not a command", mutate)
+    assert not reachable("`agentic mutate-length` is not a command", mutate)
+    assert not reachable("`unagentic mutate` is not a command", mutate)
 
 
 def test_a_test_file_named_for_a_script_does_not_name_it():
@@ -488,4 +492,4 @@ def test_the_enumeration_is_not_empty():
     assert len(scripts()) >= 10, scripts()
     assert len(shipped_documents()) >= 20, len(shipped_documents())
     assert named_pairs(), "no shipped document names a script with a command"
-    assert len(SUBCOMMANDS) == len(SEAL.TOOLS), SUBCOMMANDS
+    assert len(SUBCOMMANDS) == len(AGENTIC.TOOLS), SUBCOMMANDS
