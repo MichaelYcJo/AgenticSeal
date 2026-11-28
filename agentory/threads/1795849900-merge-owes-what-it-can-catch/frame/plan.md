@@ -55,4 +55,4 @@ This pull request carries the release's version move: the orchestrator's spawn o
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | Which prefix the pull request's title takes: `feat:`. | A merge from the base no longer owes a local broad run where the pull request's run stands in for it, a change to what the orchestrator owes before a pull request that every later work item meets; #1583 is titled `feat:`. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
