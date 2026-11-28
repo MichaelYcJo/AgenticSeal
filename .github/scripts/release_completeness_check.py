@@ -72,7 +72,7 @@ What each entry's absence does:
     `GH_TOKEN`  exit 1   `gh issue list ... failed` -- loud
 
 One absence is silent, and it is not caught here: the case
-`tests/text/test_a_release_cannot_ship_an_untrue_milestone.py#test_every_input_the_script_reads_is_handed_to_it_by_the_step`
+`tests/text/test_the_release_check_runs_from_its_step.py#test_every_input_the_script_reads_is_handed_to_it_by_the_step`
 holds the step to every entry of the table.
 """
 

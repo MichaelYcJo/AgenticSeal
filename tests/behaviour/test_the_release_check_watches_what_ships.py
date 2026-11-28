@@ -214,7 +214,7 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
     are identical before and after the message change — this is what says so.
 
     The whole guard, in order, not only its condition:
-    `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py` records a
+    `tests/text/test_the_release_check_runs_from_its_step.py` records a
     mutation that deleted the `exit 0` and the `fi` and passed a check that
     asserted the condition alone, leaving a step that runs on every pull
     request and is malformed shell.

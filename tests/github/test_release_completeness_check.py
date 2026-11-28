@@ -21,8 +21,8 @@ and `Test_judge_number` holds its lines.
 above both, `Test_main`'s: which command each version and each set is read
 with, and the range the subjects are read over.
 
-#942's phase 6 placed these cases from
-`tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`, which keeps the
+#942's phase 6 placed these cases from the step's test file, now
+`tests/text/test_the_release_check_runs_from_its_step.py`, which keeps the
 cases that read the hygiene workflow's step.
 """
 
