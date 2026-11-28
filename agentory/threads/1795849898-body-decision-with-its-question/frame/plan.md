@@ -40,19 +40,26 @@ The tree as read at `92b2f13f`.
 
 ## Overlap with the release
 
-The spawn names one other open work item of the release, #1648 (`1795849897-submodule-pointer-in-typed-diffs`), whose branch at `2fbd183c`, read on 2026-11-28, changes `agents/inspector.md`, `agents/proofer.md`, `tests/behaviour/test_the_inspector_inspects.py`, `tests/behaviour/test_the_proofer_reads_a_merge_round.py`, `.claude-plugin/plugin.json` and its own records (executed: `git diff --stat 596c79a6...fix/1648-submodule-pointer-in-typed-diffs`), and it does not meet this work: this work changes none of those files, its plan's expected meeting at `agents/inspector.md` step 2 does not happen because this frame leaves that definition as it stands (design *Scope*, *Out*), and neither item changes a rule, a check or a fact the other's change reads.
+This work item ships in a minor of its own, after #1671's release (*Judgments of the run*, the row on which release ships it). On 2026-11-28 the orchestrator named no other work item of that release, so no work item of its release meets this one.
+
+The work of the releases before it reaches this branch through the merge of the base that `routing.md` *Why this way* names, and none of it changes the text this work changes. Read on 2026-11-28 (executed: `git diff --stat` and `git diff --name-only` from `596c79a6` to each branch):
+
+- #1648's branch at `2fbd183c` changes `agents/inspector.md`, `agents/proofer.md`, two files under `tests/behaviour/`, `.claude-plugin/plugin.json` and its own records. The meeting its plan expected at `agents/inspector.md` step 2 does not happen, because this frame leaves that definition as it stands (design *Scope*, *Out*).
+- #1583's branch at `7ec496f0` changes `skills/code-review/orchestration.md` in its hunks at lines 309 and 333, the paragraph on merging the base and the paragraph opening **A commit after the newest broad run**, and not the paragraph on `pr.md` that this work rewrites at lines 353 to 385.
+- #1671's branch at `ae7aca71` holds its routing and frame alone. Its frame changes `docs/releasing/` through `## Rule changes` and names none of the files this work changes.
 
 ## Operational impact
 
 - No migration, no new environment variable and no new dependency.
-- This work item does not carry the release's version move. `routing.md` *Why this way* names the item that does.
+- **The version move.** Phase 1's commit that added `changelog.md`, `42bfb8d6`, moved no version, because this item was then routed into a release whose other item carried the move. Whether this item moves `.claude-plugin/plugin.json` in the release it now ships in is read from the rule in force when its base is cut, as the base holds it: `docs/releasing/branch-and-release.md` *Cutting a release*, the paragraph on when the version moves, and `skills/implement/orchestration.md` *Orchestrator: how the work is routed*, the paragraph opening **Which branch the pull request lands on is decided with the routing question**. Where the base is cut with its version in its name, the version moves in the release's first pull request, and this item is that pull request, the move is owed. It is then a commit after phase 1's, which no phase of this plan holds, and those two paragraphs name the party that writes it and the version it moves to. Where the version moves at the end of the release in a pull request of its own, as #1671's frame proposes, this item moves none.
 - The pull request check compares a ready pull request's body with what `agentic pr-body` composes. A repository whose `.github/workflows/hygiene.yml` runs a plugin release that carries this work compares an open pull request's body with the new *Questions* section, so a body written by an earlier release's `agentic pr-body` is refused at that section until the orchestrator runs `agentic pr-body` on the body file again.
 - A work item whose `frame/questions.md` holds a closing keyword before an issue number outside a code span, in a line above or below the table, is now refused at that line, as a table line was before (design G5).
 
 ## Judgments of the run
 
-<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame, why the pull request title takes its prefix, which `pr.md` quotes; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
+<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame, why the pull request title takes its prefix, which `pr.md` quotes; the `Judgment` cell names the question the judgment answers, then its answer, as "Which prefix the pull request's title takes: `fix:`." does, in every row, since `pr.md` may quote any of them; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | Which release ships this work item: a minor of its own after #1671's, `release: 0.44.0`, not the patch it was routed into. | The build adds a refusal on a rule the change states and a record format, so the title takes `feat:`, which the patch cannot carry. The owner chose on 2026-11-28 to move it to a minor of its own, not to rename the planned releases forward. | `docs/releasing/branch-and-release.md` *The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number* |
+| 2026-11-28 | Which prefix the pull request's title takes: `feat:`. | The copy now refuses a closing keyword in a line above or below the questions table, a refusal on a rule the change itself states, and every *Judgments of the run* row's `Judgment` cell takes a new form, a record format a party now writes. | `skills/commit-pr-convention/SKILL.md`, its prefix table |

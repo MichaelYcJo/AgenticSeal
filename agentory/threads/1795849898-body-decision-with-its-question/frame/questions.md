@@ -8,8 +8,8 @@ The issue left these judgments open, and the tree answered each. Their grounds s
 - What stands where a table holds no row: one fixed line, `NO_QUESTION_ROW` (`frame/plan.md` *Alternatives considered* A7; `frame/design.md` *Grounding* G4).
 - What becomes of a heading below the title: it moves one level down (`frame/plan.md` *Alternatives considered* A8; `frame/design.md` *Grounding* G6).
 - Whether a `docs/` rule changes: no (`frame/design.md` *Grounding* G10, and its `## Rule changes`).
-- Whether this work meets #1648: no (`frame/plan.md` *Overlap with the release*).
-- Whether this work item carries the version move: no (`frame/plan.md` *Operational impact*).
+- Whether another work item meets this one: none of its release, and the earlier releases' work changes none of its text (`frame/plan.md` *Overlap with the release*).
+- Whether this work item carries the version move: the rule its base is cut with decides (`frame/plan.md` *Operational impact*).
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|

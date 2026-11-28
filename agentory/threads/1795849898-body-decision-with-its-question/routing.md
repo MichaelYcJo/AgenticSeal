@@ -21,4 +21,4 @@ The owner answered question 1 of the routing question with `agentic` on 2026-11-
 - **Automation, yes:** every question the orchestrator foresees has a default the tree or the framer can give.
 - **Destination, open the pull request:** nothing in the issue or the batch asks for the branch back.
 
-The base is the release branch for the patch. The release's other work item, #1648's, carries the version move and merges first.
+The work item was routed into the release branch for the patch, with #1648. On 2026-11-28 its build showed it is a feat, and the owner moved it to a minor of its own after #1671's (`frame/plan.md` *Judgments of the run*). Its base is that minor's branch once it is cut, which the orchestrator merges before the pull request opens.
