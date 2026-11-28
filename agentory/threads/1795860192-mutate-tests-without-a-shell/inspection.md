@@ -38,3 +38,32 @@ The sample is the phase record's `seen red`, the guard of every case that assert
 target: 5370f462 against 596c79a6
 Verdict: withheld reason: the orchestrator's round 4 fix pass (1c9f74a4) added frame/plan.md:36, whose grounds say "Round 4's one finding is located in this row alone", but trail/rounds/round-4.md finding 1's location: line names frame/plan.md:35, the row on round 3's fix pass, so row 36 misstates where the finding it hands to the inspector stands
 ```
+
+## Re-run at 67be69e2
+
+Two commits follow `5370f462`. `fc68eeaa` adds `inspection.md` alone, and `67be69e2` rewrites the grounds of `frame/plan.md:36` alone. `git diff --stat 5370f462..HEAD` lists those two files and nothing outside the work item's records (executed). `trail/gate.md` still reads `run: 9451f62b against 596c79a6`, and `git log --ignore-submodules=none --no-merges --name-only 9451f62b..HEAD ^596c79a6` lists `trail/gate.md`, `inspection.md` and `frame/plan.md`, each under `agentory/threads/1795860192-mutate-tests-without-a-shell/` (executed). `agentic pr-body agentory/threads/1795860192-mutate-tests-without-a-shell --body <scratchpad>/1795860192-mutate-tests-without-a-shell/pr-body.md --check` exited 0 against the rewritten body file (executed). The only claim whose coordinate a commit since `5370f462` touched is the one at `frame/plan.md:36`. The claims in the first run's table stand on code, cases and records that no commit since has touched, so they were not re-run.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| Round 4's finding "is located in the row on round 3's fix pass alone" | `frame/plan.md:36` | `grep -n 'location:'` on `trail/rounds/round-4.md`, and `sed -n 35p` on `frame/plan.md` | holds, executed. The `location:` line at `round-4.md:19` names `frame/plan.md:35`, and line 35 at HEAD opens "Whether a round follows round 3's fix pass" |
+| "Round 4, the fourth round, opened one finding, after rounds of five, three and one findings" | `frame/plan.md:36` | `awk` counting the `### <n>.` headings under `## Findings` in each `trail/rounds/round-N.md` | holds, executed: 5, 3, 1 and 1 for rounds 1 to 4 |
+| The row names the counts weighed and `docs/running/the-run.md` *The run*, as `docs/running/the-run.md:11` asks of every decision past the third round | `frame/plan.md:36`, its last two columns | read against `docs/running/the-run.md:8` and `:11` | holds, read. The row gives the counts, names *The run* in its last column, and gives the fix to the inspector, as `:8` allows where the row *No fix that no round reads* does |
+| No other record states the row's old wording or a fact the rewrite changed | the work item's records | `git grep -n -F` on `this row`, `five, three`, `fourth round` and `row on round 3's fix pass` over `agentory/threads/1795860192-mutate-tests-without-a-shell/` | holds, executed, a sample under contract rules 12 and 19. Outside this file's first run, which stays as it was written, the hits are `frame/plan.md:35`, `:36` and `round-4.md:30`, the round's snippet of row 35 |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since the first run | the issue's *Done when* and the diff, as the first run read them | none |
+| the build | unchanged since the first run: `git diff --stat 5370f462..HEAD` lists no file outside the records | the design's *Scope* and the claims the first run re-ran | none |
+| the last round | `trail/rounds/round-4.md` finding 1, located at `frame/plan.md:35` and closed `fixed 1c9f74a4`, with the fix given to the inspector | row 35, which reads as its snippet, and row 36, which now names row 35 as the place of the finding | none |
+| the changelog | unchanged since the first run | the build and `skills/verify/agentic-mutate.md:23-35` | none |
+| the orchestrator's part of the pull request body | `pr.md` is unchanged: `Closes #1677` and two quotes of `frame/plan.md:34` | `frame/plan.md:34` word for word, and the body check's exit 0 | none |
+| the routing's grounds | unchanged since the first run | the diff | none |
+
+```iadd
+target: 67be69e2 against 596c79a6
+Verdict: cleared
+```
