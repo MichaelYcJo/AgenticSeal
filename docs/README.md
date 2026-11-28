@@ -18,7 +18,7 @@ source.
 
 | File | The question it answers |
 |---|---|
-| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its parts, and which document owns the form of each record of a work item |
+| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its three layers and of its parts, and which document owns the form of each record of a work item |
 
 ## docs/forms/
 
