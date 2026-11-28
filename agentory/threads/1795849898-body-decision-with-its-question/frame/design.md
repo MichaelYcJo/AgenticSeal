@@ -1,0 +1,122 @@
+# Design: 1795849898-body-decision-with-its-question
+
+## Grounding
+
+The tree as read at `92b2f13f`.
+
+The issue was written before the renames of 0.39.0 to 0.41.0. Where it says `seal pr-body`, the sealer, `seal/threads/` or `guarantee.md`, this frame reads `agentic pr-body`, the inspector (`agents/inspector.md`), `agentory/threads/` and `inspection.md`, as the spawn names them. `gh issue view 1593 --json body,comments`, run on 2026-11-28, printed no comment (executed).
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| G1. `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared*, the paragraph opening **The pull request body's first part is the work item's `pr.md`**, lines 353 to 385 (read) | `pr.md` holds the `Closes` and `Part of` lines, quotes of the records and the attribution line, and no sentence of the orchestrator's own: "no sentence frames a quote or joins two". Its examples of what the owner must see, lines 373 to 379, are each one cell: a default from a `frame/questions.md` row, the framer's judgment from an *Alternatives considered* row, and the title's prefix from a *Judgments of the run* row. A quote is one line, ``- "<the sentence>" (`<path>` <coordinate>)``, and `agentic pr-body` refuses a quote its file does not hold. So the only way a question reaches the part above the fold is as a second quote, and this paragraph is where the orchestrator learns to write one |
+| G2. `skills/code-review/scripts/pr_body.py#_questions`, lines 865 to 876, with `_tables`, lines 832 to 834, and the module docstring, line 15 (read) | The copy holds `## Questions`, the line `FROM`, and the file's table lines alone. A file with no table line gets `NO_QUESTION_TABLE`, line 333, in place of `FROM`. The list of judgments the tree answered, which `agents/framer.md` puts at the head of the file above the table, never reaches the body, and a table with no row reaches it as a header row and a delimiter row |
+| G3. The work item that made the copy, `seal/threads/1793157214-the-pr-bodys-facts-come-from-the-records/` at `v0.23.1`: its `frame/plan.md` *Alternatives considered*, the rows "The generator copies every record whole" and "Only `open` rows of `frame/questions.md` are copied", and its `frame/design.md` *Data & interfaces*, the limits paragraph (read with `git show v0.23.1:<path>`) | It copied the table lines alone because the whole of #1051's records measured 61,338 bytes, close to GitHub's body limit, and nothing then folded a long body. #1560 (`c9715550`, 2026-11-20) added the fold: where the body would pass `LIMIT`, the sections after the changelog fold one at a time, the longest first (`pr_body.py` module docstring, the paragraph opening **Where the whole body**). Length no longer bars the lines around the table. The row on `open` rows stands: this work still copies every row, whatever its `Status` cell says |
+| G4. Census of every `frame/questions.md` at each release tag, one blob per path, 198 files (executed: `git ls-tree -r v<X.Y.Z>` over `git tag --list 'v*'`, then a read-only probe, `test_tmp_questions_census.py`, under this frame's scratch directory) | 55 of the 198 hold a table with only its header and delimiter rows, so the empty table of #1592 is a common shape and not one record's. All 198 hold lines outside the title and the table. The probe took any line opening with `#` for a heading, so its count of 27 files with a heading below the title is an upper bound: two of its hits are prose lines opening `#1651` and `#1658`. The real ones, all at `v0.23.1` to `v0.24.x`, are `## Answered by the tree, not to be reopened`, `## Rows`, `## Open rows` and the like. No file holds two tables |
+| G5. The same 198 files, each composed alone through `pr_body.compose` with `_questions` replaced by a copy of every line after the title (executed: `test_tmp_copy_below_title.py`, run against a `git clone --no-local` of `92b2f13f` under the scratch directory) | 197 compose. One is refused: line 10 of `seal/threads/1793714292-one-kind-of-finding-recurs-across-review-rounds/frame/questions.md` at `v0.31.0`, a prose line holding `closes #97` outside a code span. That is the refusal `pr_body.py#_claims` exists for, since GitHub would close #97 when the pull request ships. The copy's existing refusals cover the new lines with no change |
+| G6. `pr_body.py#_round`, line 814, and `tests/skills/test_pr_body.py#unsourced`, lines 293 to 310 (read) | The copy already moves a finding's heading one level down, as `"#" + raw[first].lstrip(" ")`, so that it nests under the round's `###` heading, and the suite's check that every line of the copy is a record's line accepts such a line. A heading below the questions file's title nests under `## Questions` the same way |
+| G7. `lib/gaps.py`, line 124, and `lib/lines.py#is_separator` (read) | A table's second line is read as a delimiter row by `is_separator(table_cells(line))`. That is how this work tells a table with no row: a run of table lines that is exactly a header and a delimiter row |
+| G8. `skills/settle/scripts/settle.py#plan_rows` and `JUDGMENTS_HEADER`, line 244 (read) | The settle's dry run reads *Judgments of the run* by its exact header, `Date`, `Judgment`, `Grounds`, `Judged against`, for the released plans and for the plans earlier settles removed. A fifth column for a question would make every plan written before it a table the reader names as not read |
+| G9. `pr_body.py` module docstring, *Limits*, the item opening "A quote is read as a substring" (read) | What follows a quote's path is not read, and the coordinate is free text: `Q1`, `*Alternatives considered* A1`, "the row on the title's prefix" in #1592. No script can tell which row a quote came from without reading that text |
+| G10. The policy root's statements of what `pr.md` quotes: `docs/running/the-run.md` *The run*, line 44, "quotes that row in the work item's `pr.md`"; `docs/layout/the-record-layout.md` line 116, "quotes of the other records, each with its coordinate", and line 153 (executed: `git grep -n 'pr\.md' -- docs`, each line read) | Each says that `pr.md` quotes a row or a record and none says which cell, so a pair of quotes from one row keeps each sentence true. The same holds for the sentences outside `docs/` that send a quote to `pr.md`: `skills/implement/orchestration.md` lines 167 and 218, `skills/commit-pr-convention/SKILL.md` lines 253 to 255, and `skills/implement/routing-question.md` line 156. No `docs/` sentence states what the copy's *Questions* section holds (executed: `git grep -n -i questions -- docs`). This work item's subject is the code, so it edits no `docs/` file, and it finds no `docs/` rule it changes |
+| G11. The tests that read the questions copy (executed: `git grep -n questions` over `tests/skills/test_chain_check.py`, `tests/evals/test_rule_cases.py`, `tests/behaviour/test_the_inspector_inspects.py`, `tests/skills/test_agentic.py` and the other files `git grep -l pr_body -- tests evals` lists) | Only `tests/skills/test_pr_body.py` builds a `frame/questions.md` the copy reads: `QUESTIONS`, lines 126 to 134, the expected body, lines 236 to 245, the case of S4 of #1103, lines 470 to 481, and `long_questions`, lines 351 to 356. The inspector's eval scaffolds hold no `frame/questions.md` and carry the line `` `frame/questions.md` is not in this work item. `` (`evals/behaviour/inspector/rule-inspector-cleared/scaffold.sh`, lines 271 to 273, read), which this work leaves as it is |
+| G12. The search of *User scenarios & acceptance* S7, run at `92b2f13f` from the top level (executed): ``git grep --no-color -n -i -P -e 'every table line' -e 'table lines? alone' -e 'table lines? of .?frame/questions' -e 'prose around the table' -- . ':!agentory/threads/1795849898-body-decision-with-its-question'`` | It printed two lines: `skills/code-review/scripts/pr_body.py:15`, the docstring's clause, which *Scope* item 3 rewrites, and `tests/skills/test_pr_body.py:472`, the docstring of S4 of #1103, which *Scope* item 4 rewrites. Both are lines the build changes so that the search no longer matches them, so the search keeps no line and has no keep file. It printed the two lines it is to find before the build, which shows it can find them |
+| G13. The suites, from `CONTRIBUTING.md` *What a contribution is asked for* and *Running the checks*, and `.github/workflows/test.yml` (read) | This repository runs its tests with one runner, `bin/test <files> -q`, which CI runs as `pytest tests/`. `bin/test tests/text tests/behaviour -q` holds the tree-wide files. The test files that load `pr_body.py` are `tests/skills/test_pr_body.py`, `tests/skills/test_chain_check.py` (line 3406) and `tests/evals/test_rule_cases.py` (line 21); `tests/skills/test_agentic.py` names it in the subcommand table at line 3727 (executed: `git grep`). The eval harness is run by nothing an edit owes, and this work changes no file under `evals/`. `uvx ruff check` and `uvx ruff format --check` are the linter and formatter |
+| G14. `skills/core/SKILL.md` *The first value: efficient development through the IADD process*, the paragraph opening **Judgment is spent where meaning is the question**, and *The rule a mechanism is kept against* | Whether a quoted line is a decision, and which line asks it, is a reading of meaning. A script check on pairs would gate on it, so the pairing stays the orchestrator's to write and the rounds' and the inspector's to read |
+| G15. `templates/records/sdd-plan.md` line 35, the guidance under `## Judgments of the run`; the issue's *Where the question is dropped*, its first item, its *Direction* and *Done when* line 1; the rows on the title's prefix in the released plans of `agentory/threads/1795841828-settle-only-release-note`, `1795841829-skill-descriptions` and `1795841830-find-leftovers-before-a-round` (read) | The guidance lists the kinds of judgment and asks for the grounds in one or two sentences, and gives the `Judgment` cell no form. Each released row on the title writes the cell as the answer alone, "The pull request's title takes `fix:`." and its `perf:` and `feat:` twins. That is the line the issue quotes as one where "nothing above the fold says what was being decided", so a `pr.md` that quotes such a cell, with its grounds or without them, still shows no question. A form for the cell changes the guidance text alone: `tests/behaviour/test_the_set_a_work_item_always_has.py#test_the_plan_template_carries_the_judgments_table` pins the heading and the header row, which stay, and `tests/text/test_the_rules_have_one_owner.py` reads the template (executed: `git grep -n sdd-plan.md -- tests`). No other text states the cell's form (executed: `git grep -n -i` for `judgment cell` and for the guidance's opening words, which printed line 35 alone) |
+
+## Scope
+
+In:
+
+1. **`pr.md` quotes a decision with what it decides.** `skills/code-review/orchestration.md`, the paragraph of G1: the sentence opening "What the owner must see before the fold is quoted from the record that holds it" is rewritten in place. A decision the orchestrator quotes from a table row is quoted with the cell of the same row that names what was decided, each a quote line of the form G1 gives, the naming cell first:
+   - a default taken where `routing.md` reads `Automation` `yes`, from its `frame/questions.md` row: the `Question` cell, then the `Default until answered` cell, or the `Status` cell once the row is answered;
+   - the framer's judgment left after the exchange, from its `frame/plan.md` *Alternatives considered* row: the `Approach` cell, then the `Verdict` cell;
+   - why the title takes its prefix, from the orchestrator's row of `frame/plan.md` *Judgments of the run*: the `Judgment` cell, which names the question it answers and then its answer, then the `Grounds` cell.
+
+   The two quotes stand on adjacent lines, and no sentence joins them, so the paragraph's rule that no sentence of the orchestrator's frames a quote holds unchanged. The rewritten sentence says that the orchestrator writes each row of *Judgments of the run* in that form, as `templates/records/sdd-plan.md` asks. The paragraph's other sentences stay as they read.
+
+   `templates/records/sdd-plan.md`, the guidance under `## Judgments of the run`, line 35, gains the cell's form: each row's `Judgment` cell names the question it answers, then its answer, as `Which prefix the pull request's title takes: fix:.` does (*Data & interfaces*). The form binds every row of the column, because the orchestrator writes a row before it knows whether `pr.md` will quote it. A cell written as the released plans write it, such as "The pull request's title takes `fix:`.", is the line the issue names as an answer with no question (G15). The table's header and its four columns stay as they are, so `settle.py#plan_rows` reads every plan as before (G8).
+2. **The copy carries the whole questions file below its title.** `pr_body.py#_questions` copies every line of `frame/questions.md` but its title, where the title is the first line that `READER.readable` gives and `lib/lines.py#heading_level` reads as level 1. Where the file holds no such line, every line is copied. Blank lines at either end are dropped, as `_copied` drops them. Each heading line among the copied lines is moved one level down, as `_round` moves a finding's heading (G6). Each run of table lines that is exactly a header row and a delimiter row (G7) is left out, and the fixed line `NO_QUESTION_ROW` stands in its place. Where the file holds no table line at all, the copied lines are followed by the fixed line `NO_QUESTION_TABLE`. The line `FROM` opens the section whenever the file stands. An absent file still gets `ABSENT`.
+3. **The fixed lines and the docstring.** `pr_body.py` gains `NO_QUESTION_ROW`, *Data & interfaces* below, listed in `FIXED`. The module docstring's clause "and every table line of `frame/questions.md`" is rewritten in place to say what *Scope* item 2 copies.
+4. **The cases.** `tests/skills/test_pr_body.py`: `EXPECTED`'s *Questions* section is rewritten for `QUESTIONS`'s `## Rows` heading, which now stands as `### Rows`. The case of S4 of #1103, `Test_compose#test_accepts_every_question_row_as_written`, is rewritten to pin S2 and S4 below. New cases pin S3 and S5, and one row is added to `test_refuses_a_record_it_cannot_copy_faithfully` for S6. Each new or rewritten case is shown red against `_questions` at `92b2f13f`, as contract rule 15 asks.
+5. **The work item's `changelog.md`**, written in the phase that builds the items above.
+
+Out, each with its reason:
+
+- A script that refuses a `pr.md` whose decision stands without its question. Whether a line is a decision is meaning (G14), and the coordinate a script would read is free text (G9). `frame/plan.md` *Alternatives considered* A3.
+- `agentic pr-body` writing a decision's question above the fold itself. `frame/plan.md` *Alternatives considered* A2.
+- A question column in *Judgments of the run*. `frame/plan.md` *Alternatives considered* A5.
+- `agents/inspector.md` and `agents/proofer.md`. Each reads `pr.md`'s quotes against the records they cite, and a pair of quotes is two such quotes, so neither definition changes.
+- `pr.<lang>.md`. Its paragraph renders each quote of `pr.md` in `pr.md`'s order, so a pair renders as two lines with no change to the rule.
+- The `pr.md` files of the released work items under `agentory/threads/`. They leave with their directories at the settle after their release.
+
+## User scenarios & acceptance *(mandatory)*
+
+| Scenario | Given / When / Then | Verifiable how |
+|---|---|---|
+| S1. A default is quoted with its question | Given a run whose `routing.md` reads `Automation` `yes` and a `frame/questions.md` row whose default the run took, when the orchestrator writes `pr.md` by `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared*, then the row's `Question` cell is quoted on the line before its `Default until answered` cell, or before its `Status` cell where the row is answered, each with its coordinate, and no sentence joins the two | Read: the proofer reads the rewritten sentence at the phase's target against *Scope* item 1. No case can hold what an orchestrator writes; at this work item's own pull request, the rounds and the inspector read its `pr.md` against the rule. The quotes' words are held by `agentic pr-body`'s existing quote check |
+| S2. The judgments the tree answered travel with the table | Given a `frame/questions.md` holding its title, a list of judgments above the table, a heading, the table and a line after it, when `compose` runs, then *Questions* holds every one of those lines but the title, in the file's order, with the heading one level down | `tests/skills/test_pr_body.py` `Test_compose`, the rewritten case of S4 of #1103, seen red against `_questions` at `92b2f13f`, which copies the table lines alone |
+| S3. A table with no row is not copied as a header | Given a `frame/questions.md` holding a list of judgments and a table with only its header and delimiter rows, when `compose` runs, then *Questions* holds the list, no table line, and `NO_QUESTION_ROW` where the table stood | A new `Test_compose` case, seen red against `_questions` at `92b2f13f`, which copies the two table lines |
+| S4. Every row is still copied as written | Given S2's file with one `open` row and one answered row, the `Status` cell of one in Korean, when `compose` runs, then both rows stand in *Questions* with their cells as written | The rewritten case of S2. It keeps the assertion of S4 of #1103 on the rows |
+| S5. A file with no table still says so | Given a `frame/questions.md` holding its title and a prose line and no table line, when `compose` runs, then *Questions* holds `FROM`, the prose line and `NO_QUESTION_TABLE`, in that order | A new `Test_compose` case, seen red against `_questions` at `92b2f13f`, which writes `NO_QUESTION_TABLE` alone and drops the prose line |
+| S6. A copied prose line is refused as a table line is | Given a `frame/questions.md` whose list line holds a closing keyword before an issue number outside a code span, when `compose` runs, then it refuses at `frame/questions.md` and that line, as G5's probe found | A new row of `test_refuses_a_record_it_cannot_copy_faithfully`, seen red against `_questions` at `92b2f13f`, which does not copy the line and refuses nothing |
+| S7. No text states the old copy | Given the build's commit, when the search of G12 runs from the top level, then it prints nothing | The command of G12 prints nothing (`frame/plan.md` *Phases* row 1) |
+| S8. The title's prefix is quoted with the question it answers | Given a run whose orchestrator writes its row of *Judgments of the run* on the title's prefix from `templates/records/sdd-plan.md`, when it writes `pr.md`, then the row's `Judgment` cell names the question and the prefix, as `Which prefix the pull request's title takes: fix:.` does, and it is quoted on the line before the row's `Grounds` cell | Read: the proofer reads the rewritten guidance on line 35 of the template and the sentence of *Scope* item 1 at the phase's target. `bin/test tests/text tests/behaviour -q`, in `frame/plan.md` *Phases* row 1, holds the template's heading and header, which this work keeps |
+
+## Data & interfaces
+
+**The copy's *Questions* section**, as `_questions` returns its blocks, where the file stands:
+
+```
+## Questions
+
+From `frame/questions.md`.
+
+<every line of frame/questions.md but its title, in order, blank ends dropped, each heading one level down, each table of a header and a delimiter row alone replaced by the line below>
+`frame/questions.md` holds a table with no row under its header.
+```
+
+The last line stands only in place of such a table. Where the file holds no table line, `NO_QUESTION_TABLE`, `` `frame/questions.md` holds no table line. ``, follows the copied lines. Each copied line keeps its source, `(QUESTIONS, line)`. Each fixed line has none, as `_fixed` gives it.
+
+**The new constant**, beside `NO_QUESTION_TABLE`:
+
+```python
+NO_QUESTION_ROW = f"`{QUESTIONS}` holds a table with no row under its header."
+```
+
+It joins `FIXED`, so `tests/skills/test_pr_body.py#unsourced` reads it as a fixed line. `SECTIONS` does not change: the section still folds as one, naming `frame/questions.md`.
+
+**A pair in `pr.md`**, as *Scope* item 1 asks, with a row of `frame/questions.md`:
+
+```
+- "<the Question cell, or a sentence of it>" (`frame/questions.md` Q1, *Question*)
+- "<the Default until answered cell, or the Status cell once answered>" (`frame/questions.md` Q1, *Default until answered*)
+```
+
+What follows the path stays free text (G9). The quote check of `pr_body.py#first_part` reads each line of the pair as it reads every quote.
+
+**The `Judgment` cell's form**, which the guidance on line 35 of `templates/records/sdd-plan.md` gains in words of the build's choosing: the cell names the question the judgment answers, then its answer, as in `Which prefix the pull request's title takes: fix:.`. The pair a `pr.md` then carries for the title's prefix:
+
+```
+- "Which prefix the pull request's title takes: `fix:`." (`frame/plan.md` *Judgments of the run*, the row on the title's prefix, *Judgment*)
+- "<the Grounds cell, or a sentence of it>" (`frame/plan.md` *Judgments of the run*, the row on the title's prefix, *Grounds*)
+```
+
+## Rule changes
+
+- nothing
+  why: The rules this work changes stand in `skills/code-review/orchestration.md`, in `templates/records/sdd-plan.md` and in `pr_body.py`'s docstring, which this pull request edits. The `docs/` sentences on what `pr.md` quotes say it quotes a row or a record and name no cell, so each stays true of a pair of quotes from one row, and no `docs/` sentence states what the copy's *Questions* section holds (G10).
+
+## Removes
+
+| Removes | Coordinate | Where it lands, or why it can go |
+|---|---|---|
+| The copy's filter to the table lines of `frame/questions.md` | `skills/code-review/scripts/pr_body.py#_questions` | The copy of every line but the title (*Scope* item 2). The filter existed for a length the fold now handles (G3) |
+| The header and delimiter rows of a table with no row, in the copy | `skills/code-review/scripts/pr_body.py#_questions` | The fixed line `NO_QUESTION_ROW`, in the table's place (*Scope* item 2) |
+| The docstring clause "and every table line of `frame/questions.md`" | `skills/code-review/scripts/pr_body.py`, module docstring, line 15 | Rewritten in place (*Scope* item 3) |
+| The test pin that the lines around the table and the `## Rows` heading are not copied | `tests/skills/test_pr_body.py#Test_compose`, `test_accepts_every_question_row_as_written`, lines 470 to 481 | Rewritten in place to pin S2 and S4 (*Scope* item 4) |
+| The examples of single quotes of what the owner must see before the fold | `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared*, the sentence opening "What the owner must see before the fold", lines 373 to 379 | Rewritten in place as pairs (*Scope* item 1) |
+
+The work adds one rule, the pair of *Scope* item 1 with the form it asks of a `Judgment` cell, and one fixed line, `NO_QUESTION_ROW`. The rule replaces the sentence it rewrites, and nothing else can go for it, because no other text states which cell of a row `pr.md` quotes (G10) or what form a `Judgment` cell takes (G15). What it answers is on record: #1592's body opened with an answer whose question stood nowhere above the fold, and the run in another repository that raised #1593 reported the same. The fixed line takes the place of the two lines that read as a missing record, a shape 55 of the 198 questions files at the release tags hold (G4).
+
+Framed 2026-11-28 by framer, before the build.
