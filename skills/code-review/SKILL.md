@@ -6,8 +6,7 @@ description: |
   Use when: a person asks to review a PR, a diff or a branch, or to re-review after
   fixes, in plain words and naming no skill, as in "review this PR <url>" or
   "검토해봐 <url>"; or when orchestrating reviewer agents.
-  NOT for: implementing fixes (use `implement`), style-only linting a formatter
-  can do, or a person typing `/code-review` by name, which runs Claude Code's
+  NOT for: a person typing `/code-review` by name, which runs Claude Code's
   built-in command and not this skill.
 ---
 

@@ -8,8 +8,6 @@ description: |
   every open row of their records, then remove their directories.
   Use when: preparing a release and the work items have accumulated; a
   session asks what `agentory/threads/` is still holding, or runs `agentic settle`.
-  NOT for: the release notes, which the tag's workflow builds from the
-  fragments; anything in a work item that has not shipped.
 ---
 
 # settle — write each section's latest decision
