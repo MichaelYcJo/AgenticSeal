@@ -16,7 +16,7 @@ The tree as read at `5c18f931`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | The principle in `docs/method/iadd.md`, the changelog fragment | `uv run --no-project tests/run_tests.py -q tests/behaviour tests/text` | |
+| 1 | The principle in `docs/method/iadd.md`, the changelog fragment | `uv run --no-project tests/run_tests.py -q tests/behaviour tests/text` | fa422b66 |
 
 ## Overlap with the release
 
