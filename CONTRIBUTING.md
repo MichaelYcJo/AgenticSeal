@@ -6,14 +6,14 @@
 GitHub offers `main` by default, and for everything except a release that
 default is the wrong one here. Work collects on `release/next`, the one
 release branch, which carries no version number, and `main` moves once per
-release; `docs/releasing/branch-and-release.md` *Work
-accumulates on a release branch* holds the reasoning, and this section is the
-part a contributor needs.
+release; `docs/releasing/branch-and-release.md` *Work accumulates on a
+release branch* holds the reasoning, and this section is the part a
+contributor needs.
 
 The contributor sets `release/next` as the base when opening the pull
-request: the base is the left-hand dropdown on the compare page. For a pull request already
-open against `main`, the **Edit** button beside its title changes the base
-without closing anything.
+request: the base is the left-hand dropdown on the compare page. For a
+pull request already open against `main`, the **Edit** button beside its
+title changes the base without closing anything.
 
 **Why a wrong base is refused with a message about a version.** A pull request
 into `main` is a release here, so the checks that run there are a release's
