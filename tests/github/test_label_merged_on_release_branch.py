@@ -26,6 +26,7 @@ that read the workflow, and the reader case from
 import importlib.util
 import json
 import os
+import re
 
 import pytest
 from conftest import ROOT, census_case, read
@@ -156,12 +157,11 @@ class Test_create_label:
         (created,) = tracker.calls
         assert created[created.index("--color") + 1] == "0E8A16", created
 
-    def test_accepts_the_name_and_a_description_saying_when_it_comes_off(
-        self, monkeypatch
-    ):
-        """S7 of #1671. The label carries no number, so its description is
-        what tells a person on the tracker which branch it records and when
-        it stops being the current answer."""
+    def test_refuses_a_name_or_a_description_that_carries_a_number(self, monkeypatch):
+        """S7 of #1671. A release takes its number only when it is cut, so
+        the label carries none, and its description is what tells a person
+        on the tracker which branch it records and when it stops being the
+        current answer."""
         m = signal()
         tracker = Tracker()
         monkeypatch.setattr(m.closer, "run", tracker.run)
@@ -171,6 +171,7 @@ class Test_create_label:
         description = created[created.index("--description") + 1]
         assert "release/next" in description, description
         assert "comes off" in description, description
+        assert not re.search(r"\d", created[3] + description), created
 
 
 class Test_main:

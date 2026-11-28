@@ -180,6 +180,15 @@ class Test_number_read:
         number counts past 9."""
         assert gate().number_read(version, subjects) == number
 
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    @pytest.mark.parametrize(
+        "subject", ["Feat: a thing (#12)", "feat(agents): a thing (#12)", "a feat: x"]
+    )
+    def test_refuses_any_spelling_but_feat_as_a_minor(self, subject):
+        """The reading counts the one spelling `feat:` at the start of a
+        subject, so a near spelling, or the word further in, reads a patch."""
+        assert gate().number_read(BASE_VERSION, [subject]) == PATCH
+
 
 class Test_judge_number:
     @pytest.mark.rule("a-patch-carries-no-feat")
@@ -315,16 +324,31 @@ class Test_judge_number:
 class Test_version_at:
     def test_accepts_the_version_plugin_json_holds_at_the_ref(self, monkeypatch):
         m = gate()
-        tracker = Tracker(versions={"abc1234": "2.3.4"})
+        tracker = Tracker(versions={"upstream/main": "2.3.4"})
         monkeypatch.setattr(m.closer, "run", tracker.run)
-        assert m.version_at("abc1234") == "2.3.4"
+        assert m.version_at("upstream/main") == "2.3.4"
         assert tracker.calls == [
-            ("git", "show", "abc1234:.claude-plugin/plugin.json")
+            ("git", "show", "upstream/main:.claude-plugin/plugin.json")
         ], tracker.calls
+
+    def test_refuses_a_ref_git_cannot_show_by_ending_the_run(self, monkeypatch):
+        """A version that cannot be read is no number to judge against, so
+        the runner's exit stands: the check fails loudly rather than reading
+        a version it did not see."""
+        m = gate()
+
+        def refused(*args):
+            raise SystemExit(f"`{' '.join(args)}` failed: no such path")
+
+        monkeypatch.setattr(m.closer, "run", refused)
+        with pytest.raises(SystemExit, match=r"plugin\.json"):
+            m.version_at("upstream/main")
 
 
 class Test_main:
-    def test_reads_no_milestone_and_needs_no_head_name(self, monkeypatch, capsys):
+    def test_accepts_a_run_that_reads_no_milestone_and_no_head_name(
+        self, monkeypatch, capsys
+    ):
         """S6 of #1671. No milestone names a release before its cut, and the
         number is read from `plugin.json`, so the check asks the tracker for
         no milestone and judges a run that names no head branch by the one
@@ -342,7 +366,7 @@ class Test_main:
         assert not [a for a in tracker.calls if a[:2] == ("gh", "api")], tracker.calls
 
     @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_a_patch_moved_where_a_feat_reads_a_minor_fails_the_step(
+    def test_refuses_a_patch_moved_where_a_feat_reads_a_minor(
         self, monkeypatch, capsys
     ):
         """S2 of #1671, through the wiring: the versions are read at the base
