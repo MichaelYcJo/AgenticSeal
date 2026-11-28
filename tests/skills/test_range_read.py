@@ -363,7 +363,9 @@ class Test_main:
         line naming each, or names one that is not there. A record whose
         lines end in CRLF on disk, as a text-mode write leaves them on
         Windows, prints each line ended by LF alone, as a record git holds
-        prints."""
+        prints. A path the range changes prints as another text path, since
+        no keep file of a work item under a local root stands in the
+        tree."""
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
@@ -371,6 +373,8 @@ class Test_main:
         git(repo, "config", "user.name", "t")
         write(repo, "f.txt", "one\n")
         base = commit_everything(repo, "base")
+        write(repo, "f.txt", "two\n")
+        commit_everything(repo, "change")
         item = local_home(repo) / "threads" / "1700000000-a-work-item"
         item.mkdir(parents=True)
         (item / "routing.md").write_bytes(b"# Routing, local\r\nSecond line.\r\n")
@@ -378,6 +382,7 @@ class Test_main:
         code, said, _err = ran(monkeypatch, capsys, repo, item, base, out)
         assert code == 0, said
         text = written(out)
+        assert RANGE.WHOLE_HEAD.format(path="f.txt") + "\n" in text
         name = os.path.relpath(item / "routing.md", repo).replace(os.sep, "/")
         record = "\n# Routing, local\nSecond line.\n"
         assert RANGE.ON_DISK.format(path=name) + record in text
