@@ -32,6 +32,12 @@ holds rule changes on sections this design also changes, which its row
 below names.
 ```
 
+```iadd
+verdict: fixed 5984efa8
+location: `agentory/threads/1795849901-number-read-at-cut/frame/plan.md:57`, `agentory/threads/1795849901-number-read-at-cut/frame/plan.md:62`
+answer: The framer folded the finding at `5984efa8` with the round's paste-ready text: the *Overlap with the release* paragraph now points to its row, which names *Cutting a release*, *After the merge* and *The release pull request*, and states no count. The same fold dropped two counts of lists stated elsewhere, in A6's *Verdict* and A1's *Failure scenario*, which the `location:` line names. `git grep -n -F "two sections" -- agentory/threads/1795849901-number-read-at-cut/frame`, run at `5984efa8`, prints nothing (executed). Every place is under the work item's records, so the row *No fix that no round reads* of `skills/core/SKILL.md` gives this pass to the inspector.
+```
+
 ## Confirmations
 
 ```iadd
