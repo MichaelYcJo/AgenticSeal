@@ -1051,7 +1051,12 @@ class Test_main:
         assert "names no command" in capsys.readouterr().err
         assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 
-    def test_refuses_a_tests_command_a_shell_would_read_as_two(self, tmp_path, capsys):
+    @pytest.mark.parametrize(
+        ("line", "named"), [("true && false", "`&&`"), ("true\nfalse", "`\\n`")]
+    )
+    def test_refuses_a_tests_command_a_shell_would_read_as_two(
+        self, line, named, tmp_path, capsys
+    ):
         """S1 of #1677. `--tests` runs with no shell, so `a && b` ran `a` with
         `&&` and `b` as its arguments; where `a` ignored them, the cases that
         watch the unit never ran and each mutant read `SURVIVED`. The call is
@@ -1059,16 +1064,16 @@ class Test_main:
         `sh -c` form a person can pass on purpose."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
-        code = module().main(
-            [str(target), "--replace", "1", "2", "--tests", "true && false"]
-        )
+        code = module().main([str(target), "--replace", "1", "2", "--tests", line])
         assert code == 2
         out = capsys.readouterr().out
         # The verdict is the first line, as every run that measured nothing
-        # prints it (`skills/verify/agentic-mutate.md`).
+        # prints it (`skills/verify/agentic-mutate.md`), and the refusal is
+        # that one line: a newline it names is written `\\n`.
         assert out.startswith("refused: "), out
+        assert out.count("\n") == 1, out
         # The operator the shell would have read, and the form that runs it.
-        assert "`&&`" in out, out
+        assert named in out, out
         assert "sh -c '" in out, out
         assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 
@@ -1956,6 +1961,10 @@ class Test_module:
             ('x "a" ; y', False, [";"]),
             # A newline ends a command as `;` does.
             ("true\nfalse", False, ["\n"]),
+            # Blank space at either end separates nothing: `command_words`
+            # drops it, and a YAML block leaves a line ending in a newline.
+            ("true\n", False, []),
+            ("\n true -q \r\n", False, []),
             ('x "a\nb"', False, []),
         ],
     )

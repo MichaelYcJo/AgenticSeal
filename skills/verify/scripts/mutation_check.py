@@ -270,6 +270,9 @@ def shell_operators(text, windows=None):
     """
     if windows is None:
         windows = os.name == "nt"
+    # Blank space at either end separates no two commands: `command_words`
+    # drops it, so a line a YAML block leaves ending in a newline runs as one.
+    text = text.strip(" \t\r\n")
     found, run, quote, i = [], "", None, 0
     while i < len(text):
         char = text[i]

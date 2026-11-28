@@ -25,7 +25,9 @@ quote groups a word, and on POSIX a backslash escapes the next character;
 on Windows it is a path's separator. Nothing else a shell does happens: no
 operator, redirect or expansion. So a `--tests` holding `;`, `&`, `|`, `<`,
 `>` or a newline outside quotes, and on POSIX not after a backslash, is
-`refused`, with nothing written, and the line names each operator. Run as
+`refused`, with nothing written, and the line names each operator. Blank
+space at either end of the line, a final newline among it, separates no
+two commands and is not read. Run as
 written, the first program would get the operator as its argument, and the
 cases after it would never run, so each mutant would read `SURVIVED` for a
 run that measured nothing. A line that needs a shell is passed to one on
