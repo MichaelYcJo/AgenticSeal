@@ -1,7 +1,7 @@
 {
   "name": "agentic",
   "displayName": "agentic",
-  "version": "0.41.0",
+  "version": "0.42.0",
   "description": "The plugin that runs IADD, Independent AI-Driven Development: agents frame, build, review and inspect a change, no agent approves its own work, and the run ends in an inspection bound to a commit.",
   "author": {
     "name": "MichaelYcJo"
