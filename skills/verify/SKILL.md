@@ -6,8 +6,6 @@ description: |
   tree state, and label every claim executed, read or unverified.
   Use when: about to say done, fixed, passes, or complete; before a commit;
   before handing work to the review chain.
-  NOT for: deciding whether the work is worth doing, or reviewing someone
-  else's diff (`code-review`).
 ---
 
 # The Inspection Test

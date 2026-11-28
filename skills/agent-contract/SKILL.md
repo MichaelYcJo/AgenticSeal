@@ -1,15 +1,8 @@
 ---
 name: agent-contract
 description: |
-  The rules every IADD agent works under. Not a command to run: the
-  harness injects it into each agent at startup through the `skills:` list
-  in the agent's definition, and an orchestrator session may load it to be
-  bound by the same rules.
-  Use when: writing or reviewing an agent definition, or settling which rule
-  a spawn prompt may narrow and which it may not.
-  NOT for: a rule that is one agent's own — those live in `agents/<name>.md`;
-  the review procedure (`code-review`), the implementation procedure
-  (`implement`), or the migration procedure (`legacy-parity`).
+  The rules every IADD agent works under. Every agent receives it preloaded
+  through the `skills:` list of its definition.
 user-invocable: false
 ---
 

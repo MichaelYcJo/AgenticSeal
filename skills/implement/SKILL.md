@@ -6,10 +6,6 @@ description: |
   Use when: implementing a feature, starting a ticket — including deciding how to
   start one, incorporating review feedback, or when a repo needs its document
   layout bootstrapped.
-  NOT for: reviewing someone else's code (use `code-review`), or explaining how
-  something already works. The line is whether the question names a work item to
-  be built: "how should I approach TICKET-4" is this skill, "how does the review
-  chain work" is not.
 ---
 
 # implement — spec-driven implementation
