@@ -80,6 +80,11 @@ The cases added to the parametrize list at `tests/skills/test_mutation_check.py:
             ("x 'a\nb'", False, []),
 ```
 
+```iadd
+verdict: fixed 48d3b4ba
+answer: `OPERATOR_CHARACTERS` now holds the newline, named in its comment as a command's end, and the refusal prints it as `\n`. Cases `("true\nfalse", False, ["\n"])` and a newline inside double quotes, which reads none, were added. The mutant that drops the newline from `OPERATOR_CHARACTERS` reads `red` (executed, `<scratchpad>/1795860192-mutate-tests-without-a-shell/fix-1/mutate.txt`, mutant 3). `skills/verify/agentic-mutate.md`, `frame/design.md` G1 and *Scope* item 1, and `changelog.md:3` name the newline beside the five characters.
+```
+
 ### 2. The refusal prints no `refused`, against S1, and the verdict list does not name it
 
 ```iadd
@@ -134,6 +139,11 @@ The verdict list at `skills/verify/agentic-mutate.md:71-72`:
   operator outside quotes), `not restored`
 ```
 
+```iadd
+verdict: fixed 48d3b4ba
+answer: The refusal no longer goes through `parser.error`. `main` prints `refused: …` as its first line on stdout and returns 2, as `Refused` does. The `Test_main` case now calls `main` and asserts the return code and that stdout opens with `refused: `. The mutant that drops `{REFUSED}: ` from the line reads `red` (executed, `fix-1/mutate.txt`, mutant 4). `skills/verify/agentic-mutate.md`'s verdict list names a shell's operator in `--tests` under `refused`. `frame/design.md` *Scope* item 1 says the refusal prints `refused` first, and `trail/phases/phase-1.md`'s sentence on `parser.error` was removed.
+```
+
 ### 3. No case holds a double quote's close or a backslash inside double quotes, and the phase claims the close was seen red
 
 ```iadd
@@ -157,6 +167,11 @@ Both are behaviours this diff adds that no case then holds, so this is the *Regr
             (r'x "a\" ; b"', True, [";"]),
 ```
 
+```iadd
+verdict: fixed 48d3b4ba
+answer: Two cases were added: `('x "a" ; y', False, [";"])` holds the double quote's close, and `(r'x "a\" ; b"', False, [])` holds a backslash inside double quotes. The mutant that keeps the double quote open reads `red` (`fix-1/mutate.txt`, mutant 1). The mutant that limits the backslash rule to outside quotes, the one round 1 saw survive, reads `red` too (`fix-1/mutate-2.txt`). Both are executed. `trail/phases/phase-1.md` now says the single quote's close was seen red, and that round 1 found the double quote's pair survived the cases as they stood.
+```
+
 ### 4. Phase 1's Status cell is empty: `||` moves `d86d5c6f` into a fifth cell
 
 ```iadd
@@ -171,6 +186,11 @@ Why it matters: the Phases table has four columns (`plan.md:18`). Commit `fe56d1
 | 1 | *Scope* items 1 to 4 | the new cases red against `8e130543` and green after; `uv run --no-project tests/run_tests.py -q tests/skills/test_mutation_check.py tests/text tests/behaviour`; `uvx ruff check` and `format --check` on both Python files | d86d5c6f |
 ```
 
+```iadd
+verdict: fixed 48d3b4ba
+answer: `frame/plan.md` phase 1's row has four cells again, and its Status cell reads `d86d5c6f`.
+```
+
 ### 5. The Grounding cites a paragraph of `agentic-mutate.md` by the opening of a docstring in `mutation_check.py`
 
 ```iadd
@@ -183,6 +203,11 @@ Why it matters: the Grounding is dated to `8e130543` (`design.md:5`), and its ro
 
 ```markdown
 | `skills/verify/agentic-mutate.md`, the paragraph opening **The bound ends the run, not only the process it spawned** | the timeout kills the command's process group on POSIX, which the verdict's bound rests on |
+```
+
+```iadd
+verdict: fixed 48d3b4ba
+answer: `frame/design.md` *Grounding* now cites the paragraph opening **The bound ends the run, not only the process it spawned**, the heading `skills/verify/agentic-mutate.md:111` holds.
 ```
 
 ## Confirmations
