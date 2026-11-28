@@ -180,14 +180,14 @@ lines the design keeps. Before you write the cell, you run the search from
 the repository's top level at the commit `## Grounding` names, and you
 account for each line it prints. A line the build removes, or changes so
 that the search no longer matches it, is named by a *Scope* item or a
-`## Removes` row, and it is also a line of the keep file of each phase
-whose search prints it and that closes before the phase that removes it.
-A line the design keeps is a line of the keep file of the phase whose
-search prints it. Both are as `skills/verify/SKILL.md` *An absence claim is
-only as good as the search behind it* states, and `frame/design.md` gives
-the reason for a kept line's kind. No file name, no pathspec other than the work item's
-directory and no narrowing of the pattern accounts for a line, because each
-hides every other line its file or its pattern covers. The search's
+`## Removes` row, and where an earlier phase's search prints it, that
+phase's keep file holds it too. A line the design keeps is a line of a
+keep file. Which keep files hold each such line is stated in
+`skills/verify/SKILL.md` *An absence claim is only as good as the search
+behind it*, and `frame/design.md` gives the reason for a kept line's
+kind. No file name, no pathspec other than the work item's directory and
+no narrowing of the pattern accounts for a line, because each hides every
+other line its file or its pattern covers. The search's
 pathspec states what the search is about: the whole tree for a rename. Your
 frame will quote the search's patterns once it is committed, which the run
 at the frame's commit cannot show, so the search excludes the work item's

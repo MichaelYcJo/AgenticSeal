@@ -204,10 +204,10 @@ The builder types the commands the *Phase boundary* row of
 `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* states
 for a phase, and the commands `skills/implement/fix-pass.md` *The narrow
 set, then the read of the range* states for a fix pass, over the set that
-row or the *Review rounds 1..n* row names, never the whole suite (`docs/running/the-run.md` *The
-handoff*). Asking whether the suite catches something is a coverage probe,
-a different act: the builder runs it over the module that should catch it
-and reports it as a probe.
+row or the *Review rounds 1..n* row names, never the whole suite
+(`docs/running/the-run.md` *The handoff*). Asking whether the suite
+catches something is a coverage probe, a different act: the builder runs
+it over the module that should catch it and reports it as a probe.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
 commit: the routing is checked at the pull request
