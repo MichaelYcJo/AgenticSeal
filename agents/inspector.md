@@ -78,7 +78,9 @@ return.
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
    text, and you read it as no party. Then read the issue body
-   (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
+   (`gh issue view <N>`), the diff
+   (`git diff --ignore-submodules=none <base>...HEAD`, whose flag keeps a
+   moved submodule pointer in it as step 1's does),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator

@@ -154,8 +154,11 @@ it.
 the merge's resolution, and holds the work item against the merged tree.**
 Where a verifying round's range `<a>..<b>` holds a merge of the base, the
 code the round reviews is what the branch's own commits changed, which
-`git log --no-merges -p <a>..<b> ^<base>` prints, and what the merge's
-resolution changed, which `git show <merge>` prints. What the merge brought
+`git log --ignore-submodules=none --no-merges -p <a>..<b> ^<base>` prints,
+and what the merge's resolution changed, which
+`git show --ignore-submodules=none <merge>` prints. The flag keeps a moved
+submodule pointer in both whatever the repository's settings say, as
+`lib/gitcmd.py#FLAGS` does for the scripts. What the merge brought
 in from the base is other work items' text, which the row *No pull request
 without a cleared inspection* of `skills/core/SKILL.md` *Judgment is not licence to skip
 a party* held at their own pull requests, and the round reviews none
