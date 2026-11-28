@@ -201,8 +201,9 @@ suite that owns a test file the phase changes, a built-app or end-to-end
 suite among them, and of every suite the rest of the phase's *Phase
 boundary* set falls in. You find the suites in the repository's
 contribution guide, its CI workflows and its runners' configuration. A
-suite the cell leaves out has the crafter run its files under another
-suite's command, which can come back green over files it did not run.
+suite the cell leaves out is one the crafter has to find on its own, and a
+file of it the crafter does not place runs under another suite's command,
+which can come back green over a file it did not run.
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
