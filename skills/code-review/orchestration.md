@@ -339,7 +339,10 @@ each check the `Broad gate` command runs, which the orchestrator judges in
 the workflow files at HEAD as `skills/verify/SKILL.md` *The answerer has to
 exist* judges an answerer. And `agentic pr-wait <N>` exits 0 at HEAD, where
 HEAD is the merge commit or a commit after it that changes only the work
-item's records. The stand-in applies whatever the command above names. A
+item's records, and `gh pr checks <N>` lists as passed, not skipped, each
+job the orchestrator judged to run those checks, because the wait's exit 0
+counts a skipped check as one that passed. The stand-in applies whatever
+the command above names. A
 commit of the branch's own after the newest broad run that changes a path
 outside the records owes the broad run all the same, as the broad gate arm
 reads it. Under `stop before the pull request`, before the pull request
@@ -368,7 +371,7 @@ file and the inspector again**, because the merge moves HEAD past
 `trail/gate.md` and `inspection.md`. The orchestrator runs `agentic pr-body`
 and spawns the inspector after the verifying round's record is committed
 where one is owed, and after the broad run's record is committed or, where
-the stand-in is taken, after `agentic pr-wait <N>` exits 0. Before that
+the stand-in is taken, once its conditions above hold at HEAD. Before that
 spawn, the orchestrator writes one row of `frame/plan.md` *Judgments of the
 run* for each merge after the newest broad run. The row names the merge
 commit, the paths the command above printed, what the merge owed, and,
