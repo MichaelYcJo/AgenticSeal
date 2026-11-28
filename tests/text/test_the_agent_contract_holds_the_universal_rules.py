@@ -36,10 +36,15 @@ resolves to until #1578, and now cites the opening paragraph of
 `tests/text/test_the_rules_have_one_owner.py` holds the places there and
 the citation here.
 
-Two frontmatter facts are pinned as well. `user-invocable: false` keeps the
+The frontmatter's `user-invocable: false` is pinned as well. It keeps the
 contract out of the `/` menu and was measured (2026-09-03, docs/experiments/)
-not to block preload; `disable-model-invocation: true` is the flag that does
-block it, and a contract that stops arriving is the failure with no symptom.
+not to block preload. `disable-model-invocation: true` does block it, as
+Claude Code's skills documentation (https://code.claude.com/docs/en/skills)
+states and `docs/experiments/2026-11-28-disable-model-invocation-blocks-preload.md`
+measured, and a contract that stops arriving is the failure with no symptom.
+`tests/behaviour/test_chain_hooks_hardening.py`
+`#test_no_preloaded_skill_carries_the_flag_that_blocks_its_preload` refuses
+that flag on every skill an agent preloads, the contract among them.
 """
 
 import os
@@ -126,14 +131,6 @@ def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
     # of the `/` menu.
     assert "user-invocable: false" in head, (
         "the contract would show in the `/` menu as though it were a command"
-    )
-    # The flag the harness reads to block a preload, which
-    # `docs/running/the-agent-set.md` *One contract every agent receives, and
-    # one definition each* rules out: every agent receives the contract
-    # before its first tool call.
-    assert "disable-model-invocation: true" not in head, (
-        "that flag blocks preload — the contract would stop reaching agents "
-        "and nothing would say so (docs/experiments/2026-09-03-…)"
     )
 
 

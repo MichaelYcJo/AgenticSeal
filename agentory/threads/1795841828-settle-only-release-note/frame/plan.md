@@ -1,0 +1,61 @@
+# Implementation Plan: 1795841828-settle-only-release-note
+
+## Technical context
+
+The tree as read at `3729b409`.
+
+- `.github/scripts/publish_release_note.py#main`, lines 850 to 906, reads `previous_tag`, then `fragments(commit_range(previous, tag))`, and returns 1 at lines 867 to 875 where the list is empty. Only after that does it ask `release_exists`, `title_from`, `milestone_description`, `merged_pulls` and `release_body`, then `create`, and write `created=true`. The settle-only path enters at the empty list and rejoins at `release_exists`, so the title, the theme, the summary, the create and the output stay one code path.
+- `publish_release_note.py#release_body`, lines 753 to 832, takes `rendered` as the folded part's text. It does not read where that text came from, so the release pull request's body passes through it unchanged.
+- `publish_release_note.py#merged_pulls`, lines 477 to 521, returns None where `gh` fails, and the note then goes out without its summary. The release pull request reader cannot take that tolerance, because a settle-only note has no other text (design Scope item 4).
+- `publish_release_note.py` already loads `skills/settle/scripts/settle.py` with `sibling.load` (line 133). Loading `skills/code-review/scripts/chain_check.py` the same way was executed in G9.
+- `chain_check.py#settled`, line 2117, takes candidate directories and keeps each one that held a file at the given ref, through `chain_check.py#tree_at`. Its `git` helper returns None where git exits non-zero, and `tree_at` then returns no path. So a git that fails inside `settled` reads as no settle, which sends the range to the existing refusal and never to a publish.
+- `tests/github/test_publish_release_note.py#wire`, lines 163 to 195, stubs `fragments`, `previous_tag` and `release_exists`, and sets `ROOT` to a `tmp_path` that is no git repository. A case that passes `entries=[]`, A3 among them, would reach git in the new reading unless `wire` stubs it too.
+- `.github/scripts/release_mark.py#mark_release` reads the note's header through `publish_release_note.py#header` and the pull requests through `merged_pulls` (design G13), so it needs no change.
+
+**Failure scenario of the chosen approach, six months on.** A settle's `agentic settle --apply` keeps every directory it reads, for an open row or for its note, and removes none. That settle's commit removes no directory whole, so its settle-only release fails as every release of settles alone fails at `3729b409`, and its note is written by hand. The job log names that commit as no settle (design Scope item 3), which says why. A second scenario: a pull request outside a settle removes a whole work item directory and is the only other pull request of a release with no fragment. It reads as a settle, and the release publishes from the release pull request's body. `docs/checks/the-fold.md` *The fold, and what tells it from a deletion* already accepts this reading for `chain-check`, and the removal shows in that pull request's diff at its review.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. Tell a settle by every commit's `IADD-Routing: no work item` trailer | A change routed `direct` writes the same trailer (design G4), so a release of direct changes would publish from the release pull request's body, against the issue's second *Done when* line. On `main` the trailer sits inside a squash body, where git's trailer parser does not read it (G10), so the script would read each pull request's own commits through `gh`, a network read on which a gate would stand. The trailer's spelling also changed between v0.39.4 and v0.40.1 (G10). | Rejected. |
+| A2. Tell a settle by its pull request title prefix `chore: settle`, its head branch name, or a label | No label marks a settle, and the two settles' head branches differ in form (G11). A title or branch prefix is a spelling of a label, which `skills/core/SKILL.md` *The rule a mechanism is kept against* forbids a script to gate on. | Rejected. |
+| A3. Tell a settle by `chain_check.py#settled`, asked of each commit of the range other than merges against its parent | A settle that removes no directory whole fails as today, and a pull request outside a settle that removes a whole directory reads as a settle (Technical context). The first fails in the safe direction, and the second is the reading `docs/checks/the-fold.md` already accepts. | Chosen. The fact is git's, read exactly, through the predicate the policy names as the one that reads it. |
+| A4. Judge the range per pull request, through the files `gh` lists for each pull request `merged_pulls` returns | `merged_pulls` may fail, and the script tolerates that failure by design, so a gate standing on it either publishes on a guess or fails a release the git history alone could decide. A squash merge makes each pull request one commit of the range, so the commit is the pull request's unit in git already. | Rejected for A3's per-commit reading. |
+| A5. Find the release pull request from the merge commit's subject, `Merge pull request #N from ...` | The subject is GitHub's spelling, not one of the plugin's forms, and the script's docstring already declines to read it for the title (its paragraph opening **The title comes from the tagged commit's message**). | Rejected. |
+| A6. Find the release pull request with `gh api repos/<repo>/commits/<sha>/pulls` | That endpoint lists pull requests associated with a commit, which may hold more than the one whose merge commit it is, so the script would still compare `merge_commit_sha`. | Rejected for A7, which reads the same fact with the base and head the release pull request has by `docs/releasing/release-checklist.md` *The release pull request*. |
+| A7. Find it with `gh pr list --base main --head release/v<version> --state merged --json number,body,mergeCommit`, keeping the entry whose `mergeCommit.oid` is the tagged commit | A tag pushed by hand on a commit that is no release merge finds none, and the run fails with exit 1 saying so. That is the safe direction. | Chosen (G12). |
+| A8. Publish the release pull request's body alone as the note | The note has no `header` paragraph, so `release_mark.py#mark_release` finds no header and edits nothing (G13), against the issue's first *Done when* line. | Rejected. |
+| A9. Put the body where `release_body` puts the fragments | A body holding an unbalanced `<details>` tag breaks the folds of the note, as a fragment would. `release_body`'s docstring names `agentic pr-body` as the reader that refuses such a tag in a fragment, and this frame found no reader that refuses one in a release pull request's body (read, not searched whole). The orchestrator writes that body and the owner reads it before the merge, and rule change 3 of the design tells the orchestrator the body is the note. | Chosen. |
+| A10. Replace the refusal with a note that falls back to the release pull request's body for every range that added no fragment | A release of direct changes or of outside contributions alone would ship explained only by a body nobody wrote as a note. The owner kept that range failing (design G5). | Rejected. The structure is kept on the premise of the issue's second *Done when* line, read in G5. |
+| A11. A settle writes a changelog fragment of its own | The owner declined it (design G5). A fragment needs a work item directory, and a settle that opened one would leave a directory for the next settle (`skills/settle/SKILL.md` *A settle is not a work item*). | Rejected. |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | Scope items 1 to 7 of `frame/design.md`, with the work item's `changelog.md`. | `uv run --no-project tests/run_tests.py -q tests/github/test_publish_release_note.py tests/github/test_release_mark.py tests/behaviour/test_a_release_publishes_its_note.py tests/skills/test_settle.py tests/behaviour/test_a_cited_section_stands_in_its_file.py` passes; `uvx ruff check .github/scripts/publish_release_note.py tests/github/test_publish_release_note.py` and `uvx ruff format --check` on the same two files exit 0; each new case is shown red at `3729b409` as contract rule 15 asks; S6 of the design is run and its output quoted in the phase record. | 07f3bb14 |
+
+## Overlap with the release
+
+The spawn named two other open work items of the release, #1650 and #1659. Read on 2026-11-28: neither branch had committed a frame. The `frame/design.md` on each worktree's disk held the template with its *Scope* still pending, so this row is judged from each issue's body and the files the spawn names.
+
+| Work item | Where both change | Merges first | Grounds |
+|---|---|---|---|
+| #1650, `1795841829-skill-descriptions` | `skills/settle/SKILL.md`: #1650 its frontmatter `description`, this work its section *A settle is not a work item* (design Scope item 6). | #1650 | The two hunks stand far apart in the file, so git merges them in either order without a conflict, and neither change reads the other's text. #1650's diff is frontmatter text alone, with no script and no case, so it is the likelier of the two to be cleared first. Where this work clears first instead, merging it first costs the same. |
+
+#1659, `1795841830-find-leftovers-before-a-round`, does not meet this work. It changes `agents/framer.md`, `skills/verify/SKILL.md` *Scope*, `agents/crafter.md`, `skills/implement/fix-pass.md` and `skills/implement/orchestration.md` *Under agentic*, and this work changes none of them and reads none of them. Its issue adds no script and no gate (#1659 *Changes*, item 1), so no check of it reads what this work adds.
+
+## Operational impact
+
+- No migration, no new environment variable and no new dependency. The workflow's permissions do not change.
+- `skills/settle/SKILL.md` stands under a directory that `dist` holds, so this pull request is one an installed copy reads, and the release moves its version once (`docs/releasing/branch-and-release.md` *Cutting a release*).
+- **This work item can carry the release's version move.** On 2026-11-28 `.claude-plugin/plugin.json` on the release branch still read the version of the last release, `0.40.1` (executed: `git show origin/release/v0.41.0:.claude-plugin/plugin.json`). Where the orchestrator chooses this item to carry it, phase 1's commit that adds `changelog.md` moves `.claude-plugin/plugin.json` to the version in the name of the release branch this work item is based on, `release/vX.Y.Z`, as the orchestrator's spawn names that base. The item that merges first carries the move, and the choice is the orchestrator's (`skills/implement/merge-order.md`); the merge order above names #1650 first, and this item carries the move only where the orchestrator orders it first.
+- After this release, the first settle that ships alone in a release is the first run of the new path. `docs/releasing/release-checklist.md` *After the merge*'s box `gh release view vX.Y.Z` is where its result is read.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| 2026-11-28 | The pull request's title takes `fix:`. | The work repairs a release workflow that failed on a release shape the repository ships, and it renames nothing a user types, installs or keeps; the release pull request of 0.40.1 shows a settle-only release reached `main` with its note written by hand. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
+| 2026-11-28 | Sent to the framer before round 1's fix pass: round 1's first finding needs a fifth operation in `frame/design.md` `## Rule changes`, for `docs/releasing/release-checklist.md` *After the merge*'s sentence that the note went out as the theme line and the fragments alone; the framer writes the operation, and the fix pass makes the finding's other fixes. | The sentence stands in the policy root, which this work item changes only through `## Rule changes` (`frame/design.md` *Grounding* G6), and the finding's `location:` names `frame/design.md`, whose fold is the framer's. The orchestrator opened the coordinate at `bd08e077` (`docs/releasing/release-checklist.md` line 293). | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **The framer writes a decision's fold** |

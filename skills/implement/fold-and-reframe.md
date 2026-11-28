@@ -19,15 +19,20 @@ folded as they were made, and where you judge that one of them conflicts
 with the tree, your hand-back names the conflict.
 Before you write what a decision says, open each coordinate it cites, such
 as an issue it restates, as contract rule 5 asks of a fact that reaches you
-in prose. Then rewrite in place every sentence of your three files that the
-decision changes, reading each file whole, the second method of contract
-rule 12, and write no count and no universal contract rule 19 refuses.
+in prose. Then rewrite in place every sentence of the frame's files, and
+every line of a keep file, that the decision changes, reading
+`frame/design.md`, `frame/plan.md` and `frame/questions.md` whole, the
+second method of contract rule 12, and writing a keep file's lines from its
+commands' output, as `skills/verify/SKILL.md` *An absence claim is only as
+good as the search behind it* states. Write no count and no universal
+contract rule 19 refuses.
 Read the orchestrator's *Judgments of the run* row for
 each decision with `plan.md`, where it stands written and not yet
 committed, and name any defect in it in your hand-back. You write no line
 under your mark, no Status cell and no *Judgments of the run* row, and a
 section dated to the commit you read keeps its date. Spawned fresh for a
-fold, you read the three frame files, the coordinates the decisions cite,
+fold, you read `frame/design.md`, `frame/plan.md` and `frame/questions.md`,
+the coordinates the decisions cite,
 and the diff since the frame's commit over the paths the decisions name,
 and you do not repeat the wide reading of `agents/framer.md` *Order of
 work* step 4. Your hand-back names each sentence you changed, by

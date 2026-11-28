@@ -91,6 +91,9 @@ agentory/
 └── threads/<work-item-id>/  one work item, whole
     ├── routing.md         which way it was routed, written before the first edit
     ├── frame/design.md, frame/plan.md, frame/questions.md
+    ├── frame/keep-N.txt, frame/keep-N-paths.txt   the lines and paths
+    │                      phase N's search is to print at that phase's close,
+    │                      compared by diff
     ├── trail/phases/phase-N.md   what one build phase found
     ├── trail/rounds/round-N.md   target SHA, verdicts, paste-ready fixes, executed probes
     ├── trail/gate.md      the one broad run, at a SHA, against the base

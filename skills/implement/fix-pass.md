@@ -94,7 +94,12 @@ check: tests/text/test_the_rules_have_one_owner.py
 
 Once the fixes are committed, the fix pass runs the set the *Review rounds
 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and
-once* names, as one command through the repository's runner.
+once* names, with one command for each suite that owns a file of it: the
+commands the *Verified by* cells of the phases whose paths the fixes
+changed name. Where a file of the set belongs to a suite none of those
+cells names, the fix pass runs the file under that suite and names the
+missing command in the `answer:` of the close block of the finding whose
+fix changed it.
 
 **Then the builder makes the reading `skills/implement/SKILL.md` *Before
 the builder closes a phase or a fix pass, its range and the work item's

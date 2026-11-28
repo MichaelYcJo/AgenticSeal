@@ -1,15 +1,10 @@
 ---
 name: core
 description: |
-  The values every IADD party judges by, and the rule a mechanism is
-  kept against. Not a command to run: every agent receives it at startup
-  through the `skills:` list in its definition, before `agent-contract`, and
-  a session receives it from the plugin's `SessionStart` hook where its
-  repository holds an `agentory/` root.
-  Use when: two designs break no rule either way and one has to be chosen,
-  or a mechanism's keep is in question.
-  NOT for: a rule true of every agent (`agent-contract`), one agent's own
-  rule (`agents/<name>.md`), or a procedure (`implement`, `code-review`).
+  The values every IADD party judges by, and the rule a mechanism is kept
+  against. Every agent receives it preloaded through the `skills:` list of
+  its definition, and the plugin's `SessionStart` hook prints it into a
+  session whose repository holds an `agentory/` root.
 user-invocable: false
 ---
 
