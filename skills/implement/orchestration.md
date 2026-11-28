@@ -422,9 +422,11 @@ repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only
 where it has not moved already, and the tag follows the merge. The release
-branch is the default. The orchestrator takes `main` when the accumulated
-entries read as one release, or when the change is a gate or a hook firing
-where it should not, which does not wait for other changes.
+branch is the default. Where the repository's convention lets a pull
+request other than the release reach `main`, the orchestrator takes `main`
+when the accumulated entries read as one release, or when the change is a
+gate or a hook firing where it should not, which does not wait for other
+changes.
 
 **Where an entry accumulates is the repository's convention, so the
 orchestrator reads it before the entry is written.** Two shapes are common
