@@ -20,6 +20,20 @@ agentic mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>
 is written; `<new>` may be empty, which deletes. Any UTF-8 text file can be
 the target.
 
+**`--tests` is one command, split into words and run with no shell.** A
+quote groups a word, and on POSIX a backslash escapes the next character;
+on Windows it is a path's separator. Nothing else a shell does happens: no
+operator, redirect or expansion. So a `--tests` holding `;`, `&`, `|`, `<`,
+`>` or a newline outside quotes, and on POSIX not after a backslash, is
+`refused`, with nothing written, and the line names each operator. Blank
+space at either end of the line, a final newline among it, separates no
+two commands and is not read. Run as
+written, the first program would get the operator as its argument, and the
+cases after it would never run, so each mutant would read `SURVIVED` for a
+run that measured nothing. A line that needs a shell is passed to one on
+purpose, as `--tests "sh -c '<command>'"`, where a POSIX shell is there to
+run it.
+
 **A `.py` mutant that does not compile is refused before anything is written
 or run.** Cases that load the module fail on the syntax error whatever the
 unit does, and that red would read as a case noticing the break. For a target
@@ -57,7 +71,8 @@ The first line printed is the verdict, then the command's own output:
 - exit 2 for every run that measured nothing: `no baseline` (the cases fail
   without the break, so the break was never written), `timed out`, `could not
   start`, `could not run`, `refused` (nothing was written: `<old>` does not
-  land once, or a `.py` mutant does not compile), `not restored`
+  land once, a `.py` mutant does not compile, or `--tests` holds a shell's
+  operator), `not restored`
   (the restore did not land, so the file may hold the break or what the
   cases wrote; restore it from the commit made before the run), and
   `interrupted`.

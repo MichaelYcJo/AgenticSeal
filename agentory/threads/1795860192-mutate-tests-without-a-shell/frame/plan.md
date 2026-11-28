@@ -1,0 +1,36 @@
+# Implementation Plan: 1795860192-mutate-tests-without-a-shell
+
+## Technical context
+
+The tree as read at `8e130543`.
+
+`main` calls `command_words(args.tests)` and refuses only an empty list, and `_run` starts the words with `subprocess.Popen`. Failure scenario of the chosen approach: a person who wants two commands must write `sh -c '…'`, which a machine with no POSIX shell cannot run. That is the cost G1 accepts, because the alternative measures nothing in silence.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| Run `--tests` through `sh -c` | no `sh` on a Windows runner; the shell becomes the direct child the bound and the verdict read | rejected (G1) |
+| Read operators with `shlex` in non-POSIX mode | refuses `\;`, which a shell reads as one literal character (G2) | rejected |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* items 1 to 4 | the new cases red against `8e130543` and green after; `uv run --no-project tests/run_tests.py -q tests/skills/test_mutation_check.py tests/text tests/behaviour`; `uvx ruff check` and `format --check` on both Python files | d86d5c6f |
+
+## Overlap with the release
+
+#1648 (PR #1673) changes `agents/inspector.md` and `agents/proofer.md`, and #1676 changes `docs/method/iadd.md`, read 2026-11-28. Neither meets this work.
+
+## Operational impact
+
+A `--tests` that held a shell operator outside quotes ran its first program alone. It is now refused with exit 2. This work item carries no version move.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| 2026-11-28 | Which prefix the pull request's title takes: `fix:`. | The command reported `SURVIVED` for a run in which the cases that watch the unit never ran, against the rule in `skills/verify/agentic-mutate.md` that every run which measured nothing exits 2. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
+| 2026-11-28 | Whether a round follows round 3's fix pass: yes, round 4, a verifying round on that fix. | Round 3's one finding carries `regression: round-2#1`, and a regression's fix pass is followed by one verifying round whatever the count. Round 3 is the third finding round, and the counts weighed are five, three and one findings: the count falls, while each finding of rounds 2 and 3 is a regression, a signal that the run is not converging. The fix pass changes one test case and no code, so the round it is owed is bounded to that case. That fix is outside the records, and the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives it to a round. | `docs/running/the-run.md` *The run*, `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* |
+| 2026-11-28 | Whether a round follows round 4's fix pass: no, the inspector reads it. | Round 4, the fourth round, opened one finding, after rounds of five, three and one findings. It is located in the row on round 3's fix pass alone, a record of the work item, and the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives such a fix to the inspector. | `docs/running/the-run.md` *The run* |

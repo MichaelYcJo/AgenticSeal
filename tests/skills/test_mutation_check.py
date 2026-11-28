@@ -1051,6 +1051,32 @@ class Test_main:
         assert "names no command" in capsys.readouterr().err
         assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 
+    @pytest.mark.parametrize(
+        ("line", "named"), [("true && false", "`&&`"), ("true\nfalse", "`\\n`")]
+    )
+    def test_refuses_a_tests_command_a_shell_would_read_as_two(
+        self, line, named, tmp_path, capsys
+    ):
+        """S1 of #1677. `--tests` runs with no shell, so `a && b` ran `a` with
+        `&&` and `b` as its arguments; where `a` ignored them, the cases that
+        watch the unit never ran and each mutant read `SURVIVED`. The call is
+        refused before anything is written or run, naming the operator and the
+        `sh -c` form a person can pass on purpose."""
+        target = tmp_path / "target.py"
+        target.write_text("VALUE = 1\n", encoding="utf-8")
+        code = module().main([str(target), "--replace", "1", "2", "--tests", line])
+        assert code == 2
+        out = capsys.readouterr().out
+        # The verdict is the first line, as every run that measured nothing
+        # prints it (`skills/verify/agentic-mutate.md`), and the refusal is
+        # that one line: a newline it names is written `\\n`.
+        assert out.startswith("refused: "), out
+        assert out.count("\n") == 1, out
+        # The operator the shell would have read, and the form that runs it.
+        assert named in out, out
+        assert "sh -c '" in out, out
+        assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
+
     # --- S4 · restored from held bytes, and the restore is proved -----------
 
     @pytest.mark.parametrize(
@@ -1909,6 +1935,44 @@ class Test_module:
             "#c",
         ]
         assert mc.command_words(line) == mc.command_words(line, windows=os.name == "nt")
+
+    @pytest.mark.parametrize(
+        ("line", "windows", "operators"),
+        [
+            ("pnpm a && pnpm b", False, ["&&"]),
+            ("pnpm a&&pnpm b", False, ["&&"]),
+            ("x || y; z | w", False, ["||", ";", "|"]),
+            ("bin/test -q > out 2>&1", False, [">", ">&"]),
+            ("x & y", False, ["&"]),
+            # Inside quotes a shell reads none of them.
+            ('bin/test -q -k "a or b; c"', False, []),
+            ("sh -c 'a && b'", False, []),
+            ("x \"a | b\" 'c & d'", False, []),
+            # A backslash escapes the next character on POSIX, and is a path's
+            # separator on Windows, as `command_words` reads it.
+            (r"find . -exec x {} \;", False, []),
+            (r"find . -exec x {} \;", True, [";"]),
+            # Inside single quotes a backslash escapes nothing, and inside
+            # double quotes it escapes the quote, so neither string closes
+            # where a reader that skipped the rule would close it.
+            (r"x 'a\' ; y", False, [";"]),
+            (r'x "a\" ; b"', False, []),
+            # A double quote closes, and an operator after it is read.
+            ('x "a" ; y', False, [";"]),
+            # A newline ends a command as `;` does.
+            ("true\nfalse", False, ["\n"]),
+            # Blank space at either end separates nothing: `command_words`
+            # drops it, and a YAML block leaves a line ending in a newline.
+            (" \t\ntrue -q\n\r ", False, []),
+            ('x "a\nb"', False, []),
+        ],
+    )
+    def test_shell_operators_reads_what_a_shell_would_read_outside_quotes(
+        self, line, windows, operators
+    ):
+        """S2 and S3 of #1677. The operators a POSIX shell would read in a
+        `--tests` line: outside quotes and, on POSIX, not after a backslash."""
+        assert module().shell_operators(line, windows=windows) == operators
 
 
 test_census = census_case(TARGET)
