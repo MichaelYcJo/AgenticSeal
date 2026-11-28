@@ -48,7 +48,7 @@ Each reader G11 found, and what this work does with it.
 | `skills/code-review/scripts/pr_wait.py:79` | stays: it names the `release/*` trigger, which matches `release/next` |
 | `skills/settle/scripts/settle.py` | stays: it reads no `merged:` label. Its `merged:` strings are messages about the `gh pr list` it asks for the branch a `routing.md` names (lines 724 to 783, read). The issue lists it as a reader of `merged:`, and the tree does not bear that out |
 | `tests/behaviour/test_release_hygiene.py#test_no_loaded_file_names_a_version_at_or_above_the_running_one` | its behaviour stays: on `release/next` the running version is the last shipped one, which a tag names, so the refusal still covers every untagged version above it. Its docstrings that say a release's first pull request moves the version change: *Scope* item 9 |
-| `.github/scripts/roll_flow_measurement_issue.py` | stays: it reads `plugin.json` at the push to `main` that ships a release |
+| `.github/scripts/roll_flow_measurement_issue.py` | its reading stays: it reads `plugin.json` at the push to `main` that ships a release |
 | the test fixtures that use a `release/v…` name as any branch (`tests/skills/test_stamp.py`, `tests/skills/test_broad_gate.py`, `tests/skills/test_chain_check.py`, `tests/text/test_a_cited_commit_outlives_the_squash.py`, `tests/lib/test_tables.py`, `tests/lib/test_routing.py`, `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`, and the four proofer eval scaffolds) | stay: each holds the name as an example branch or a ref of a past release, and none reads a number from it |
 
 ## Scope
