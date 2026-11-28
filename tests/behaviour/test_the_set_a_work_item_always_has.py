@@ -1,6 +1,6 @@
 """The SDD file set was read two ways at once, and the counts said so.
 
-`seal/threads/` is the root for a work item — its whole lifetime, its whole
+`iadd/threads/` is the root for a work item — its whole lifetime, its whole
 contract.
 `frame/design.md` was a file on a ladder keyed to how many files the work touched. Both
 readings live in `skills/implement/SKILL.md`, neither is wrong on its own
@@ -65,7 +65,7 @@ def test_the_plan_template_carries_a_status_column():
 
 def test_the_plan_template_carries_the_judgments_table():
     """#1167, *Scope* item 11. The orchestrator writes its judgments of the
-    run to the plan, and `seal settle` reads them by this heading and this
+    run to the plan, and `iadd settle` reads them by this heading and this
     header (`skills/settle/scripts/settle.py#JUDGMENTS_HEADER`), so the
     shipped template carries both, with an empty row the settle reads as no
     judgment."""

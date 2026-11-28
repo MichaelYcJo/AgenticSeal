@@ -122,7 +122,7 @@ class Test_main:
         assert out.returncode == 2, (out.returncode, out.stderr)
         assert "Traceback" not in out.stderr, out.stderr
         assert not out.stdout, out.stdout
-        launch = load(LAUNCH, "agentic_launch_refusal")
+        launch = load(LAUNCH, "iadd_launch_refusal")
         monkeypatch.setattr(launch, "FLOOR", (99, 0))
         assert launch.main(["launch.py", script, "0"]) == 2
         assert not (tmp_path / "scripts" / "ran").exists(), (
@@ -150,7 +150,7 @@ class Test_module:
         """The refusal is written before anything sets up stderr, so a path the
         console cannot encode would end it in a traceback, on the machine that
         has no other way of being told what is wrong."""
-        launch = load(LAUNCH, "agentic_launch_ascii")
+        launch = load(LAUNCH, "iadd_launch_ascii")
         sentence = launch.refusal(
             "/Users/x/코드/round_record.py", (3, 9, 6), "/Users/x/파이썬/python3"
         )

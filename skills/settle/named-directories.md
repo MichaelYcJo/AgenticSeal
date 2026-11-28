@@ -9,11 +9,11 @@ runs the dry run with `--from`.
 
 **`--from` refuses four things, each with exit 2 and one sentence, and reads
 and removes nothing**: a path that names no directory in the working tree,
-a path outside the repository, the `seal/` root or a path under it, whose
+a path outside the repository, the `iadd/` root or a path under it, whose
 records the settle already reads, and `--from` beside `--apply`. `--apply`
-removes only under `seal/threads/`, and a flag it accepted would read as
+removes only under `iadd/threads/`, and a flag it accepted would read as
 one it acted on. Each sentence about a path names it as it was read, from
-the directory `seal settle` runs in. A named directory holding no document
+the directory `iadd settle` runs in. A named directory holding no document
 is listed with 0 documents.
 
 **The listing is not a proposal.** Each of its lines is what git answers
@@ -41,7 +41,7 @@ reading the document whole with the code it bears on:
   out and one the code has left is proposed `promote`, with grounds naming
   the first alone. A plan not yet built, a decision the code has since
   left, a document whose decisions bear on no section of the policy, and a
-  file of the `seal/` root are each proposed `skip`, with that reason as the
+  file of the `iadd/` root are each proposed `skip`, with that reason as the
   grounds.
 - **A document skipped at an earlier settle** is proposed `skip` again, with
   grounds naming that settle's pull request, where two facts hold: the last
@@ -77,7 +77,7 @@ by its repository path, as the paragraph on reference roots under
 writes.
 
 **A named directory is read and never written.** No step of the settle
-writes, moves or removes a file under it, and `seal settle --apply` removes
-only under `seal/threads/` and refuses `--from`. A promoted decision reaches
+writes, moves or removes a file under it, and `iadd settle --apply` removes
+only under `iadd/threads/` and refuses `--from`. A promoted decision reaches
 the policy root in the settling session's words with the document's path,
 and the document stays where it was, as it was.

@@ -40,14 +40,14 @@ def _load(name, relative):
     return module
 
 
-checker = _load("agentic_checker_for_liveness", "skills/verify/scripts/coordinates.py")
-reader = _load("agentic_reader_for_liveness", "lib/lines.py")
-tables = load_lib_module("tables.py", "agentic_tables_for_liveness")
+checker = _load("iadd_checker_for_liveness", "skills/verify/scripts/coordinates.py")
+reader = _load("iadd_reader_for_liveness", "lib/lines.py")
+tables = load_lib_module("tables.py", "iadd_tables_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
 # One ledger row, spelled as a table row so every reader reads the same line.
 ROW = (
-    f'| a claim | `seal/threads/{WORK_ITEM}/frame/design.md#"# alpha"@abcdef12` '
+    f'| a claim | `iadd/threads/{WORK_ITEM}/frame/design.md#"# alpha"@abcdef12` '
     "| read | 2026-01-01 | |"
 )
 

@@ -3,7 +3,7 @@
 The orchestrator opens this file on either of two conditions, and not
 otherwise. The first is that it is about to put the batch of questions to a
 person, the routing question among them. The second is that `config.json`
-under the `seal/` root, read before the routing commit, lacks either of the
+under the `iadd/` root, read before the routing commit, lacks either of the
 two language keys. `skills/implement/orchestration.md` holds the rest of
 starting a work item, and its *What the answer writes* holds the rows of
 the declaration.
@@ -56,9 +56,9 @@ A single-select question, put alone:
 | Order | Label | Description |
 |---|---|---|
 | 1 | **agentic** | The orchestrator reads each work item's issue and the tree and chooses that item's route: which of the framer, `crafter` and `proofer` run, and whether the run may stop to ask you. Where it judges a change small enough, such as a two-line fix, it takes `direct` for it. It writes each choice down with its grounds, and you are not asked the route again. |
-| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
+| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the inspector audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
 | 3 | **manual** | You set each part: the four boxes below are the answer. |
-| 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no seal and no `routing.md`. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
+| 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no inspection and no `routing.md`. Where the root is shared, every commit ends with the trailer `IADD-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names no destination, and its description says what it turns
 off.** A label that names a destination is read as what runs:
@@ -137,7 +137,7 @@ the tell. Ask which of two named paths instead, and say what each one does.
 
 **The two language keys join the batch wherever either is missing.** Before
 the routing commit, the orchestrator reads `Commit and pull request
-language` and `Record language` in `config.json` under the `seal/` root.
+language` and `Record language` in `config.json` under the `iadd/` root.
 Where both stand, nothing is asked. Where either is absent in any of the
 four ways `templates/setup/config.md` *An absent language key is a refusal
 at the pull request body, and never at a commit* names, the batch asks for

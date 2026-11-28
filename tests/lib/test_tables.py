@@ -4,7 +4,7 @@ reach.
 #1454 moved the walker out of `lib/config.py`, which reads the settings as
 JSON, and its cases came with it from `tests/lib/test_config.py`. Each
 keeps its body, except that it calls the walker as `tables.<name>` and no
-longer takes the `config` and `seal` fixtures it did not read. The cases
+longer takes the `config` and `iadd` fixtures it did not read. The cases
 over an earlier release's `| Item | Value |` table stay as the walker's
 two-cell cases, run under `Test_gfm_table` through `_Old_config_table` and
 `_Old_config_shapes`; no shipped reader hands the walker that header.
@@ -99,11 +99,11 @@ HEADERS = {
     # A one-cell table; the header's word is the corpus's, and no reader
     # asks for it.
     "signer": ("Signer",),
-    # A two-cell table, an earlier release's `seal/config.md` header, which
-    # the cases of `_Old_config_table` and `_Old_config_shapes` walk. No
-    # reader asks for it: the pass holds the walk over a header of more than
-    # one cell, which `pact_check.py#ANCHOR_TABLE` and
-    # `settle.py#JUDGMENTS_HEADER` hand it.
+    # A two-cell table, the header of an earlier release's `config.md` under
+    # the root, which the cases of `_Old_config_table` and
+    # `_Old_config_shapes` walk. No reader asks for it: the pass holds the
+    # walk over a header of more than one cell, which
+    # `pact_check.py#ANCHOR_TABLE` and `settle.py#JUDGMENTS_HEADER` hand it.
     "config": ("Item", "Value"),
 }
 
@@ -422,7 +422,7 @@ def shared_rule():
     import importlib.util
 
     path = os.path.join(ROOT, "lib", "lines.py")
-    spec = importlib.util.spec_from_file_location("agentic_lines_for_the_oracle", path)
+    spec = importlib.util.spec_from_file_location("iadd_lines_for_the_oracle", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -572,7 +572,7 @@ class _Old_config_table:
         )
 
     def test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive(self):
-        """A1. `seal/config.md` is markdown and `\\|` is markdown's own answer for
+        """A1. `iadd/config.md` is markdown and `\\|` is markdown's own answer for
         a pipe inside a cell (`questions.md` Q1, answered by the repository owner
         on 2026-09-17).
 
@@ -909,7 +909,7 @@ class _Old_config_shapes:
     def test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote(self):
         """A3. The walk that read ON past the stopping line treated any line
         beginning with a pipe as a line somebody wrote as a row — so a line
-        inside an example block came back as refused, and `seal gate` quotes a
+        inside an example block came back as refused, and `iadd gate` quotes a
         refused line back at the person as their own.
 
         Re-pinned by #871: the fence directly under the delimiter row ends the

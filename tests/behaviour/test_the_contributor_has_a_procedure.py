@@ -1,5 +1,5 @@
 """`CONTRIBUTING.md` tells an outside contributor where a pull request goes,
-and what the AgenticSeal process this repository runs on itself does not ask
+and what the IADD process this repository runs on itself does not ask
 of them.
 
 A first-time contributor opened #443 against `main`, because nothing this

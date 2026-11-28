@@ -61,26 +61,26 @@ def report_regex(kind, name, path, pattern, body, flags="m", **extra):
 
 
 def reach(agent):
-    """The grader that the session spawned `agentic:<agent>` through the
+    """The grader that the session spawned `iadd:<agent>` through the
     `Agent` tool, the way production does."""
     return grader(
         "reach",
         agent,
-        f"The session spawned agentic:{agent} through the Agent tool.",
+        f"The session spawned iadd:{agent} through the Agent tool.",
         type="tool_used",
         tool="Agent",
-        input_match=f'"subagent_type"\\s*:\\s*"agentic:{agent}"',
+        input_match=f'"subagent_type"\\s*:\\s*"iadd:{agent}"',
     )
 
 
 # A finding as `templates/records/sdd-round.md` has the proofer write it: the
 # `## Findings` heading, then a `### <n>. ` section, then that section's
-# finding block, the `seal` block whose first line is its `severity:`, before
+# finding block, the `iadd` block whose first line is its `severity:`, before
 # the next heading. A finding the proofer writes has no close block, so the
 # grader asks for none.
 FINDINGS_SHAPE = (
     r"^## Findings[ \t]*\n(?:(?!^## )[\s\S])*?^### \d+\. [^\n]+\n"
-    r"(?:(?!^##)[\s\S])*?^" + "`" * 3 + r"seal\nseverity: \S"
+    r"(?:(?!^##)[\s\S])*?^" + "`" * 3 + r"iadd\nseverity: \S"
 )
 # The pictographs and symbols a mark is drawn from, as a JavaScript regex
 # with no `u` flag, where an astral pictograph is its surrogate pair.

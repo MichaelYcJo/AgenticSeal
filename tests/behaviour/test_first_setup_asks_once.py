@@ -8,7 +8,7 @@ the root in code (`lib/optin.py#home_at`) and are pinned by
 `tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the workflow template
-`seal pr-checks install` writes and the commands its header names, and the
+`iadd pr-checks install` writes and the commands its header names, and the
 switch the READMEs give. The places a session finds the root at are stated
 once, in the opening paragraph of `skills/core/SKILL.md` (#1578), and
 `tests/text/test_the_rules_have_one_owner.py` holds them there with each
@@ -23,7 +23,7 @@ from conftest import flattened, local_home, read, section, shell_probe
 
 # No TARGET: its cases hold where the root lives across the bootstrap, the orchestrator's half of the implement skill, the config skill, both READMEs, the root's README and its template, the hygiene template and both editions of docs/layout/one-root-by-lifetime.md.
 
-COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
+COMMON_DIR = "$(git rev-parse --git-common-dir)/iadd/"
 
 
 def paragraph(text, opening):
@@ -74,12 +74,12 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     records = paragraph(boot, RECORDS_ONLY)
     checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
-    # The path `<repo>/seal/`, where the orchestrator creates the shared
+    # The path `<repo>/iadd/`, where the orchestrator creates the shared
     # root and where `lib/optin.py` looks for it first.
-    assert "creates `<repo>/seal/`" in records
-    # The command `seal pr-checks install`, which the orchestrator runs
+    assert "creates `<repo>/iadd/`" in records
+    # The command `iadd pr-checks install`, which the orchestrator runs
     # under this option.
-    assert "`seal pr-checks install`" in checks, checks
+    assert "`iadd pr-checks install`" in checks, checks
     # The path of the local root, which the orchestrator creates and
     # `lib/optin.py` looks for second.
     assert f"creates `{COMMON_DIR}`" in local
@@ -94,7 +94,7 @@ def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
     # option: the path is spelled through the common git directory rather
     # than through `.git`, which is a file in a linked worktree. The path is
     # one the orchestrator would create.
-    assert "`.git/seal/`" not in bootstrap()
+    assert "`.git/iadd/`" not in bootstrap()
 
 
 def test_the_parity_question_follows_the_mode_question():
@@ -112,10 +112,10 @@ LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
 
 
 def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them():
-    """#1453. `seal pr-body` refuses a repository without either language
+    """#1453. `iadd pr-body` refuses a repository without either language
     key, so first setup asks for both in the call that already stops the
     session, with the recent pull request titles shown beside the question,
-    and writes the answers into the file `seal mode` wrote. What each option
+    and writes the answers into the file `iadd mode` wrote. What each option
     says its key governs is the proofer's to read."""
     boot = flattened(bootstrap())
     # The two keys of `config.json` first setup asks for, which
@@ -129,7 +129,7 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
     )
     # The paragraph that writes the answered keys into the file.
     assert "**Then the two language keys.**" in boot, (
-        "nothing writes the answered keys into the file `seal mode` wrote"
+        "nothing writes the answered keys into the file `iadd mode` wrote"
     )
 
 
@@ -200,9 +200,9 @@ def test_the_decline_names_the_command_back_to_the_row():
     the command that fills the key in later; what the decline costs is the
     proofer's to read."""
     decline = paragraph(bootstrap(), "**Offer a decline, and say what it costs.**")
-    # The command `/agentic:config`, which a person who declined types to
+    # The command `/iadd:config`, which a person who declined types to
     # fill the `Broad gate` key in.
-    assert "/agentic:config" in decline, "the decline names no way back to the key"
+    assert "/iadd:config" in decline, "the decline names no way back to the key"
 
 
 def test_the_criterion_is_named_by_pointer():
@@ -216,7 +216,7 @@ def test_the_criterion_is_named_by_pointer():
 
 
 def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
-    """#1454. The `Broad gate` key lands the way `/agentic:config` step 3
+    """#1454. The `Broad gate` key lands the way `/iadd:config` step 3
     lands one: the key alone, since a JSON file carries no prose. The lists
     and the criterion stay in the plugin's template, which the paragraph
     names. When it lands and why no command writes it are the proofer's to
@@ -230,27 +230,23 @@ def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
     assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in landing
 
 
-OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
+OWN_IADD = "**An `<repo>/iadd/` whose `README.md` does not open with the marker"
 
 
-def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
-    """First setup meeting a `seal/` the project keeps for itself names the
-    template whose first line is the marker, the command whose output gives
-    the shared place in its stead (#1059), and the path under the git
-    directory where the root goes where that place is the project's own too.
-    That it writes nothing into either is the proofer's to read."""
-    own = paragraph(bootstrap(), OWN_SEAL)
+def test_a_projects_own_iadd_names_the_marker_template_and_the_git_dir_root():
+    """First setup meeting an `iadd/` the project keeps for itself names the
+    template whose first line is the marker, and the path under the git
+    directory where the root goes in its stead (#1651). That it writes
+    nothing into the project's own is the proofer's to read."""
+    own = paragraph(bootstrap(), OWN_IADD)
     # The path of the template whose first line is the marker, which the
-    # orchestrator opens to tell a project's own `seal/` from a root.
-    assert "`templates/setup/seal-README.md`" in own, own
-    # The command that prints the shared place, which no core printed into
-    # the session can give at first setup.
-    assert "`seal mode`" in own, own
+    # orchestrator opens to tell a project's own `iadd/` from a root.
+    assert "`templates/setup/iadd-README.md`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
 
 
-# --- S5 and S7: what `seal pr-checks install` writes, and local mode --------
+# --- S5 and S7: what `iadd pr-checks install` writes, and local mode --------
 
 
 def template():
@@ -261,10 +257,10 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     t = template()
     # The two scripts the workflow's steps run, from the plugin's clone.
     assert "skills/code-review/scripts/chain_check.py" in t
-    assert "skills/implement/scripts/seal.py" in t
+    assert "skills/implement/scripts/iadd.py" in t
     # The flag a step passes the script it runs.
     assert "--baseline" in t
-    # The tag placeholder `seal pr-checks install` fills, and the repository
+    # The tag placeholder `iadd pr-checks install` fills, and the repository
     # the step clones at that tag.
     assert "v<version>" in t, "the plugin is not pinned to its tag"
     assert "MichaelYcJo/AgenticSeal" in t
@@ -283,11 +279,11 @@ def test_the_template_header_names_the_commands_that_write_and_remove_it():
             if line.startswith("#")
         )
     )
-    # The command `seal pr-checks install`, which a person reading the
+    # The command `iadd pr-checks install`, which a person reading the
     # workflow file runs to write it; the code span is the fact.
-    assert "`seal pr-checks install` writes" in header, header
+    assert "`iadd pr-checks install` writes" in header, header
     # The command a person runs to take the workflow out.
-    assert "`seal pr-checks remove`" in header, header
+    assert "`iadd pr-checks remove`" in header, header
 
 
 def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
@@ -300,9 +296,9 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     # resolves to tell whether the command wrote the file or left one alone.
     assert "templates/setup/hygiene.yml" in boot
     assert ".github/workflows/hygiene.yml" in boot
-    # The command `seal pr-checks install`, which the orchestrator runs
-    # after `seal mode`; the code span is the fact.
-    assert "`seal pr-checks install`" in boot, boot
+    # The command `iadd pr-checks install`, which the orchestrator runs
+    # after `iadd mode`; the code span is the fact.
+    assert "`iadd pr-checks install`" in boot, boot
 
 
 # --- S8 and S1: the READMEs -----------------------------------------------
@@ -326,14 +322,14 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     through a work item, and names the checks' command, the way back before
     the commit to shared, the workflow a move to local leaves, and the pair
     that works between two machines. The two by-hand moves left both
-    editions in #1102 for the template every root's `seal/README.md` is, and
+    editions in #1102 for the template every root's `iadd/README.md` is, and
     `switch_block` reads them there."""
     text = read(readme)
     first_run, subsection = READMES[readme]
     assert text.index(subsection) > text.index(first_run)
     body = section(text, subsection)
     # The two commands a person runs to install and remove the checks.
-    assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
+    assert "iadd pr-checks install" in body and "iadd pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
     # #1055 S6: the citation of the skill section that holds the way back
@@ -344,7 +340,7 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     assert LEFT_BEHIND[readme] in flattened(body), LEFT_BEHIND[readme]
     # The pair of commands a person runs to carry the records between two
     # machines.
-    assert "seal export" in body and "seal import" in body, (
+    assert "iadd export" in body and "iadd import" in body, (
         "the move is only available where both folders are on one machine, so "
         "this section has to point at the pair that works between two (#81). "
         "It named the issue number while the pair was later work"
@@ -352,10 +348,10 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
 
 
 # What holds the core's four rows in local mode, cited once under each
-# edition's table of the three answers (#1376): the sealer's definition and
+# edition's table of the three answers (#1376): the inspector's definition and
 # the core's table, which a reader resolves.
 LOCAL_LIMIT = (
-    "`agents/sealer.md`",
+    "`agents/inspector.md`",
     "`skills/core/SKILL.md` *Judgment is not licence to skip a party*",
 )
 
@@ -388,8 +384,8 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     body = flattened(section(skill, "## " + SHARED_HEADING))
     for said in (
         # The two commands a person runs to walk the switch back.
-        "`git reset -- :/seal`",
-        "`seal mode local`",
+        "`git reset -- :/iadd`",
+        "`iadd mode local`",
         # The citation of the rule, which a reader resolves: the path and the
         # heading in italics.
         "`docs/layout/one-root-by-lifetime.md` *Shared or local*",
@@ -401,17 +397,17 @@ TO_SHARED, TO_LOCAL = "From local to shared:", "From shared to local:"
 
 
 def switch_block():
-    """The two by-hand moves `templates/setup/seal-README.md` gives, local →
+    """The two by-hand moves `templates/setup/iadd-README.md` gives, local →
     shared and then shared → local, each as one command line.
 
     Each move is the code spans after its lead, to the end of the paragraph,
-    joined with `&&`. The template is every root's own `seal/README.md`, and
+    joined with `&&`. The template is every root's own `iadd/README.md`, and
     the README links it for the moves rather than restating them (#1102). A
     paragraph that stopped carrying two spans after each lead fails here,
-    which is the point: those lines are what `seal mode`'s move has to keep
+    which is the point: those lines are what `iadd mode`'s move has to keep
     doing, and this is where they are run from a subdirectory.
     """
-    text = read("templates", "setup", "seal-README.md")
+    text = read("templates", "setup", "iadd-README.md")
     assert TO_SHARED in text, f"no paragraph gives the move {TO_SHARED!r}"
     paragraph = flattened(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
     assert TO_LOCAL in paragraph, f"the paragraph gives no move {TO_LOCAL!r}"
@@ -434,11 +430,11 @@ def porcelain(repo):
 def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(repo):
     """Round 1 of #80, 🟡 3. The two moves were spelled relative to the
     working directory: run from `src/`, `git rev-parse --git-common-dir`
-    answers `../.git` and `mv … seal && git add seal` created and staged
-    `src/seal/`, after which neither place held a root and the repository
+    answers `../.git` and `mv … iadd && git add iadd` created and staged
+    `src/iadd/`, after which neither place held a root and the repository
     was opted OUT. Both paths are asked of git now, so the two moves read out
     of the template and run from a subdirectory land the root at
-    `<repo>/seal/` one way and back under the common directory the other.
+    `<repo>/iadd/` one way and back under the common directory the other.
 
     Each move is run under `bash -c`; the precondition is executed, not
     assumed (`shell_probe`, for the reason its docstring gives).
@@ -455,18 +451,18 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
 
     r = subprocess.run(["bash", "-c", to_shared], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
-    assert (repo / "seal" / "ledger" / "f.md").is_file(), porcelain(repo)
-    assert not (sub / "seal").exists(), "the root landed under the subdirectory"
+    assert (repo / "iadd" / "ledger" / "f.md").is_file(), porcelain(repo)
+    assert not (sub / "iadd").exists(), "the root landed under the subdirectory"
     assert not home.exists(), "the local root was copied, not moved"
-    assert porcelain(repo) == ["A  seal/README.md", "A  seal/ledger/f.md"], porcelain(
+    assert porcelain(repo) == ["A  iadd/README.md", "A  iadd/ledger/f.md"], porcelain(
         repo
     )
 
     r = subprocess.run(["bash", "-c", to_local], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
     assert (home / "ledger" / "f.md").is_file(), porcelain(repo)
-    assert not (repo / "seal").exists()
-    assert not (sub / "seal").exists()
+    assert not (repo / "iadd").exists()
+    assert not (sub / "iadd").exists()
     assert porcelain(repo) == [], porcelain(repo)
 
 
@@ -474,9 +470,9 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
 
 
 @pytest.mark.parametrize(
-    "parts", [("seal", "README.md"), ("templates", "setup", "seal-README.md")]
+    "parts", [("iadd", "README.md"), ("templates", "setup", "iadd-README.md")]
 )
-def test_the_seal_readme_names_the_command_that_finds_the_local_root(parts):
+def test_the_iadd_readme_names_the_command_that_finds_the_local_root(parts):
     text = read(*parts)
     # The command a person runs to find the root in local mode.
     assert "git rev-parse --git-common-dir" in text, "/".join(parts)
@@ -485,22 +481,22 @@ def test_the_seal_readme_names_the_command_that_finds_the_local_root(parts):
 MARKER_SAID = "**The first line of this file is the marker.**"
 
 
-def test_the_seal_readme_cites_the_marker_constant():
+def test_the_iadd_readme_cites_the_marker_constant():
     """The root's own README tells a person not to edit the line the gates
-    read, and cites the constant that holds it. What a `seal/` without the
+    read, and cites the constant that holds it. What an `iadd/` without the
     line is, is the proofer's to read."""
-    text = read("templates", "setup", "seal-README.md")
+    text = read("templates", "setup", "iadd-README.md")
     said = paragraph(text, MARKER_SAID)
     # The citation `lib/optin.py#MARKER`, which a person resolves to
     # the one spelling of the line the gates read.
     assert "`lib/optin.py#MARKER`" in said, said
 
 
-def test_the_seal_readme_points_at_the_drain():
+def test_the_iadd_readme_points_at_the_drain():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
     and where each goes is `skills/implement/orchestration.md`'s drain
     section's alone, and the README names the section."""
-    text = read("templates", "setup", "seal-README.md")
+    text = read("templates", "setup", "iadd-README.md")
     rules = flattened(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = (
         "## Orchestrator: drain the rows before the broad run, and keep the records"
@@ -537,7 +533,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
     editions."""
     text = read(*parts)
     # The name of the opt-out file, which `lib/optin.py` looks for.
-    assert "agentic-scratch" in section(text, opt_in), "/".join(parts)
+    assert "iadd-scratch" in section(text, opt_in), "/".join(parts)
     body = flattened(section(text, setup))
     # The template path, the local root's path and the harness tool, which
     # the orchestrator resolves at first setup.
@@ -549,8 +545,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 #
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
-# there. A session is told to write `seal/threads/<id>/routing.md` before the
-# first edit, and that write creates `seal/`, which opts the repository in.
+# there. A session is told to write `iadd/threads/<id>/routing.md` before the
+# first edit, and that write creates `iadd/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
 # project on the machine. The block is retired; the core, which the plugin's
 # `SessionStart` hook prints into a session, names the routing section
@@ -583,4 +579,4 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     asked."""
     boot = flattened(bootstrap())
     # The command the orchestrator runs to record the answer.
-    assert "seal mode" in boot
+    assert "iadd mode" in boot

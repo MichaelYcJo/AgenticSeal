@@ -19,7 +19,7 @@ before the pass that builds the unit.
 
 ## Read the round records first
 
-A fix pass starts at `seal/threads/<work-item-id>/trail/rounds/`,
+A fix pass starts at `iadd/threads/<work-item-id>/trail/rounds/`,
 **not** at the inline comments: the proofer writes `round-N.md`, and the next
 review round reads it (`docs/forms/the-round-record.md` *The round record*).
 
@@ -41,7 +41,7 @@ without waiving the reading below. The fix pass applies it only after
 reading it against the frame and the code: what `frame/design.md` and the
 `frame/plan.md` row of the phase that built it say the changed unit does,
 and every input the code hands that unit. A procedure step is also read as
-its own reader would: in either `seal/` root (contract rule 11), under
+its own reader would: in either `iadd/` root (contract rule 11), under
 every condition its file names, and in the release that ships it. In that
 release, a section the step cites holds the text the release ships, not the
 text a design's `## Rule changes` writes at a later settle. A paste-ready
@@ -59,7 +59,7 @@ of the others* gives the framer what the work should be.
 
 A unit is a new name or path that the frame holds nowhere: a file or a
 directory; a function, a class, a type or a module-level name, private
-helpers among them; a hook's entry; a `seal` subcommand or flag; a
+helpers among them; a hook's entry; an `iadd` subcommand or flag; a
 configuration key; a field of a record's form; or a heading of a skill, a
 document or a template. A name or path is new where the tree at the
 round's `target:` holds no part by it. The frame holds a unit where
@@ -100,8 +100,8 @@ once* names, as one command through the repository's runner.
 the builder closes a phase or a fix pass, its range and the work item's
 records are read whole against HEAD* asks for, over the range that starts
 after the commit the round record's `target:` line names, or after the
-commit the `target:` line of the newest `guarantee.md` block names where
-the pass makes the repair a sealer's `withheld` verdict asks for.** The
+commit the `target:` line of the newest `inspection.md` block names where
+the pass makes the repair an inspector's `withheld` verdict asks for.** The
 orchestrator's pass folds a statement HEAD contradicts in `routing.md` or
 a frame file in a commit of its own before it appends the close blocks, as
 `skills/implement/orchestration.md` *Orchestrator: the order inside a
@@ -118,7 +118,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 ## The close blocks, last
 
 **A fix pass appends close blocks and writes no phase record.** It appends
-one close block per finding it answers, the `seal` block
+one close block per finding it answers, the `iadd` block
 `templates/records/sdd-round.md` places in the finding's section after its
 paste-ready fix, each line spelt as `lib/fields.py` reads it. Two
 paragraphs of the form state what the block holds, and the fix pass reads

@@ -13,8 +13,8 @@ commits in. Asking it again per repository is the mid-run question this
 section exists to remove, arriving once per checkout.
 
 **Only a gated repository gets a declaration.** A gated repository is one
-with a `seal/` root at either place (contract rule 11). Write
-`seal/threads/<work-item-id>/routing.md` into each one before that
+with an `iadd/` root at either place (contract rule 11). Write
+`iadd/threads/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
 written out after `git -C` (`skills/implement/SKILL.md` *A commit names its
@@ -38,19 +38,19 @@ hold: the work item commits in more than one repository, and those
 repositories share contract. A sentence is contract when another
 repository's code would be wrong if it changed. Where both hold:
 
-- the one copy of the contract is `seal/pact.md` in one of the repositories,
+- the one copy of the contract is `iadd/pact.md` in one of the repositories,
   begun from `templates/setup/pact.md` and written by the build there, framed by
   a work item's design in that repository. That repository is the pact's repository;
 - every other repository of the work item is a signer, and the orchestrator
-  writes one key into its `seal/config.json` where it is absent: `Pact`, the
+  writes one key into its `iadd/config.json` where it is absent: `Pact`, the
   origin remote URL of the pact's repository. The pact's repository needs no
-  `Pact` key, because it is identified by holding `seal/pact.md`; the
-  orchestrator writes into its `seal/config.json` a `Pact signers` key, the
+  `Pact` key, because it is identified by holding `iadd/pact.md`; the
+  orchestrator writes into its `iadd/config.json` a `Pact signers` key, the
   origin remote URL of every other signer, separated by `;`.
   `templates/setup/config.md` *Pact* documents both keys;
 - each signer cites the clauses it was built against as pact anchors, one
   row each of a `| Pact | Clause | Hash |` table in its `frame/design.md`,
-  the `Pact` cell holding the pact's origin URL; `seal pact`, run at the
+  the `Pact` cell holding the pact's origin URL; `iadd pact`, run at the
   pact's repository, reads every signer and says where they disagree.
 
 Where only the first condition holds, the repositories get their

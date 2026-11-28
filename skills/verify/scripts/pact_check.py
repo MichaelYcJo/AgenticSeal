@@ -3,7 +3,7 @@
 
 A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
-`seal/pact.md` in one of them -- the pact's repository -- and every repository
+`iadd/pact.md` in one of them -- the pact's repository -- and every repository
 of the work item is a signer (`docs/layout/the-pact.md`). A signer cites each
 clause it was built against as a pact anchor, one row of the anchor table
 in a work item's `frame/design.md`:
@@ -15,8 +15,8 @@ in a work item's `frame/design.md`:
 This command reads every signer from the pact's repository and grades each
 row naming this pact against the clause as the pact holds it now.
 
-  seal pact             in the pact's repository
-  seal pact ROOT        the pact's repository at ROOT
+  iadd pact             in the pact's repository
+  iadd pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
 repository, and this needs all of them. A signer's CI
@@ -35,10 +35,10 @@ heads a table no row of which is read: it is named at its line,
 and is in no exit class. Whether it meant the anchor table is the judgment
 of the person reading the report and of the proofer reading the frame. A row is graded where its `Pact` cell, compared normalised, is the
 origin URL of this repository; a row naming another pact the signer's
-`Pact` key declares is passed over, for that pact's `seal pact` to grade.
+`Pact` key declares is passed over, for that pact's `iadd pact` to grade.
 Refused at the row's line: a `Pact` cell that is not one remote URL, or
 that names a pact the signer's `Pact` key does not declare, which no
-`seal pact` grades, because another pact's reports the signer `ONE-SIDED`
+`iadd pact` grades, because another pact's reports the signer `ONE-SIDED`
 and reads none of its frames; and, in a row naming this pact, a `Clause`
 cell that opens with no heading or a `Hash` cell that is not eight
 lowercase hex digits. Refused at the frame: every refusal of the walk, and
@@ -56,14 +56,14 @@ the near header is named.
 
 ## Where the signers are
 
-The `Pact signers` key of the pact's repository's `seal/config.json` lists
+The `Pact signers` key of the pact's repository's `iadd/config.json` lists
 them by origin remote URL, separated by `;`, and is read through
 `lib/config.py#signer_declaration`. An absent or empty key is refused at
 exit 2, because a pact nobody signs is not a pact, and so is an entry that
 is not one remote URL. A checkout is found for each signer, in this order
 and with nothing guessed:
 
-  1. `~/.claude/agentic/pact-paths.json`, one JSON object from origin remote
+  1. `~/.claude/iadd/pact-paths.json`, one JSON object from origin remote
      URL to checkout path, kept per machine and never committed, keyed by
      remote URL compared normalised;
   2. every sibling directory of the pact's repository whose origin remote
@@ -73,7 +73,7 @@ A signer neither finds is reported with the map entry to add.
 
 The map is read by the standard library's JSON parser, and an entry it
 cannot use is refused at exit 2, printed as
-`REFUSED ~/.claude/agentic/pact-paths.json — the map <sentence>`: a map
+`REFUSED ~/.claude/iadd/pact-paths.json — the map <sentence>`: a map
 that is there and will not read or parse, one whose top level is not an
 object, an entry whose remote or path is empty or whose path is not a
 string, and a remote written as two keys, compared normalised, of which
@@ -149,23 +149,25 @@ except ImportError:
 console = sibling.load("lib/console.py")
 
 PACT_FILE = "pact.md"
-MAP_PARTS = (".claude", "agentic", "pact-paths.json")
+# exempt from root_name: the plugin's own directory under `~/.claude`, which no
+# records root is
+MAP_PARTS = (".claude", "iadd", "pact-paths.json")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
-# `~/.claude\agentic\pact-paths.json`.
+# `~/.claude\iadd\pact-paths.json`.
 MAP = os.path.join(*MAP_PARTS)
 MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 
 
 def shown(path, repo=None, home_dir=None, flavour=os.path):
-    """PATH as every line of `seal pact` prints it, on every platform:
+    """PATH as every line of `iadd pact` prints it, on every platform:
     relative to REPO where it lies inside that repository, `~/`-relative
     where it lies under HOME_DIR, and otherwise whole, with `/` for every
     separator.
 
     **Every path this command prints goes through here.** A sentence that
     joins a native absolute path with `/` prints
-    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, and a path line
+    `C:\\Users\\x\\orders-web\\iadd/config.json` on Windows, and a path line
     printed without this function carries whatever separators the platform
     gave it. One function, so the class is closed by construction rather
     than one sentence at a time.
@@ -250,8 +252,8 @@ NOT_A_HASH = (
 # `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
 # holding a backtick before this sentence is reached.
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
-    "does not declare in its `Pact` key, so no `seal pact` grades the row — "
+    "the `Pact` cell names `{cell}`, a pact this signer's `iadd/config.json` "
+    "does not declare in its `Pact` key, so no `iadd pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
 )
@@ -616,7 +618,7 @@ def check(root, out=sys.stdout, home_dir=None):
     repo = optin.toplevel(os.path.abspath(root))
     if not repo:
         say(
-            f"seal pact: {shown(root, home_dir=home_dir)} is not in a git "
+            f"iadd pact: {shown(root, home_dir=home_dir)} is not in a git "
             "repository — nothing was read"
         )
         return 2
@@ -624,8 +626,8 @@ def check(root, out=sys.stdout, home_dir=None):
     pact_path = os.path.join(home, PACT_FILE) if home else ""
     if not home or not os.path.lexists(pact_path):
         say(
-            f"seal pact: {shown(repo, home_dir=home_dir)} holds no "
-            f"seal/{PACT_FILE}, so there is no pact "
+            f"iadd pact: {shown(repo, home_dir=home_dir)} holds no "
+            f"iadd/{PACT_FILE}, so there is no pact "
             "to reconcile here — run it in the repository that holds the pact"
         )
         return 2
@@ -639,7 +641,7 @@ def check(root, out=sys.stdout, home_dir=None):
     mine = origin(repo)
     if not mine:
         say(
-            f"seal pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
+            f"iadd pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
             "so no pact anchor can be matched to the pact — set `origin` and "
             "run it again"
         )
@@ -671,9 +673,7 @@ def check(root, out=sys.stdout, home_dir=None):
             f"{after_path(config_file, refused)}"
         )
         return 2
-    # The pact's config as a person finds it, under the root's own name:
-    # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
-    # project's own.
+    # The pact's config as a person finds it, under the root's own name.
     config_here = f"{os.path.basename(home)}/{config.CONFIG}"
     signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:
@@ -710,7 +710,7 @@ def check(root, out=sys.stdout, home_dir=None):
                 ONE_SIDED,
                 written,
                 shown(path, home_dir=home_dir),
-                "the pact lists it, and it has no seal/ root to name this pact "
+                "the pact lists it, and it has no iadd/ root to name this pact "
                 "in: the relationship is recorded on one side only",
             )
             continue
@@ -742,7 +742,7 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         # Every pact the signer declares, this one among them: a row naming
         # one of the others is that pact's to grade, and a row naming none
-        # of them is graded by no `seal pact`, since another pact's reports
+        # of them is graded by no `iadd pact`, since another pact's reports
         # this signer `ONE-SIDED` above and reads none of its frames.
         declared_remotes = frozenset(n for _w, n in pacts)
         read_count += 1
@@ -793,7 +793,7 @@ def check(root, out=sys.stdout, home_dir=None):
         )
 
     summary = (
-        f"seal pact: the pact at {mine} — {read_count} of {len(signers)} "
+        f"iadd pact: the pact at {mine} — {read_count} of {len(signers)} "
         f"signer{'' if len(signers) == 1 else 's'} read · "
         + " · ".join(f"{counts[s]} {s.lower()}" for s in counts)
     )
@@ -822,7 +822,7 @@ def after_path(path, sentence):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="seal pact",
+        prog="iadd pact",
         description="At the pact's repository: does every signer still "
         "agree with the pact?",
     )
@@ -836,7 +836,7 @@ def main(argv=None):
     try:
         return check(args.root)
     except sibling.load("lib/gitcmd.py").Failed as unanswered:
-        print(f"seal pact: {unanswered.line}")
+        print(f"iadd pact: {unanswered.line}")
         return 2
 
 

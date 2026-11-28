@@ -35,7 +35,7 @@ here is a write you do not make.
    coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
-5. Where `seal/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
+5. Where `iadd/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
    and compare the behaviour with the original, recording it as that
    skill's *Recording the comparison* states.
 6. Before writing the record, open the writing-style section rule 11 names
@@ -44,7 +44,7 @@ here is a write you do not make.
    with the `target:` line, and under each finding's heading one finding
    block holding its `severity:`, `location:` and `evidence:` lines, each
    line spelt as `lib/fields.py` reads it. Write no close block: the
-   fix pass appends it. A field stands inside a `seal` block and nowhere
+   fix pass appends it. A field stands inside an `iadd` block and nowhere
    else. A prose line that opens with `<` and a letter, such as a
    placeholder left in place, starts an HTML block for the reader, which
    then refuses every fence below it, so replace each placeholder whole.
@@ -77,7 +77,7 @@ here is a write you do not make.
 ## Rules
 
 **The record goes to the branch worktree.** It is
-`seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
+`iadd/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
 
@@ -106,11 +106,11 @@ stands deferred: say where, and do not write it up again.
 
 | Carried, and re-derived only when its check fails | Re-derived every round |
 |---|---|
-| A rule's `check:` target, which `seal rules --check` fails when it is gone | Whether the new code satisfies the clause |
-| What the original does, which `seal/parity.json` pins to a baseline SHA | Whether the new code matches it |
+| A rule's `check:` target, which `iadd rules --check` fails when it is gone | Whether the new code satisfies the clause |
+| What the original does, which `iadd/parity.json` pins to a baseline SHA | Whether the new code matches it |
 | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
-A carried fact is re-derived when its check fails, or where `seal/parity.json`
+A carried fact is re-derived when its check fails, or where `iadd/parity.json`
 lists its path under `Coordinate-trust exceptions`.
 
 **Every round reads the work item's records that state the present, whole,
@@ -130,7 +130,7 @@ without a rendering. This read makes a round the first reader of each
 sentence they hold at its target. A sentence a fix pass writes after the
 last round, which the row *No fix that no round reads* of
 `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to
-the sealer, has the sealer as its first reader (`agents/sealer.md` step 4).
+the inspector, has the inspector as its first reader (`agents/inspector.md` step 4).
 The implementer's
 account of what its own reading of its diff and of these records listed,
 `pr.md` and `pr.<lang>.md` aside, is a claim you verify on your own: a
@@ -157,8 +157,8 @@ code the round reviews is what the branch's own commits changed, which
 `git log --no-merges -p <a>..<b> ^<base>` prints, and what the merge's
 resolution changed, which `git show <merge>` prints. What the merge brought
 in from the base is other work items' text, which the row *No pull request
-without a seal* of `skills/core/SKILL.md` *Judgment is not licence to skip
-a party* guaranteed at their own pull requests, and the round reviews none
+without a cleared inspection* of `skills/core/SKILL.md` *Judgment is not licence to skip
+a party* held at their own pull requests, and the round reviews none
 of it. That text is part of the target all the same. The round holds this
 work item's diff and records against the tree as merged, the policy root
 as the merge left it among it. A unit of the diff or a sentence of the
@@ -176,7 +176,7 @@ duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. A case that holds no
 fact the frame states is the exception, and `skills/code-review/SKILL.md`
 *The record* weighs it. Where the test files
-declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
+declare `TARGET`, the pairs are the ones `iadd layout --pairs` prints.
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that
@@ -184,7 +184,7 @@ label is honest, not whether the number is green. An instruction you
 decline under rule 3 goes in as a row of `## Not judged` with the caller
 named as its answerer, since your hand-back is a report rather than a
 conversation. When your round leaves nothing open, say so: what comes due
-is the orchestrator's broad run, and the sealer's spawn after it.
+is the orchestrator's broad run, and the inspector's spawn after it.
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide
@@ -193,7 +193,7 @@ narrow form, one module (`docs/running/the-run.md` *The handoff*). Where
 the repository ships none, make a `uv` venv inside the clone, since `pytest`
 is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that
-should catch it, report it as a probe, never as a seal, and name it on the
+should catch it, report it as a probe, never as a proof, and name it on the
 finding's `evidence: executed` line.
 
 **A probe runs in the clone, and its files are edits.** A probe follows the

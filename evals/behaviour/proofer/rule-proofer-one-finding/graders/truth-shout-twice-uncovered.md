@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/trail/rounds/round-1.md'}
+target: {source: 'file', path: 'iadd/threads/1790000001-shout-ends-with-one-exclamation-mark/trail/rounds/round-1.md'}
 pattern: '^location: .*(?:tests\/test_textutil\.py(?![\w./#-]))'
 flags: 'm'
 ---

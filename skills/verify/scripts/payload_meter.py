@@ -46,7 +46,7 @@ code span stands, is not in the plugin around it where a `CLAUDE.md` the
 meter reads exists, `lib/core.py`, which says what the core hook prints, is
 not in the plugin around it, or the arguments were unusable (argparse's
 usage error). An interpreter below the floor never reaches this file through
-`seal payload`: `lib/launch.py` refuses `seal` with 2 first.
+`iadd payload`: `lib/launch.py` refuses `iadd` with 2 first.
 """
 
 import argparse
@@ -381,7 +381,7 @@ def session_composition(root, home, user):
     returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
     `lib/core.py#rendered` for the core `lib/core.py#origin` names in ROOT,
     header and closing line included: what a session in ROOT receives where
-    ROOT holds a `seal/` root. Where the whole output would reach
+    ROOT holds an `iadd/` root. Where the whole output would reach
     `lib/core.py#CAP`, `rendered` returns one line naming the core's file and
     the closing line, the row counts those, and it carries `named`, true: the
     session opens the core itself, and no row counts it. Where ROOT
@@ -452,7 +452,7 @@ def _n(value):
 
 
 def render(data):
-    lines = [f"# seal payload — {data['root']} ({data['measured_at']})", ""]
+    lines = [f"# iadd payload — {data['root']} ({data['measured_at']})", ""]
     session = data.get("session")
     if session:
         lines += _session_lines(session)
@@ -502,7 +502,7 @@ def _session_lines(session):
         "What a session started in this tree reads before its first prompt: "
         "the `CLAUDE.md` pair with the files its `@` lines import, and the core "
         "the plugin's `SessionStart` hook prints where the repository holds a "
-        "`seal/` root. No subagent receives the hook's output, so no agent's "
+        "`iadd/` root. No subagent receives the hook's output, so no agent's "
         "table below carries it.",
         "",
         "| File | Bytes | Chars | Tokens | Basis |",
@@ -579,7 +579,7 @@ def main():
         config=os.environ.get("CLAUDE_CONFIG_DIR"),
     )
     if not data["agents"]:
-        print(f"seal payload: no agents/*.md under {args.root}", file=sys.stderr)
+        print(f"iadd payload: no agents/*.md under {args.root}", file=sys.stderr)
         return 1
     if args.json:
         print(json.dumps(data, indent=2, ensure_ascii=False))

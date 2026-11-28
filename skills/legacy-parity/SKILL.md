@@ -4,7 +4,7 @@ description: |
   Behavior-equivalence methodology for legacy migrations: a three-way judgment
   between policy, the original code and the new code, with the original's
   behavior preserved by default.
-  Use when: a project declares a migration config (seal/parity.json), porting or
+  Use when: a project declares a migration config (iadd/parity.json), porting or
   reviewing ported behavior, judging divergence from a legacy original.
   NOT for: greenfield work, which implement and code-review cover alone.
 ---
@@ -13,7 +13,7 @@ description: |
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
-`seal/parity.json`. A tracer reads the sections that find and trace the
+`iadd/parity.json`. A tracer reads the sections that find and trace the
 original: *The migration config*, *What the original sends* and *The
 original's coordinates*. The sections that judge and record are its caller's.
 
@@ -25,9 +25,9 @@ looks wrong is reported, and changing it is the planner's call.
 
 ## The migration config
 
-A migrating repository declares itself in `seal/parity.json`, written from
+A migrating repository declares itself in `iadd/parity.json`, written from
 `templates/setup/parity.json`, which holds its keys, and commits it where the
-root is `<repo>/seal/`; in local mode nothing under the root is committed.
+root is `<repo>/iadd/`; in local mode nothing under the root is committed.
 The file's presence is the declaration: it turns on the three-way judgment
 below and lets the tracer fetch what the original does, and deleting it
 makes the project greenfield again. A byte order mark an editor wrote at
@@ -48,7 +48,7 @@ later phase or behaviour left behind with the decision recorded under the
 policy root.
 
 A machine-local checkout path
-never goes in it: it lives in `~/.claude/agentic/parity-paths.json`, one JSON
+never goes in it: it lives in `~/.claude/iadd/parity-paths.json`, one JSON
 object from the origin remote URL to the checkout path, so worktrees and
 second checkouts resolve to one entry.
 
@@ -145,7 +145,7 @@ that fix adds the item to both. Each item walked stands in the round
 record, as a finding or as a line of its `## Confirmations` naming the item
 and both coordinates. The next round opens the list and those lines
 (`skills/code-review/SKILL.md` *Earlier rounds*), and re-derives the verdict,
-not the enumeration. Under `straight to the PR` the sealer walks the
+not the enumeration. Under `straight to the PR` the inspector walks the
 original's surface the same way, and its record stays the `original:` line
 *Recording the comparison* gives it.
 check: tests/text/test_review_axes.py
@@ -155,18 +155,18 @@ check: tests/text/test_review_axes.py
 The comparison is recorded in the tree, by the party that compared, once
 coordinates were opened, behavior read and verdicts given; the tracer and
 the crafter record none. Where the pull request changes a path outside `docs/`
-and `seal/`, the record is an `original:` line naming the migration config's
+and `iadd/`, the record is an `original:` line naming the migration config's
 `Baseline commit`, and where it lands follows the routing answer:
 
 | The declaration says | Who writes the `original:` line, and where |
 |---|---|
 | through the review chain | the proofer, in the round block of each round record |
-| straight to the PR | the sealer, in the verdict block each of its runs appends to `guarantee.md` |
+| straight to the PR | the inspector, in the verdict block each of its runs appends to `inspection.md` |
 
 The pull-request check reads that line (`docs/forms/the-round-record.md` *The
 round record*). A proofer that could not resolve the original writes no line
-and raises an `unread` finding, and a sealer that could not compare writes a
-`withheld` verdict naming it (`agents/sealer.md`). A line for work nobody
+and raises an `unread` finding, and an inspector that could not compare writes a
+`withheld` verdict naming it (`agents/inspector.md`). A line for work nobody
 compared turns
 *nobody checked* into *someone checked and it was fine*.
 check: tests/text/test_review_axes.py

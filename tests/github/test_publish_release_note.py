@@ -54,7 +54,6 @@ from conftest import (
     commit_everything,
     git_out,
     git_repo,
-    mark_root,
     write,
 )
 from test_settle import unanswered
@@ -89,7 +88,7 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "agentic_publish_release_note_for_tests")
+    return module(SCRIPT, "iadd_publish_release_note_for_tests")
 
 
 class Done:
@@ -285,20 +284,20 @@ def header(*lines):
 # however many pull requests they made.
 HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contributors")
 
-# The address the sealed header's badges are drawn from (#1299).
+# The address the marked header's badges are drawn from (#1299).
 BADGES = "https://img.shields.io/badge/"
-# A badge's two colours by its label, as `(value, label)` (#1496): the seal's
-# reds for `SEALED`, green for the suite's passed count, grey for the
+# A badge's two colours by its label, as `(value, label)` (#1496): the wax seal's
+# reds for `CLEARED`, green for the suite's passed count, grey for the
 # skipped, capped and deferred counts, and a blue value beside a grey label
 # for every other.
-SEAL_RED = ("d42420", "8e0c12")
+MARK_RED = ("d42420", "8e0c12")
 GREEN = ("2ea44f", "555555")
 GREY = ("6e7781", "555555")
 BLUE = ("0969da", "555555")
 
 
 def badge(path, alt, colours=BLUE):
-    """One badge exactly as the sealed header carries it: `path` is the
+    """One badge exactly as the marked header carries it: `path` is the
     label and the value as the address spells them, `alt` the escaped text
     a reader whose client draws no image reads in its place, and `colours`
     the value's colour and the label's."""
@@ -306,16 +305,16 @@ def badge(path, alt, colours=BLUE):
     return f'<img src="{BADGES}{path}-{colour}?labelColor={edge}" alt="{alt}">'
 
 
-# `sealed_header`'s results as `release_seal.py#results` hands them (#1299):
+# `marked_header`'s results as `release_mark.py#results` hands them (#1299):
 # badge lines, each a list of `(label, value)` pairs.
-SEALED = [[("SEALED", "v1.2.3")], [("commit", "aaa11111"), ("on", "main")]]
+CLEARED = [[("CLEARED", "v1.2.3")], [("commit", "aaa11111"), ("on", "main")]]
 RESULTS = [[("suite", "5 passed"), ("skipped", "0")], [("capped", "not read")]]
-# The badge lines `sealed_header` builds from them for `RELEASE`, parted by
-# `<br>`: the sealed part, the counts `header` states as badges, then the
+# The badge lines `marked_header` builds from them for `RELEASE`, parted by
+# `<br>`: the cleared part, the counts `header` states as badges, then the
 # results.
 BADGE_LINES = "<br>".join(
     [
-        badge("SEALED-v1.2.3", "SEALED: v1.2.3", SEAL_RED),
+        badge("CLEARED-v1.2.3", "CLEARED: v1.2.3", MARK_RED),
         badge("commit-aaa11111", "commit: aaa11111")
         + " "
         + badge("on-main", "on: main"),
@@ -342,12 +341,12 @@ def fold(summary, lines):
 PR_1293 = pull(
     1293,
     OWNER,
-    "fix: seal pr-body refused only an exact <details> or </details> line, "
+    "fix: iadd pr-body refused only an exact <details> or </details> line, "
     "and GitHub ends the fold at one inside a sentence, indented or in "
     "capitals, and nests a second at <details open>",
 )
 TEXT_1293 = (
-    "Seal pr-body refused only an exact <details> or </details> line, and "
+    "Iadd pr-body refused only an exact <details> or </details> line, and "
     "GitHub ends the fold at one inside a sentence, indented or in capitals, "
     "and nests a second at <details open> (#1293)"
 )
@@ -426,7 +425,7 @@ class Test_main:
         read as its rename, an empty fragment gives no entry, and no
         `changelog/` path is named. Driven through a real `git` history."""
         repo = git_repo(tmp_path / "repo")
-        thread = "seal/threads/{}/changelog.md"
+        thread = "iadd/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
@@ -437,8 +436,8 @@ class Test_main:
         write(repo, thread.format("1700000001-first"), "- first entry, revised\n")
         write(repo, thread.format("1700000000-older"), "- older entry, edited\n")
         commit_everything(repo, "a fix brings its fragment along")
-        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
-        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
+        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000000-older")
         # Added in the settle's own commit with the removed fragment's text,
         # so only `--no-renames` keeps it from reading as a rename.
         write(repo, thread.format("1700000003-third"), "- first entry, revised\n")
@@ -484,13 +483,13 @@ class Test_main:
         text alone, and no entry carries the hidden work-item marker. Driven
         through a real `git` history."""
         repo = git_repo(tmp_path / "repo")
-        thread = "seal/threads/{}/changelog.md"
+        thread = "iadd/threads/{}/changelog.md"
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000001-linked"), "- linked entry\n")
         commit_everything(repo, "feat: a change (#42)")
         write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
         commit_everything(repo, "fix: a later edit (#43)")
-        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-linked")
+        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-linked")
         commit_everything(repo, "chore: removed by mistake (#45)")
         write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
         commit_everything(repo, "chore: restored (#46)")
@@ -806,7 +805,7 @@ class Test_main:
             f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
         assert body.index(mod.UPDATE_HEADING) < opens
-        assert "/agentic:update" in body
+        assert "/iadd:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
         self, monkeypatch, tmp_path
@@ -848,7 +847,7 @@ class Test_main:
         self, monkeypatch, tmp_path, existing, created
     ):
         """S4 (#718). `created` goes to `$GITHUB_OUTPUT`: `true` after the
-        release is created, `false` where one was already at the tag, so the seal
+        release is created, `false` where one was already at the tag, so the mark
         job, which edits the note, runs only on a note this run wrote. Seen red
         against the `main` that wrote nothing."""
         out = tmp_path / "github_output"
@@ -921,8 +920,8 @@ class Test_module:
         assert "body" in args[args.index("--json") + 1].split(","), (
             "the body is not fetched, so no line can say which issues it closed"
         )
-        # #718: the seal reads the capped label and the head branch from the same
-        # call, so the list is fetched once for the note and the seal alike.
+        # #718: the mark reads the capped label and the head branch from the same
+        # call, so the list is fetched once for the note and the mark alike.
         fields = args[args.index("--json") + 1].split(",")
         assert "labels" in fields and "headRefName" in fields, fields
         assert args[args.index("--state") + 1] == "merged"
@@ -995,15 +994,15 @@ class Test_module:
             "`git log -1 --format=%B v9.9.9` exited 128: fatal: "
         ), stopped.value.code
 
-    def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
+    def test_the_header_is_built_by_one_function_and_its_marked_twin_by_another(
         self, monkeypatch, tmp_path
     ):
         """#718's shape, #1153 S2, #1299 S1 and S3, and #1496 S2. The note's
-        header is exactly `header`'s, so the seal can find it by the same
-        function. `sealed_header` is the same one-line paragraph: the image
+        header is exactly `header`'s, so the mark can find it by the same
+        function. `marked_header` is the same one-line paragraph: the image
         floated left, then the results as badges, one or two to a line, then
         a `<br clear="left">` that ends the float before the theme. The
-        badges are the sealed version, the commit and its branch, the counts
+        badges are the cleared version, the commit and its branch, the counts
         `header` states in its order, then the stamp's other results. Since
         #832 the image is an `<img>` carrying its display width, because the
         PNG is drawn at twice that size for a high-density screen. Each
@@ -1013,45 +1012,45 @@ class Test_module:
         URL and alt text, and each badge's alt text, are escaped, so a quote
         cannot end an attribute and a `<` opens no tag; a badge's address is
         percent-encoded and needs no escape. Seen red against the
-        `sealed_header` that wrote `SEALED` in bold and the results as text,
+        `marked_header` that wrote `CLEARED` in bold and the results as text,
         one per line, with the badge's alt attribute alone left out, and
         against the header that was a table of two cells."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         assert mod.header(work, closed, people) == HEADER
         assert body.startswith(HEADER + "\n\n" + fold(*FOLDED[0])), body[:400]
-        sealed = mod.sealed_header(
-            "https://example.com/seal.png",
-            "a seal",
+        cleared = mod.marked_header(
+            "https://example.com/mark.png",
+            "a mark",
             160,
-            SEALED,
+            CLEARED,
             RESULTS,
             work,
             closed,
             people,
         )
-        assert sealed == (
-            '<p><img src="https://example.com/seal.png" alt="a seal" width="160" '
+        assert cleared == (
+            '<p><img src="https://example.com/mark.png" alt="a mark" width="160" '
             f'align="left">{BADGE_LINES}<br clear="left"></p>'
-        ), sealed
+        ), cleared
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
-        odd = mod.sealed_header(
+        odd = mod.marked_header(
             'u?a=1&b="2"',
-            'a "seal" <b>',
+            'a "mark" <b>',
             80,
-            [[("SEALED", "v<1>")]],
+            [[("CLEARED", "v<1>")]],
             [[("a & b", 'say "x"')]],
             work,
             closed,
             people,
         )
         assert odd == (
-            '<p><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
+            '<p><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;mark&quot; &lt;b&gt;" '
             'width="80" align="left">'
             + "<br>".join(
                 [
-                    badge("SEALED-v%3C1%3E", "SEALED: v&lt;1&gt;", SEAL_RED),
+                    badge("CLEARED-v%3C1%3E", "CLEARED: v&lt;1&gt;", MARK_RED),
                     badge("pull%20requests-1%20merged", "pull requests: 1 merged"),
                     badge("issues-1%20closed", "issues: 1 closed"),
                     badge("a%20%26%20b-say%20%22x%22", "a &amp; b: say &quot;x&quot;"),
@@ -1060,25 +1059,25 @@ class Test_module:
             + '<br clear="left"></p>'
         ), odd
 
-    def test_the_sealed_header_given_no_image_is_its_badges_alone(
+    def test_the_marked_header_given_no_image_is_its_badges_alone(
         self, monkeypatch, tmp_path
     ):
         """#1204 S7, #1299 S2 and #1496 S3. Where the repository leaves the
-        release note's seal image off, `sealed_header` is given no image and
+        release note's mark image off, `marked_header` is given no image and
         builds the paragraph of the badges alone: the same badges, in the
         same order and escaped the same way, as the header with the image
-        holds, with no float to clear. Seen red against the `sealed_header`
+        holds, with no float to clear. Seen red against the `marked_header`
         that always drew the image's cell, against the one that wrote the
         results as text, and against the header that was a table of one
         cell."""
         mod, _body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
-        said = (SEALED, RESULTS, work, closed, people)
-        two = mod.sealed_header("https://example.com/seal.png", "a seal", 160, *said)
-        one = mod.sealed_header(None, None, None, *said)
+        said = (CLEARED, RESULTS, work, closed, people)
+        two = mod.marked_header("https://example.com/mark.png", "a mark", 160, *said)
+        one = mod.marked_header(None, None, None, *said)
         assert one == f"<p>{BADGE_LINES}</p>", one
         image = (
-            '<img src="https://example.com/seal.png" alt="a seal" '
+            '<img src="https://example.com/mark.png" alt="a mark" '
             'width="160" align="left">'
         )
         assert two.replace(image, "").replace('<br clear="left">', "") == one, (
@@ -1098,7 +1097,7 @@ class Test_module:
         grey (#1496 S4).
         Seen red against an encoder that percent-encoded alone, without
         doubling, and against the `badge` that coloured every label with the
-        seal's two reds."""
+        wax seal's two reds."""
         mod = publisher()
         label, value = "a-b_c d", '50% & ? # / < " x-y__z'
         img = mod.badge(label, value)
@@ -1120,7 +1119,7 @@ class Test_module:
     @pytest.mark.parametrize(
         "label, colours",
         [
-            pytest.param("SEALED", SEAL_RED, id="SEALED"),
+            pytest.param("CLEARED", MARK_RED, id="CLEARED"),
             pytest.param("suite", GREEN, id="suite"),
             *(
                 pytest.param(label, GREY, id=label)
@@ -1143,15 +1142,15 @@ class Test_module:
     def test_a_badge_takes_its_two_colours_from_its_label(self, label, colours):
         """#1496 S4, colours C3. A badge's value colour and label colour are
         read by its label, so a passing result does not read like a failure:
-        `SEALED` keeps the seal's dark red label beside its bright red value,
+        `CLEARED` keeps the wax seal's dark red label beside its bright red value,
         and every other label is grey. The suite's passed count is green, the
         skipped, capped and deferred counts are grey, and every other value
-        of the sealed header is blue. The value is `not read`, the one a
+        of the marked header is blue. The value is `not read`, the one a
         source that could not be read gives, and the label alone still
         decides the colours; a label with no colours of its own is the case
         above. Seen red against the `badge` that coloured every label with
-        the seal's two reds, at every parameter but `SEALED`, whose two reds
-        that `badge` already gave; `SEALED`'s was seen red with its entry
+        the wax seal's two reds, at every parameter but `CLEARED`, whose two reds
+        that `badge` already gave; `CLEARED`'s was seen red with its entry
         removed."""
         mod = publisher()
         img = mod.badge(label, "not read")
@@ -1268,15 +1267,15 @@ class Test_module:
         (0.15.3). Round 1 of #1053, finding 1. The pull request its adding
         commit names is read through the same merge (#1139)."""
         repo = git_repo(tmp_path / "repo")
-        thread = "seal/threads/{}/changelog.md"
+        thread = "iadd/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
         git_out(repo, "switch", "-q", "-c", "release")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
         commit_everything(repo, "the work item (#5)")
-        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
-        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
+        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "iadd/threads/1700000000-older")
         commit_everything(repo, "the settle")
         write(repo, thread.format("1700000000-older"), "- older entry\n")
         commit_everything(repo, "a directory restored")
@@ -1296,7 +1295,7 @@ class Test_module:
         too, is read as it is and not left out. Seen red against the reading
         without `-z`, which returned the ASCII fragment alone."""
         repo = git_repo(tmp_path / "repo")
-        thread = "seal/threads/{}/changelog.md"
+        thread = "iadd/threads/{}/changelog.md"
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000001-정렬"), "- sorted entry\n")
         commit_everything(repo, "the work item (#5)")
@@ -1308,29 +1307,6 @@ class Test_module:
         assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
             ("1700000001-정렬", "- sorted entry", 5),
             ("1700000002-plain", "- plain entry", 6),
-        ]
-
-    def test_a_fragment_under_agentic_seal_reaches_the_note_beside_a_package(
-        self, tmp_path, monkeypatch
-    ):
-        """#1059: beside a project's own `seal/`, a package with no marker,
-        the fragments are read under the marked `agentic-seal/threads/`, and
-        a `changelog.md` the package holds at the same depth is none."""
-        repo = git_repo(tmp_path / "repo")
-        write(repo, "seal/__init__.py", "VERSION = 1\n")
-        mark_root(os.path.join(repo, "agentic-seal"))
-        commit_everything(repo, "the package and the root")
-        git_out(repo, "tag", PREVIOUS)
-        write(repo, "seal/threads/1700000001-pkg/changelog.md", "- the package\n")
-        write(
-            repo, "agentic-seal/threads/1700000002-ours/changelog.md", "- our entry\n"
-        )
-        commit_everything(repo, "the work item (#5)")
-        git_out(repo, "tag", TAG)
-        mod = publisher()
-        monkeypatch.setattr(mod, "ROOT", str(repo))
-        assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
-            ("1700000002-ours", "- our entry", 5)
         ]
 
     def test_the_line_the_checklist_copies_is_the_line_the_reader_reads(self):

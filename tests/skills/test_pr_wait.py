@@ -579,7 +579,7 @@ class Test_main:
         assert PR.main(["12"]) == 5
         assert (
             capsys.readouterr().out
-            == f"seal pr-wait: pull request #12 at {HEAD}: closed\n"
+            == f"iadd pr-wait: pull request #12 at {HEAD}: closed\n"
         )
 
     def test_refuses_a_number_that_names_no_pull_request(self):
@@ -598,7 +598,7 @@ class Test_main:
         assert PR.main(["12"]) == 2
         out = capsys.readouterr().out
         assert out.startswith(
-            "seal pr-wait: pull request #12: could not ask: `git rev-parse HEAD` "
+            "iadd pr-wait: pull request #12: could not ask: `git rev-parse HEAD` "
             "exited 128\n"
         )
         assert hub.calls == []
@@ -625,7 +625,7 @@ class Test_main:
         )
         assert done.returncode == 2
         assert done.stdout == (
-            "seal pr-wait: pull request #999999: could not ask: `gh pr view 999999 "
+            "iadd pr-wait: pull request #999999: could not ask: `gh pr view 999999 "
             "--json state,mergeable,headRefOid,statusCheckRollup` exited 1\n"
             "  GraphQL: Could not resolve to a PullRequest with the number of 999999.\n"
         )

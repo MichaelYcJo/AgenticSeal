@@ -10,7 +10,7 @@ the script's other cases from
 keeps the cases that read the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
-against the script that printed no test-file rows, and `seal mutate`
+against the script that printed no test-file rows, and `iadd mutate`
 turned the fourth, the exit on an unreadable tree, red by letting `main` go
 on past the tree it could not read.
 """
@@ -22,12 +22,12 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, config_json, mark_root, write
+from conftest import ROOT, census_case
 
 TARGET = ".github/scripts/release_report.py"
 
 _SPEC = importlib.util.spec_from_file_location(
-    "agentic_release_report_under_layout", os.path.join(ROOT, *TARGET.split("/"))
+    "iadd_release_report_under_layout", os.path.join(ROOT, *TARGET.split("/"))
 )
 report = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(report)
@@ -186,27 +186,6 @@ class Test_documents:
         docs = {"README": INDEX, "g/x": "abc\n", "experiments/e": "e\n"}
         root = tree(tmp_path / "t", "", docs)
         assert "docs/experiments/e.md" not in report.documents(root)
-
-    def test_accepts_the_policy_root_agentic_seal_names_beside_a_package(
-        self, tmp_path
-    ):
-        """#1059: beside a project's own `seal/`, a package with no marker,
-        the `Policy root` key is read from the marked `agentic-seal/`, so the
-        rows are the documents under the root it names."""
-        root = tree(tmp_path / "t", "", {})
-        write(root, "seal/__init__.py", "VERSION = 1\n")
-        write(root, "seal/config.json", config_json())
-        mark_root(os.path.join(root, "agentic-seal"))
-        write(root, "agentic-seal/config.json", config_json(("Policy root", "policy")))
-        write(root, "policy/README.md", INDEX.replace("docs/", "policy/"))
-        write(root, "policy/g/x.md", "abc\n")
-        assert sorted(report.documents(root)) == [
-            "CLAUDE.md",
-            "CONTRIBUTING.md",
-            "policy/README.md",
-            "policy/g/x.md",
-            "skills/core/SKILL.md",
-        ]
 
 
 class Test_leg_minutes:

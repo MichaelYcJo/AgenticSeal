@@ -1,6 +1,6 @@
 """`lib/core.py`: what the core hook prints into a session.
 
-A session in a repository that holds a `seal/` root receives the core,
+A session in a repository that holds an `iadd/` root receives the core,
 `skills/core/SKILL.md`, from the plugin's `SessionStart` hook, under one
 first line naming the file printed and the running plugin's version, and
 above one closing line naming where work starts (#1177, #1430). A session
@@ -30,7 +30,7 @@ def write(path, text):
     return path
 
 
-def plugin(where, name="agentic", version="0.25.0", core="# plugin core\n"):
+def plugin(where, name="iadd", version="0.25.0", core="# plugin core\n"):
     """A scratch plugin root at WHERE: its manifest, and its core where CORE
     is not None. A manifest field given as None is left out."""
     fields = {k: v for k, v in (("name", name), ("version", version)) if v}
@@ -54,14 +54,14 @@ class Test_manifest:
     def test_accepts_the_object_the_manifest_holds(self, tmp_path):
         core = core_module()
         root = plugin(tmp_path / "plugin", version="1.2.3")
-        assert core.manifest(root) == {"name": "agentic", "version": "1.2.3"}
+        assert core.manifest(root) == {"name": "iadd", "version": "1.2.3"}
 
     def test_refuses_a_manifest_that_is_absent_unreadable_or_not_an_object(
         self, tmp_path
     ):
         core = core_module()
         assert core.manifest(str(tmp_path / "none")) == {}
-        for n, text in enumerate(("{not json", "[1, 2]", '"agentic"')):
+        for n, text in enumerate(("{not json", "[1, 2]", '"iadd"')):
             root = tmp_path / f"p{n}"
             write(os.path.join(root, ".claude-plugin", "plugin.json"), text)
             assert core.manifest(str(root)) == {}, text
@@ -71,7 +71,7 @@ class Test_header:
     def test_accepts_the_path_and_the_version_as_one_sentence(self):
         core = core_module()
         assert core.header("/Users/x/SKILL.md", "0.25.0") == (
-            "AgenticSeal core from /Users/x/SKILL.md, plugin 0.25.0."
+            "IADD core from /Users/x/SKILL.md, plugin 0.25.0."
         )
 
     def test_refuses_to_quote_or_cut_a_path_holding_the_headers_words(self):
@@ -79,9 +79,7 @@ class Test_header:
         `, plugin ` is carried whole, with nothing quoted or escaped."""
         core = core_module()
         path = "/Users/x/a, plugin 9./skills/core/SKILL.md"
-        assert core.header(path, "1.2.3") == (
-            f"AgenticSeal core from {path}, plugin 1.2.3."
-        )
+        assert core.header(path, "1.2.3") == (f"IADD core from {path}, plugin 1.2.3.")
 
 
 class Test_origin:
@@ -93,7 +91,7 @@ class Test_origin:
         root = plugin(tmp_path / "plugin")
         tree = git_repo(tmp_path / "tree")
         plugin(tree, version="0.26.0", core="# the tree's core\n")
-        mark_root(tree / "seal")
+        mark_root(tree / "iadd")
         (tree / "docs" / "deep").mkdir(parents=True)
         for cwd in (tree, tree / "docs" / "deep"):
             found = core.origin(str(cwd), root)
@@ -169,7 +167,7 @@ class Test_closing:
         """A core at another path is closed by the two files named relative
         to the plugin's root, then one sentence naming that root, absolute."""
         core = core_module()
-        root = "/Users/x/plugins/agentic/0.25.0"
+        root = "/Users/x/plugins/iadd/0.25.0"
         closing = core.closing(root)
         assert closing == (
             core.START
@@ -211,7 +209,7 @@ class Test_whole:
     def test_refuses_the_plugins_own_sentence_where_a_root_is_given(self):
         core = core_module()
         path = "/Users/x/tree/skills/core/SKILL.md"
-        root = "/Users/x/plugins/agentic/0.25.0"
+        root = "/Users/x/plugins/iadd/0.25.0"
         out = core.whole("# The core\n", path, "1.2.3", root)
         assert out == core.header(path, "1.2.3") + "\n# The core\n\n" + core.closing(
             root
@@ -265,11 +263,11 @@ class Test_rendered:
         root = str(tmp_path / "plugin")
         out = core.rendered(path, root)
         assert out == (
-            f"AgenticSeal core: printing {path} here would pass the harness's "
+            f"IADD core: printing {path} here would pass the harness's "
             "cap of 10,000 characters on a hook's output, so no core was "
             "printed. Open that file whole before anything else.\n" + core.closing(root)
         ), out
-        assert not out.startswith("AgenticSeal core from"), out
+        assert not out.startswith("IADD core from"), out
         assert len(out) < core.CAP, len(out)
 
     def test_accepts_a_core_one_character_under_the_cap_whole(self, tmp_path):
@@ -287,7 +285,7 @@ class Test_rendered:
         root = plugin(tmp_path / "plugin", core=None)
         path = os.path.join(root, *CORE)
         assert core.rendered(path, root) == (
-            f"AgenticSeal core: {path} is not a file, so no core was printed."
+            f"IADD core: {path} is not a file, so no core was printed."
         )
 
     def test_refuses_to_leave_the_version_out_where_the_manifest_names_none(
@@ -301,26 +299,26 @@ class Test_rendered:
 
 class Test_output:
     def test_accepts_a_repository_holding_a_marked_root(self, tmp_path):
-        """A session whose repository holds a `seal/` root receives
+        """A session whose repository holds an `iadd/` root receives
         `rendered` for the core `origin` names."""
         core = core_module()
         root = plugin(tmp_path / "plugin")
         repo = git_repo(tmp_path / "repo")
-        mark_root(repo / "seal")
+        mark_root(repo / "iadd")
         assert core.output(str(repo), root) == core.rendered(
             os.path.join(root, *CORE), root
         )
 
     def test_refuses_a_repository_with_no_marked_root(self, tmp_path):
-        """#1430. A repository with no `seal/` root, one whose `seal/` lacks
+        """#1430. A repository with no `iadd/` root, one whose `iadd/` lacks
         the marker, a directory outside git and a cwd not given each receive
-        nothing: the root is what says the repository runs the AgenticSeal
+        nothing: the root is what says the repository runs the IADD
         process."""
         core = core_module()
         root = plugin(tmp_path / "plugin")
         bare = git_repo(tmp_path / "bare")
         unmarked = git_repo(tmp_path / "unmarked")
-        write(str(unmarked / "seal" / "README.md"), "# a package of our own\n")
+        write(str(unmarked / "iadd" / "README.md"), "# a package of our own\n")
         outside = tmp_path / "outside"
         outside.mkdir()
         for cwd in (bare, unmarked, outside, ""):

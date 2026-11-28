@@ -1,6 +1,6 @@
 """The `Broad gate` key is asked for, and it runs as the command it reads as.
 
-Two tickets about one key of `seal/config.json`, in causal order. Nothing ever
+Two tickets about one key of `iadd/config.json`, in causal order. Nothing ever
 asks a person for it (#401), so the first repository to fill it in by hand
 filled it in the way every command in every document here is written — wrapped
 in backticks — and nothing looked at what was written (#402). A shell reads
@@ -116,8 +116,8 @@ def test_the_template_names_the_command_that_rewrites_a_refused_key():
     does. That the section says nothing is stripped is the proofer's to
     read."""
     body = unquoted_flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED))
-    # The command `/agentic:config`, which a person types to rewrite the key.
-    assert "/agentic:config" in body, (
+    # The command `/iadd:config`, which a person types to rewrite the key.
+    assert "/iadd:config" in body, (
         "the section does not say where a person rewrites the key"
     )
 
@@ -198,5 +198,5 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
     orchestrator = unquoted_flat(read(*GATE_TO_PR))
-    # The command `/agentic:config`, which the person runs to answer the key.
-    assert "/agentic:config" in orchestrator
+    # The command `/iadd:config`, which the person runs to answer the key.
+    assert "/iadd:config" in orchestrator

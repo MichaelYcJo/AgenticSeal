@@ -1,13 +1,13 @@
 ---
 name: parity-setup
-description: Declare that this repo ports behavior from another codebase. Finds the original, records the baseline, and writes seal/parity.json.
+description: Declare that this repo ports behavior from another codebase. Finds the original, records the baseline, and writes iadd/parity.json.
 disable-model-invocation: true
 ---
 
-# /agentic:parity-setup, turn on parity mode
+# /iadd:parity-setup, turn on parity mode
 
 The user runs this command, and the session running it writes
-`seal/parity.json`, whose presence is the declaration that this repository ports
+`iadd/parity.json`, whose presence is the declaration that this repository ports
 behavior from another codebase. That turns on the three-way judgment between
 policy, the original and the new code, with the original preserved where the
 policy is silent, and lets the `tracer` agent fetch what the original does.
@@ -20,7 +20,7 @@ layout that predates the question, or an original that changes.
 
 ## Procedure
 
-1. **Stop if it already exists.** If `seal/parity.json` is present, show it and
+1. **Stop if it already exists.** If `iadd/parity.json` is present, show it and
    ask what should change instead of overwriting a declaration someone made.
 
 2. **Find candidates for the original.** Do not ask the user to type a path
@@ -47,34 +47,34 @@ layout that predates the question, or an original that changes.
    none. Never propose creating one.
 
 6. **Write two files.**
-   - `seal/parity.json` from `templates/setup/parity.json`, whose keys
+   - `iadd/parity.json` from `templates/setup/parity.json`, whose keys
      `skills/legacy-parity/SKILL.md` *The migration config* states. Where the
-     root is `<repo>/seal/`, commit it. In local mode the root sits under the
+     root is `<repo>/iadd/`, commit it. In local mode the root sits under the
      common git directory, where nothing is committed, so write it there and
      commit nothing. `Coordinate-trust exceptions` starts as an empty list.
-   - `~/.claude/agentic/parity-paths.json`: the machine-local checkout path,
+   - `~/.claude/iadd/parity-paths.json`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
      checkouts resolve to one entry, as one more key of the object where the
-     file already holds others. **This never goes in `seal/parity.json`**:
+     file already holds others. **This never goes in `iadd/parity.json`**:
      it is wrong for every other machine.
 
 7. **Show the result and say what changes now.** Name the `legacy-parity`
    skill, the `tracer` agent, and that divergence from the original now needs
    grounds rather than preference. Say the consequence the user meets first,
    too, which depends on where the root is and on whether the pull-request
-   checks are installed. Where the root is `<repo>/seal/` and
-   `seal pr-checks` reports the checks installed: from this file onward, a
+   checks are installed. Where the root is `<repo>/iadd/` and
+   `iadd pr-checks` reports the checks installed: from this file onward, a
    ready pull request that changes anything outside the document roots fails
    its check until the comparison with the original is recorded as an
    `original:` line, in each round record under `through the review chain`
-   and in the sealer's `guarantee.md` under `straight to the PR`
+   and in the inspector's `inspection.md` under `straight to the PR`
    (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
-   shared, records only, no workflow reads a round record, but `seal gate`
+   shared, records only, no workflow reads a round record, but `iadd gate`
    runs the same check: say that the `original:` line is still written, that
    the gate's preflight and broad run refuse a round record without it
    whatever the pull request's state, and that no workflow refuses it at the
    pull request.
-   In local mode git carries neither `seal/parity.json` nor a round record, so
+   In local mode git carries neither `iadd/parity.json` nor a round record, so
    no check reads either: say that the line is still written, and that
    nothing refuses a record without it.
 

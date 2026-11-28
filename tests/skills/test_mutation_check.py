@@ -42,7 +42,7 @@ TARGET = "skills/verify/scripts/mutation_check.py"
 
 ROOT = pathlib.Path(conftest.ROOT)
 mc = load_module(ROOT / TARGET, "mutation_check_under_test")
-WRAPPER = os.path.join(ROOT, "bin", "seal")
+WRAPPER = os.path.join(ROOT, "bin", "iadd")
 
 # The stand-in for a test command. It logs the target's text and whether any
 # cached bytecode of the target existed when it ran, then writes that
@@ -172,7 +172,7 @@ SECONDS = r" \(\d+\.\ds\)$"
 
 def module():
     """The command, loaded afresh from its path, for a case that patches it."""
-    return load_module(ROOT / TARGET, "agentic_mutation_check")
+    return load_module(ROOT / TARGET, "iadd_mutation_check")
 
 
 def run(argv, capsys):
@@ -271,7 +271,7 @@ def plant_import_cache(path):
 
     Written by `py_compile` rather than by importing, because an import
     honours `PYTHONDONTWRITEBYTECODE` -- and this module is itself run under
-    `seal mutate`, which sets it, whenever a unit of the command is
+    `iadd mutate`, which sets it, whenever a unit of the command is
     mutated. Planted by import, the cache is never written there and the case
     goes red on its own precondition whatever the mutation was: measured
     while mutating this module's script, 2026-10-01."""
@@ -484,7 +484,7 @@ class Test_main:
         assert re.match(r"mutant 1: red \(exit 1, \d+\.\ds\)$", lines[1]), out
         assert re.match(r"mutant 2: red \(exit 1, \d+\.\ds\)$", lines[2]), out
         assert re.match(
-            r"seal mutate: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict" + SECONDS,
+            r"iadd mutate: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict" + SECONDS,
             lines[3],
         ), out
         assert len(lines) == 4, out
@@ -676,7 +676,7 @@ class Test_main:
         target.write_text("VALUE = 1\n", encoding="utf-8")
         other = tmp_path / "other"
         other.mkdir()
-        prefix = "agentic-prefix-703"
+        prefix = "iadd-prefix-703"
         monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
         planted = importlib.util.cache_from_source(str(target))
         # The prefix the clear reads is the environment's, as a session's would be.
@@ -1585,7 +1585,7 @@ class Test_main:
             f"collecting the output waited {elapsed:.1f}s on the escaped child"
         )
         assert code == 2 and out.startswith("timed out after 1s"), out
-        # The verdict `seal mutate` prints, which names the escape as the
+        # The verdict `iadd mutate` prints, which names the escape as the
         # bound's limit for the crafter reading it.
         assert "session of its own" in out, out
         assert target.read_bytes() == b"VALUE = 1\n"
@@ -1756,7 +1756,7 @@ class Test_module:
         os.name == "nt", reason="the POSIX wrapper; its .cmd twin is read, not run"
     )
     def test_the_command_a_session_types_reaches_the_script(self, tmp_path):
-        """`bin/seal mutate`, run the way the Bash tool runs it, through the
+        """`bin/iadd mutate`, run the way the Bash tool runs it, through the
         shell: the verdict and the exit code arrive unchanged."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
@@ -1885,7 +1885,7 @@ class Test_module:
         assert mc.clear_bytecode_cache(str(module_path)) and not os.path.exists(planted)
 
     def test_a_windows_command_line_keeps_the_backslashes_of_its_paths(self):
-        """`seal mutate`'s `--tests` command line is split by the platform's
+        """`iadd mutate`'s `--tests` command line is split by the platform's
         rule for a backslash. On Windows it is the path separator and stays,
         so an interpreter's path reaches the process whole; PR #939's
         `windows-latest` leg started `C:hostedtoolcache…python.exe` and found

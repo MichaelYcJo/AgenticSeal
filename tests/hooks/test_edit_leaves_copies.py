@@ -20,7 +20,7 @@ from test_core_start import start
 
 TARGET = "hooks/edit-leaves-copies.py"
 
-hook = load(TARGET, "agentic_edit_leaves_copies")
+hook = load(TARGET, "iadd_edit_leaves_copies")
 
 EVENT = "PostToolUse"
 ITEM = "1780000000-a-work-item"
@@ -37,17 +37,17 @@ SPAN = "pr.md whose words no longer stand in the"
 
 
 def item(where, files, marked=True):
-    """A repository at WHERE whose `seal/` root holds `ITEM`, its records
+    """A repository at WHERE whose `iadd/` root holds `ITEM`, its records
     FILES, a mapping of `/`-joined paths under the item's directory to their
     text, or to bytes written as they are. The root's `README.md` opens with
     the marker where MARKED, and holds another first line otherwise. The
     item's directory."""
-    home = where / "seal"
+    home = where / "iadd"
     if marked:
         mark_root(home)
     else:
         home.mkdir(parents=True)
-        (home / "README.md").write_text("# Our own seal package\n", encoding="utf-8")
+        (home / "README.md").write_text("# Our own iadd package\n", encoding="utf-8")
     directory = home / "threads" / ITEM
     for rel, text in files.items():
         path = directory.joinpath(*rel.split("/"))
@@ -286,10 +286,10 @@ class Test_main:
         out = run(edited(directory / "frame" / "design.md", BEFORE, wrapped))
         assert out == "", out
 
-    def test_refuses_to_print_where_the_words_stand_only_in_trail_or_guarantee(
+    def test_refuses_to_print_where_the_words_stand_only_in_trail_or_inspection(
         self, tmp_path
     ):
-        """A10. A round record under `trail/` and `guarantee.md` quote what
+        """A10. A round record under `trail/` and `inspection.md` quote what
         their party read, so a copy there is not named, and neither is one
         in a file that is not a `.md` record."""
         directory = item(
@@ -297,7 +297,7 @@ class Test_main:
             {
                 "frame/design.md": design(AFTER),
                 "trail/rounds/round-1.md": "# Round 1\n\n" + BEFORE + "\n",
-                "guarantee.md": "# Guarantee\n\n" + BEFORE + "\n",
+                "inspection.md": "# Inspection\n\n" + BEFORE + "\n",
                 "notes.txt": BEFORE + "\n",
             },
         )
@@ -347,7 +347,7 @@ class Test_main:
         (outside / "deep" / "er" / "notes.md").write_text(
             quoted(BEFORE), encoding="utf-8"
         )
-        home = tmp_path / "repo" / "seal"
+        home = tmp_path / "repo" / "iadd"
         mark_root(home)
         (home / "threads").mkdir()
         symlink_or_skip(str(outside), str(home / "threads" / ITEM), directory=True)
@@ -367,14 +367,14 @@ class Test_main:
         )
         via_root = tmp_path / "via-root"
         via_root.mkdir()
-        symlink_or_skip(str(real.parent.parent), str(via_root / "seal"), directory=True)
-        via_threads = tmp_path / "via-threads" / "seal"
+        symlink_or_skip(str(real.parent.parent), str(via_root / "iadd"), directory=True)
+        via_threads = tmp_path / "via-threads" / "iadd"
         mark_root(via_threads)
         symlink_or_skip(str(real.parent), str(via_threads / "threads"), directory=True)
         via_frame = item(tmp_path / "via-frame", {"pr.md": quoted(BEFORE)})
         symlink_or_skip(str(real / "frame"), str(via_frame / "frame"), directory=True)
         for path in (
-            via_root / "seal" / "threads" / ITEM / "frame" / "design.md",
+            via_root / "iadd" / "threads" / ITEM / "frame" / "design.md",
             via_threads / "threads" / ITEM / "frame" / "design.md",
             via_frame / "frame" / "design.md",
         ):
@@ -382,8 +382,8 @@ class Test_main:
 
     def test_refuses_to_print_for_an_edit_of_a_file_it_does_not_read(self, tmp_path):
         """A10. A copy stands in `pr.md` each time, and the edited file is
-        under `trail/`, is `guarantee.md`, or is not a `.md` file."""
-        for rel in ("trail/phases/phase-1.md", "guarantee.md", "frame/design.txt"):
+        under `trail/`, is `inspection.md`, or is not a `.md` file."""
+        for rel in ("trail/phases/phase-1.md", "inspection.md", "frame/design.txt"):
             where = tmp_path / rel.replace("/", "-")
             directory = item(where, {rel: design(AFTER), "pr.md": quoted(BEFORE)})
             path = directory.joinpath(*rel.split("/"))
@@ -515,12 +515,12 @@ class Test__located:
         real = item(tmp_path / "real", {"frame/design.md": design(AFTER)})
         via_root = tmp_path / "via-root"
         via_root.mkdir()
-        symlink_or_skip(str(real.parent.parent), str(via_root / "seal"), directory=True)
+        symlink_or_skip(str(real.parent.parent), str(via_root / "iadd"), directory=True)
         asked = []
         optin = types.SimpleNamespace(
             WORK_ITEMS="threads", marked=lambda root: asked.append(root) or True
         )
-        path = via_root / "seal" / "threads" / ITEM / "frame" / "design.md"
+        path = via_root / "iadd" / "threads" / ITEM / "frame" / "design.md"
         assert hook._located(str(path), optin) is None
         assert asked == []
 

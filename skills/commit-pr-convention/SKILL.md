@@ -2,7 +2,7 @@
 name: commit-pr-convention
 description: |
   Format rules for commit messages, PR titles, PR bodies and branch names:
-  the prefix vocabulary, the language the repository states in `seal/config.json`,
+  the prefix vocabulary, the language the repository states in `iadd/config.json`,
   where a translated body lives, and how to check a title against the
   repository's own history.
   Use when: writing a commit message, opening a pull request, naming a
@@ -87,9 +87,9 @@ edit wherever either is missing (`skills/implement/routing-question.md`
 The refusal stands at the pull request body because the body's language is
 the one the team reads. Nothing reads the keys at a commit.
 
-**`seal mode` creates the file**, writing the `Mode` key from where the
+**`iadd mode` creates the file**, writing the `Mode` key from where the
 folder is, and the orchestrator adds the two language keys to it; `Mode`
-is edited by hand only to ask for a move: `seal mode --apply` then moves
+is edited by hand only to ask for a move: `iadd mode --apply` then moves
 the folder to what the key says. `templates/setup/config.md` documents
 every key and repeats the exclusions below, because the person who writes
 a repository's config reads it and never reads this one.
@@ -162,9 +162,9 @@ section it rewrites that no released work item decided is that rewrite's
 kind.
 
 **The orchestrator states the grounds for a pull request's title** in its
-part of the body, as *Pull request bodies* says, and `agents/sealer.md` step
+part of the body, as *Pull request bodies* says, and `agents/inspector.md` step
 4 reads that part against the design and the diff, so a prefix the change
-does not bear out is a disagreement the sealer names.
+does not bear out is a disagreement the inspector names.
 
 **An issue's title takes the prefix the pull request that closes it will
 take**, chosen by this table, so no issue is filed `chore:` by default, and
@@ -190,10 +190,10 @@ so the two cannot be in different languages without one of them being wrong
 at the merge. That is why one key answers for all four surfaces rather than
 one key each.
 
-**A session's commit in a repository whose root is shared (`<repo>/seal/`)
-ends with one `Seal-Routing:` trailer, naming its work item or reading
+**A session's commit in a repository whose root is shared (`<repo>/iadd/`)
+ends with one `IADD-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
-directory's name under `seal/threads/`, the one the branch's `routing.md` sits
+directory's name under `iadd/threads/`, the one the branch's `routing.md` sits
 in; `no work item` is the value a commit carries where it belongs to no
 work item, as under the routing answer `direct`. The trailer stands in the
 message's last paragraph, beside any other trailer, so git's trailer parser
@@ -202,7 +202,7 @@ reads it:
 ```
 feat: the orchestrator writes the declaration before the first edit
 
-Seal-Routing: 1792935671-the-orchestrator-writes-the-declaration
+IADD-Routing: 1792935671-the-orchestrator-writes-the-declaration
 Co-Authored-By: <the harness's co-author line>
 ```
 
@@ -235,12 +235,12 @@ structure that came out wrong is not recovered by fixing sentences.
 the orchestrator's comes first.** The first part is the work item's
 `pr.md`, opened by its mirror where the two keys name different languages
 (below). The orchestrator commits `pr.md` before the first round, and
-`seal pr-body` writes the first part above the line
+`iadd pr-body` writes the first part above the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the second part
 under that line from the work item's other records: the changelog fragment
 first, and the rest inside one `<details>` fold. What `pr.md` and
 `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*. The
+*Orchestrator: the pull request opens once the work item is cleared*. The
 `Closes`, `Part of` and attribution lines of `pr.md` are in the language
 `Commit and pull request language` names. A quote is its record's sentence
 as it stands, so it is in `Record language`, and so is the second part, the
@@ -261,8 +261,8 @@ quotes.** The orchestrator writes that row before it writes `pr.md`.
 team's language.** The orchestrator writes a translated file, the mirror,
 beside `pr.md`, written in the commit language, in the shape
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals* gives it.
-`seal pr-body` writes the mirror above `pr.md`, so the body's first part is
+once the work item is cleared* gives it.
+`iadd pr-body` writes the mirror above `pr.md`, so the body's first part is
 the mirror and then `pr.md`. Where the two keys name one language, no
 mirror is written.
 
@@ -273,7 +273,7 @@ mirror is written.
   and whose team writes English keeps `pr.en.md`. `<root>` resolves the way
   the language section above resolves it.
 - **Why there**: it is a record of the work item, as `pr.md` is, so every
-  round reads it at its target, and `seal pr-body` copies it into the body,
+  round reads it at its target, and `iadd pr-body` copies it into the body,
   where a reader of the pull request reads it in either mode.
 - **Not a hosted document or artifact.** A hosted document is private by
   default, so its link in a public pull request opens for nobody but its
@@ -317,6 +317,6 @@ The writer answers these rather than assuming them.
    language its `Commit and pull request language` key names? Where either
    key is absent, the keys are written before the body is.
 4. Where the two keys name different languages, does the work item hold
-   one `pr.<lang>.md`, named for its own language, that `seal pr-body`
+   one `pr.<lang>.md`, named for its own language, that `iadd pr-body`
    places above `pr.md`, and no hosted document?
 5. Does the title alone say what happened?

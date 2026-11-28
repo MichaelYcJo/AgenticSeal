@@ -1,4 +1,4 @@
-# Contributing to AgenticSeal
+# Contributing to IADD
 
 ## Opening a pull request
 
@@ -34,7 +34,7 @@ suite on Linux and Windows, and a branch with no pull request runs nothing.
 macOS and Python 3.14 run on the release pull request into `main`. So the
 branch is pushed as often as the contributor likes, and the pull request
 opens once nothing is left to push. `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals* owns the order
+*Orchestrator: the pull request opens once the work item is cleared* owns the order
 a maintainer's run follows.
 
 ### What a contribution is asked for
@@ -55,21 +55,21 @@ a maintainer's run follows.
 
 ### What a contribution is not asked for
 
-This repository runs the AgenticSeal process on itself: work items under
-`seal/threads/`, review rounds, a version that moves once per release. **A
+This repository runs the IADD process on itself: work items under
+`iadd/threads/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and milestone steps
 belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
 of a branch that declared nothing. Those are the review-chain check and the
 issue-claim report. The suite reads one fact
 about the rule files: a `check:` target the change renamed or removed fails
-it, naming the file, the line and the heading, and `bin/seal rules --check`
+it, naming the file, the line and the heading, and `bin/iadd rules --check`
 gives the same answer before the push. Each row below gives its own reason,
 and a maintainer adding a CI step reads the row rather than this sentence.
 
 | A contribution does not write | Why no check asks for it |
 |---|---|
-| a `routing.md`, `frame/design.md` or `frame/plan.md` under `seal/threads/` | Nothing in CI reads them. They route a maintainer's own session |
+| a `routing.md`, `frame/design.md` or `frame/plan.md` under `iadd/threads/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
 | a `changelog.md` fragment | No CI step reads it. The release note is built from a maintainer's fragments when the release is tagged |
 | a `gaps.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
@@ -108,14 +108,14 @@ version. What the whole run costs is a figure with a
 date and a machine, recorded in the work item that measured it, not here.
 
 **A contributor names a module.** The full suite is the orchestrator's, run
-once after the review rounds settle and before the sealer is spawned, and
+once after the review rounds settle and before the inspector is spawned, and
 contract rule 2 in `skills/agent-contract/SKILL.md` forbids it to every
 agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
 **Python 3.12 is the supported floor**, held as `FLOOR` in `lib/launch.py`
-so this sentence and the code state one number. `bin/seal` runs its script
+so this sentence and the code state one number. `bin/iadd` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the
 interpreter it held. `bin/test` starts on
@@ -195,12 +195,12 @@ directory, removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets
 without a token variable, `gh` reads the login it keeps in the OS keyring. A
 case that falls through its stubs onto a live `gh` then fails where it runs,
 instead of passing on a machine that happens to be logged in and failing
-only on CI after the branch was sealed. A case that needs `gh` stubs it. The
+only on CI after the branch was cleared. A case that needs `gh` stubs it. The
 conftest also removes every variable whose name starts with `GITHUB_`, so a
 case sees under a pull request's CI run what it sees everywhere else, and a
 case that needs one sets it with `monkeypatch.setenv`. One question is
 stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
-where no event payload exists and `--sealing` is not given, so the
+where no event payload exists and `--inspecting` is not given, so the
 conftest puts a `gh` first on PATH that finds no pull request, which the
 check reads as *unknown*, not as ready, and passes every other call to the
 `gh` behind it. A case that means
@@ -208,7 +208,7 @@ a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/setup/hygiene.yml`: the chain check and the mode check, run from a
-clone of this repository at the release the user installed. `seal pr-checks
+clone of this repository at the release the user installed. `iadd pr-checks
 install` writes it, at first setup or later, so a change to either of them
 here reaches a user at their next install, and the template has to keep
 telling the same story as the workflow. Every step
@@ -231,7 +231,7 @@ keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
-`TARGET = "<tracked path>"`. A file whose cases run a `seal` subcommand names
+`TARGET = "<tracked path>"`. A file whose cases run an `iadd` subcommand names
 the script that subcommand runs. The file holds one class per public top-level
 function of the module, `Test_<name>`, with the name spelt as the code spells
 it, and a class or a private function of the module may have a class too.
@@ -250,9 +250,9 @@ other imports by its name. Each module file ends with
 `tests/censuses.py` over its module, and a line a census flags on purpose
 carries `# exempt from <census>: <why>` on its own line above it, where the
 census reads it and refuses it once it excuses nothing.
-`bin/seal layout --check` refuses a file that declares `TARGET` and breaks
+`bin/iadd layout --check` refuses a file that declares `TARGET` and breaks
 this, and lists the files that declare none. A contributor writing a case
-first reads its class and the pairs `bin/seal layout --pairs` names in it.
+first reads its class and the pairs `bin/iadd layout --pairs` names in it.
 Each pair the report prints carries its reason in its class's docstring: one
 sentence stating the input its two cases differ by where they call the
 function alike, such as the world a fixture or a monkeypatch builds.
@@ -272,7 +272,7 @@ check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 **A case stands in the file of what it holds, and a file that declares no
 `TARGET` says why.** What a case holds is read from the case whole, never
 from its file's name. A case that calls a function of one module, directly
-or through a loader, or runs the `seal` subcommand or the script that one
+or through a loader, or runs the `iadd` subcommand or the script that one
 module is, and asserts on what that call returned, printed, raised or
 wrote, stands in that module's file. The module is a shipped one, or a
 module under `tests/` that is not a test file, such as
@@ -313,7 +313,7 @@ killed by another case, or where the behaviour it guarded has left the tree.
 past the threshold.** The threshold is 60 seconds of the module's old files in
 the `test-durations` artifact of the newest push run on `main`, which
 `gh run download <run id> -n test-durations -D <dir>` writes to
-`<dir>/.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
+`<dir>/.test_durations`, or a pair `bin/iadd layout --pairs` names inside one of
 the module's classes whose docstring states no input its two cases differ
 by. A pair whose class states that input is two cases a reader has judged
 distinct, so it is no ground to write the module's tests anew. Every other
@@ -337,7 +337,7 @@ seconds the record states are read by the release table, not by a gate.
 and one line per removed case.** The contributor writes it into the phase
 record of the work item that rebuilt the module, in four parts:
 
-- the move check, `bin/seal layout --moved <base> --from <old file>...
+- the move check, `bin/iadd layout --moved <base> --from <old file>...
   --to <new file>...`, with its command and its last line. One run covers
   a group, the modules of one shipped directory or a smaller group rebuilt
   together, and names every old file the group's cases came from after
@@ -361,7 +361,7 @@ record of the work item that rebuilt the module, in four parts:
   where a case accepts or refuses, one or two per class and one more for
   each further decision point a function holds, so their count follows
   the module's classes. They run against the new file in one
-  `bin/seal mutate` call with `-x` in its tests command. The old files'
+  `bin/iadd mutate` call with `-x` in its tests command. The old files'
   column runs only for a mutant the new file lets survive: where the old
   files miss it too, the table names an old gap, and where they kill it,
   the new file gets a case seen red on that mutant;
@@ -382,7 +382,7 @@ adds any mechanism by what it takes away:
 - **A test seen red.** The contributor writes the test against the unfixed
   code and watches it fail before fixing anything. A test that has never
   failed proves nothing (this repository's own `verify` skill calls that a
-  counterfeit seal).
+  counterfeit mark).
 - **A stated failure direction.** The pull request says whether the change
   makes the gate block more or allow more, and why that direction is the
   cheaper mistake here. A wrong deny stops a correct pull request or run
@@ -393,7 +393,7 @@ adds any mechanism by what it takes away:
   a question in front of a person, per session, and what each one costs when
   nobody is at the keyboard. Asking a person is the most expensive step
   `skills/core/SKILL.md` *The first value: efficient development through the
-  AgenticSeal process* names, so an interruption is a price paid against
+  IADD process* names, so an interruption is a price paid against
   that value rather than a neutral design choice. A change that adds one says why
   nothing cheaper reaches the same guarantee: a value read from a file, a
   default assumed in writing, a refusal the agent makes on its own. Where a
@@ -485,10 +485,10 @@ question is not its difficulty, it is when it arrives.
   them, and requires the same sequence of heading levels.
 - **The plugin's hooks write nothing outside the repository.**
   `hooks/hooks.json` registers a `Stop` entry that runs
-  `skills/verify/scripts/seal_stamp.py --stop`, which draws the sealer's
+  `skills/verify/scripts/stamp.py --stop`, which draws the inspector's
   stamp at the end of the main session's turn, a `SessionStart` entry
   that runs `hooks/core-start.py`, which prints the core into a session
-  whose repository holds a `seal/` root, a `PreToolUse` entry matched
+  whose repository holds an `iadd/` root, a `PreToolUse` entry matched
   to `AskUserQuestion` that runs `hooks/ask-under-automation.py`, which
   refuses a question while an open work item reads `Automation` `yes` and
   the question does not state why its default cannot be taken, and a
@@ -528,7 +528,7 @@ stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
 added to the core, which every agent and every session in a repository
-with a `seal/` root loads. The core also has a fixed room:
+with an `iadd/` root loads. The core also has a fixed room:
 `tests/lib/test_core.py#test_the_trees_core_stays_under_the_harness_cap`
 holds the hook's whole output under `lib/core.py#CAP` at a plugin root of
 `lib/core.py#ROOT_ROOM` characters. So a sentence added to the core fits in

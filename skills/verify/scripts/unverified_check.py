@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal unverified — read what a closing memo recorded as unverified, and fail
+"""iadd unverified — read what a closing memo recorded as unverified, and fail
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Many are open at any time, and
 a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `seal unverified seal/threads/` is for; no number is repeated in prose here,
+is what `iadd unverified iadd/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix: a section that cannot be read.
@@ -26,14 +26,14 @@ the proofer reads it in the closing memo's diff (`skills/implement/SKILL.md`
 *4. The closing memo*).
 
 The reader is `lib/gaps.py`, which states how a row closes and which
-`seal settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
+`iadd settle` reads a memo through as well; this command walks a tree for every `gaps.md`, reads each through it,
 and prints what it found. Deliberately a text scan of markdown, not a parser
 library: the gates here are stdlib-only, and the format it accepts is one
 line long. That format is strict on purpose — see `lib/gaps.py#check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read · 2 the path or arguments were unusable, which
-includes a scan that found no closing memo at all. One state of a `seal/`
+includes a scan that found no closing memo at all. One state of an `iadd/`
 root's own `threads` path is exit 0 instead, and says so: the path holding no
 work item, empty or absent, which is the state a complete settle ends in
 (`settled_root`).
@@ -56,7 +56,7 @@ import sibling  # noqa: E402
 GAPS = sibling.load("lib/gaps.py")
 console = sibling.load("lib/console.py")
 GITCMD = sibling.load("lib/gitcmd.py")
-# `lib/optin.py`, whose `WORK_ITEMS` names the directory under a `seal/`
+# `lib/optin.py`, whose `WORK_ITEMS` names the directory under an `iadd/`
 # root that holds the threads, and whose `GAPS` names a thread's closing
 # memo.
 OPTIN = sibling.load("lib/optin.py")
@@ -102,7 +102,7 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(lib/config.py, the seal/ root, its name in the tree)` for the
+    """`(lib/config.py, the iadd/ root, its name in the tree)` for the
     repository at `top`: the root as `lib/optin.py#home_at` resolves it, and
     the name `lib/optin.py#home_name` gives, "" where the root is local or
     absent."""
@@ -180,7 +180,7 @@ def display_path(path, start):
 
     `os.path.relpath` raises `ValueError` on Windows when the two are on
     different drives, and this is the reporting footing for every line the
-    tool prints. Running `seal unverified D:\repo\specs` from `C:\` is
+    tool prints. Running `iadd unverified D:\repo\specs` from `C:\` is
     an ordinary thing to do, and unguarded it dies with a traceback before
     printing a single row. The absolute path is a worse answer than a
     relative one and a far better one than no output at all.
@@ -201,33 +201,21 @@ def unique_by_target(paths):
     return sorted({os.path.realpath(p) for p in paths})
 
 
-def root_name(top):
-    """The name of the `seal/` root of the repository at TOP as the tree
-    spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
-    empty or holds no shared root. That is the name a local root keeps, and
-    the one each fixture that commits a `seal/` with no marker is read
-    under."""
-    optin = sibling.load("lib/optin.py")
-    return (top and optin.home_name(top)) or optin.HOME
-
-
 def named_root(parent):
-    """Whether the directory PARENT carries the name `root_name` gives for
-    the repository holding it. Only the name is read: whether PARENT is
-    that root is not asked. PARENT is a directory on disk."""
-    return os.path.basename(parent) == root_name(
-        OPTIN.repo_root(os.path.dirname(parent))
-    )
+    """Whether the directory PARENT carries the root's name,
+    `lib/optin.py#HOME`. Only the name is read: whether PARENT is that root
+    is not asked. PARENT is a directory on disk."""
+    return os.path.basename(parent) == OPTIN.HOME
 
 
 def settled_root(path):
-    """Whether `path` is a `seal/` root's own `threads` directory with no work
+    """Whether `path` is an `iadd/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches, and it is two states: the
-    tree that ran `seal settle --apply` holds an empty `seal/threads/`, and a
+    tree that ran `iadd settle --apply` holds an empty `iadd/threads/`, and a
     fresh checkout of the commit holds none, because git keeps no empty
-    directory. A person who runs `seal unverified seal/threads/`
+    directory. A person who runs `iadd unverified iadd/threads/`
     after the settle hands this tool that path, and reading it as a typo would
     refuse a finished settle. Only this one path is settled: any other path
     that is missing is still refused, which is what keeps `threads/ thraeds/`
@@ -245,14 +233,14 @@ def settled_root(path):
 
 
 SETTLED = (
-    "seal unverified: {path} holds no work item and its `seal/` root is "
+    "iadd unverified: {path} holds no work item and its `iadd/` root is "
     "there — the state a complete settle ends in, so there is nothing to read"
 )
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="seal unverified",
+        prog="iadd unverified",
         description="Report open `## Not verified` items; fail on a record "
         "that cannot be read.",
     )
@@ -261,7 +249,7 @@ def main(argv=None):
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing:
-        print(f"seal unverified: no such path: {missing[0]}", file=sys.stderr)
+        print(f"iadd unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
 
     files = overviews(args.path)
@@ -285,7 +273,7 @@ def main(argv=None):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
         print(
-            f"seal unverified: no {OPTIN.GAPS} found under "
+            f"iadd unverified: no {OPTIN.GAPS} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )

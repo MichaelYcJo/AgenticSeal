@@ -20,7 +20,7 @@ check: tests/behaviour/test_chain_hooks_hardening.py
 **A session that declares nothing is not caught, in shared mode as in
 local.** A session that never opened `skills/implement/orchestration.md`
 edits and commits as it would without the plugin. At a shared root its
-commits carry no `Seal-Routing` trailer, so *At the pull request* below
+commits carry no `IADD-Routing` trailer, so *At the pull request* below
 judges none of them;
 at a local root no declaration is committed for anything to read. That is a
 limit, and no mechanism is kept against it: what the pull request's check
@@ -29,7 +29,7 @@ judges is a work item that was declared.
 ## At the pull request
 
 **A session's commit in a repository whose root is shared ends with one
-trailer, `Seal-Routing:`, naming its work item or reading
+trailer, `IADD-Routing:`, naming its work item or reading
 `no work item`; at a local root a commit carries none.** It tells a
 session's commit from a person's: the harness's co-author trailer is
 carried by any Claude Code session, a teammate's who does not use this
@@ -40,7 +40,7 @@ belongs to a team that does not run this plugin.
 check: skills/commit-pr-convention/SKILL.md
 
 **At a shared root, `chain-check` fails a ready pull request where one of
-its own commits, committed by its author, carries a `Seal-Routing`
+its own commits, committed by its author, carries a `IADD-Routing`
 trailer naming a work item that no declaration it judges names, and prints
 each commit whose trailer reads `no work item`.** A commit with no such
 trailer is not judged, so a teammate's never is, and neither is a

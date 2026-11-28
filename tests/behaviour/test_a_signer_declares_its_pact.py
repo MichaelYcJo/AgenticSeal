@@ -1,18 +1,18 @@
 """A signer declares its pact (#647, step A).
 
 Some work items commit in more than one repository, and those repositories
-keep one contract together. The one copy of it is the PACT, `seal/pact.md` in
+keep one contract together. The one copy of it is the PACT, `iadd/pact.md` in
 the repository that holds it, and every repository of such a work item is a
 SIGNER. A signer other than the pact's repository names the pact in its
-own `seal/config.json`:
+own `iadd/config.json`:
 
     "Pact": "git@example.com:org/orders-api.git"
 
 The key has one reader, `lib/config.py#pact_declaration`, which
-`pact_check.py` asks, run as `seal pact`, and refuses on. That reader's
+`pact_check.py` asks, run as `iadd pact`, and refuses on. That reader's
 cases (S1-S3 of the work item's `frame/design.md`) and those of the `Pact
-signers` key's reader are in `tests/lib/test_config.py`, and `seal.py`'s re-export of
-its normaliser is in `tests/skills/test_seal.py`. What stays here reads the configs
+signers` key's reader are in `tests/lib/test_config.py`, and `iadd.py`'s re-export of
+its normaliser is in `tests/skills/test_iadd.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the commands and the
 key the routing step names (S4).
 """
@@ -27,22 +27,22 @@ config = load_lib_module("config.py", "config_for_the_pact")
 
 
 def test_s4_the_configs_this_plugin_writes_are_silent():
-    """S4. This repository's own `seal/config.json` and the file `seal mode`
+    """S4. This repository's own `iadd/config.json` and the file `iadd mode`
     writes, with and without the `Pact` key `orchestration.md` writes into
-    it, give no refusal to the reader `seal pact` reads strictly. Each is
+    it, give no refusal to the reader `iadd pact` reads strictly. Each is
     read from the tree or written by the tree's serializer, not retyped."""
-    seal = load_module(
-        os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
-        "seal_for_the_silent_set",
+    iadd = load_module(
+        os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py"),
+        "iadd_for_the_silent_set",
     )
-    pairs, refusal = config.config_pairs(os.path.join(ROOT, "seal"))
+    pairs, refusal = config.config_pairs(os.path.join(ROOT, "iadd"))
     assert refusal is None, refusal
     assert config.pact_declaration(pairs) == ([], [])
     for written, pacts in (
         ([("Mode", "shared")], []),
         ([("Mode", "shared"), ("Pact", URL)], ORDERS),
     ):
-        read, refusal = config.parse_config(seal.serialized(written), "config.json")
+        read, refusal = config.parse_config(iadd.serialized(written), "config.json")
         assert refusal is None, refusal
         assert config.pact_declaration(read) == (pacts, [])
 
@@ -51,28 +51,28 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row():
-    """`templates/setup/config.md` documents the `Pact` key and `/agentic:config`
+    """`templates/setup/config.md` documents the `Pact` key and `/iadd:config`
     shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
     # The key `PACT_KEY` in the template's bold lead, which a person writing
-    # `seal/config.json` copies and `lib/config.py#pact_declaration` matches.
+    # `iadd/config.json` copies and `lib/config.py#pact_declaration` matches.
     assert f"**`{config.PACT_KEY}`**" in template
-    # The same key in the skill's table row, which `/agentic:config` shows.
+    # The same key in the skill's table row, which `/iadd:config` shows.
     assert f"| `{config.PACT_KEY}` |" in skill
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_signers_key():
     """S7. `templates/setup/config.md` *Pact* documents the `Pact signers`
-    key the pact's repository lists its signers in, and `/agentic:config`
+    key the pact's repository lists its signers in, and `/iadd:config`
     shows it."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
     # The key `SIGNERS_KEY` in the template's bold lead, which a person
-    # writing the pact's repository's `seal/config.json` copies and
+    # writing the pact's repository's `iadd/config.json` copies and
     # `lib/config.py#signer_declaration` matches.
     assert f"**`{config.SIGNERS_KEY}`**" in template
-    # The same key in the skill's table row, which `/agentic:config` shows.
+    # The same key in the skill's table row, which `/iadd:config` shows.
     assert f"| `{config.SIGNERS_KEY}` |" in skill
 
 
@@ -98,7 +98,7 @@ def test_the_routing_step_mints_one_id_and_declares_the_signers():
         # The command form the orchestrator commits in each repository with.
         "`git -C`",
         # The key `lib/config.py#SIGNERS_KEY` names, which the orchestrator
-        # writes into the pact's repository's `seal/config.json`.
+        # writes into the pact's repository's `iadd/config.json`.
         f"`{config.SIGNERS_KEY}`",
         # The separator `lib/config.py#remote_list` splits that key's value
         # at, which the orchestrator writes between the URLs.

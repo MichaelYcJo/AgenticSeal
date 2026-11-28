@@ -1,6 +1,6 @@
-"""`seal mode`: the documents and the workflows that name the command.
+"""`iadd mode`: the documents and the workflows that name the command.
 
-The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
+The cases of `skills/implement/scripts/iadd.py` are in `tests/skills/test_iadd.py`.
 The cases here read the READMEs, the config template and the hygiene
 workflows that name the command.
 """
@@ -8,7 +8,7 @@ workflows that name the command.
 import pytest
 from conftest import read
 
-# No TARGET: its cases hold seal mode across the READMEs, the config template and the two hygiene workflows.
+# No TARGET: its cases hold iadd mode across the READMEs, the config template and the two hygiene workflows.
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])
@@ -18,12 +18,12 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
 
     The FIRST runnable block of the section is the assertion, not an index
     comparison between two strings. Mutation-tested: deleting the command
-    block outright left an index comparison green, because `seal mode local`
+    block outright left an index comparison green, because `iadd mode local`
     is named in the prose above the by-hand block as well.
     """
     text = read(readme)
     # The command a reader runs to compare the key with the tree.
-    assert "seal mode --check" in text, readme
+    assert "iadd mode --check" in text, readme
     heading = (
         "### Shared or local" if readme == "README.md" else "### shared 인가 local 인가"
     )
@@ -31,10 +31,10 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
     blocks = [chunk.split("```", 1)[0] for chunk in body.split("```bash\n")[1:]]
     assert blocks, f"{readme}: the section runs nothing at all"
     # The two commands a reader copies from the section's first block.
-    assert "seal mode local" in blocks[0] and "seal mode shared" in blocks[0], (
+    assert "iadd mode local" in blocks[0] and "iadd mode shared" in blocks[0], (
         f"{readme}: the first block of the section is not the switch — a "
         "person reading top to bottom still meets the shell lines first. "
-        "Naming any `seal mode` spelling is not enough: the two directions "
+        "Naming any `iadd mode` spelling is not enough: the two directions "
         "are what the section is about, and deleting the block that carries "
         "them left a looser assertion green (mutation-tested)"
     )
@@ -58,7 +58,7 @@ def test_the_config_template_ships_the_row_with_no_value():
 )
 def test_both_hygiene_workflows_run_the_check(parts):
     """The check has to reach a pull request in this repository AND in every
-    repository `seal pr-checks install` sets up, or it names a disagreement
+    repository `iadd pr-checks install` sets up, or it names a disagreement
     nowhere."""
     text = read(*parts)
     # The step's command the runner runs.

@@ -32,7 +32,7 @@ from conftest import census_case, flattened, load_lib_module, read, section
 TARGET = "skills/commit-pr-convention/SKILL.md"
 
 # The reader of `routing.md`, whose `CHAIN` is the answer the shape holds for.
-routing = load_lib_module("routing.py", "agentic_routing_for_the_chain_section")
+routing = load_lib_module("routing.py", "iadd_routing_for_the_chain_section")
 
 SKILL = tuple(TARGET.split("/"))
 # The section a session opens while writing a body, read as one line so a

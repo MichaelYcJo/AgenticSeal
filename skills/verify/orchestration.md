@@ -1,13 +1,13 @@
 # verify, the orchestrator's half
 
 This file is the orchestrator's: the session that spawns the crafter, the
-proofer and the sealer and takes the one broad run between the last of them.
+proofer and the inspector and takes the one broad run between the last of them.
 It holds the two acts of the verify protocol that no agent takes: the broad
 gate, and the measurement of each run posted to the flow log.
 
 `skills/verify/SKILL.md` is the other half: the four conditions every claim
 meets, the hand-back's labels, the scope rule and the counterfeits. The
-orchestrator reads both. The crafter and the sealer open that one and never
+orchestrator reads both. The crafter and the inspector open that one and never
 this one, because contract rule 2 gives the broad gate to the orchestrator and
 contract rule 6 withholds posting from every agent.
 
@@ -29,13 +29,13 @@ has to guess, and one who reaches for the record does not.
 
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
-`seal gate --base <base> --record <item>` is the command the orchestrator
+`iadd gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and
 `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
-preflight to the open pull request* owns when, before the sealer is
+preflight to the open pull request* owns when, before the inspector is
 spawned. The run judges no failure and fixes none; the
-sealer reads its record, and what it guarantees after it
-is `docs/forms/the-guarantee.md` *The guarantee*. `seal gate --preflight`,
+inspector reads its record, and what it inspects after it
+is `docs/forms/the-inspection.md` *The inspection*. `iadd gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 
@@ -123,7 +123,7 @@ and the gate is paid for again.
 ## Measure the run, and feed the flow log
 
 When a work item's run ends, the orchestrator measures it once with
-`skills/verify/scripts/session_cost.py`, typed as `seal cost`, and posts the
+`skills/verify/scripts/session_cost.py`, typed as `iadd cost`, and posts the
 numbers, and what they say, as one comment on one of this repository's two
 measurement logs. Which of the two is not a filing detail: one of them is
 deleted at every release, so a reading put in the wrong one is a reading
@@ -145,11 +145,11 @@ repository has no durable log, and a cross-version reading stays in the
 record that would have cited it.
 
 **The run ends when the work item's last segment has handed back**, the
-sealer's where one runs. The orchestrator first reads the run, and the read
+inspector's where one runs. The orchestrator first reads the run, and the read
 posts nothing:
 
 ```
-seal cost --work-item <the work item's directory>
+iadd cost --work-item <the work item's directory>
 ```
 
 It prints the rows the post will carry, any `Contract rule 6` line below
@@ -157,7 +157,7 @@ them, and the log's state. The orchestrator writes the `--says` file from
 that reading, then posts it with the same command:
 
 ```
-seal cost --work-item <the work item's directory> --post --says <file>
+iadd cost --work-item <the work item's directory> --post --says <file>
 ```
 
 The read comes first because the posting form sends the reading into the
@@ -235,11 +235,11 @@ commits between them, and no segment's numbers say what the run cost.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the `severity:` line of each finding block in the round records |
-| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *seal/*, is the repository's own and belongs under `docs` |
+| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `iadd/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `iadd/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *iadd/*, is the repository's own and belongs under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript, the `*.jsonl` directly under the project directory and never one under a `<session-id>/subagents/`, given by path |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
-| Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one `seal` block per full-suite run it recorded, the newest last, each a `run:` line naming the tree and the base it was compared against; the count is the number of blocks, read off the file rather than remembered |
+| Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one `iadd` block per full-suite run it recorded, the newest last, each a `run:` line naming the tree and the base it was compared against; the count is the number of blocks, read off the file rather than remembered |
 
 **The tokens are counted, not estimated, and counted the same way every
 time.** `session_cost.py <the run's main transcript>` prints the token line,

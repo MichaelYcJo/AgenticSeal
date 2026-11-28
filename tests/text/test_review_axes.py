@@ -17,7 +17,7 @@ from test_the_record_is_written_in_words import PARITY_REVIEW, PARITY_WORDS
 
 # The reader of `routing.md`, whose `REVIEW_ANSWERS` a comparison's record is
 # keyed by.
-routing = load_lib_module("routing.py", "agentic_routing_for_review_axes")
+routing = load_lib_module("routing.py", "iadd_routing_for_review_axes")
 
 PARITY = "skills/legacy-parity/SKILL.md"
 
@@ -127,10 +127,10 @@ def test_the_record_of_a_comparison_names_its_writer():
     The section said *you*, so a crafter or a tracer opening the skill read
     itself as the writer of a record its definition does not name. #1027
     removed the parity mark and gave the comparison under `straight to the
-    PR` to the sealer (`questions.md` Q1's default), so the writers are the
-    proofer in each round record and the sealer in `guarantee.md`. #1198
+    PR` to the inspector (`questions.md` Q1's default), so the writers are the
+    proofer in each round record and the inspector in `inspection.md`. #1198
     put each line in a block: the round block, and the verdict block each
-    run of the sealer appends."""
+    run of the inspector appends."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     # The heading `agents/proofer.md` and `skills/implement/orchestration.md`
@@ -141,8 +141,8 @@ def test_the_record_of_a_comparison_names_its_writer():
         # The `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts, each a
         # row's first cell, which a reader matches against `routing.md`.
         *(f"| {answer} |" for answer in routing.REVIEW_ANSWERS),
-        # The file the sealer appends the line to.
-        "`guarantee.md`",
+        # The file the inspector appends the line to.
+        "`inspection.md`",
     ):
         assert fact in body, f"the record of a comparison lost {fact!r}"
 
@@ -159,7 +159,7 @@ def test_the_resolution_order_ends_with_the_caller_asking():
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for fact in (
         # The path of the file the declaration lives in, which a reader opens.
-        "`~/.claude/agentic/parity-paths.json`",
+        "`~/.claude/iadd/parity-paths.json`",
         # The words a reader that cannot ask returns, which its caller reads
         # as no original resolved.
         "`original not found`",

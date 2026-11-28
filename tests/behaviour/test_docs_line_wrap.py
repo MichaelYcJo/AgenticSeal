@@ -45,7 +45,7 @@ LIMIT = 88
 
 def _rules():
     path = os.path.join(ROOT, "skills", "settle", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
+    spec = importlib.util.spec_from_file_location("iadd_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -53,12 +53,12 @@ def _rules():
 
 # The check lines are asked of their reader rather than spelled a second time
 # here: a skip wider than the reader leaves unwrapped lines nobody checks.
-# `seal rules --check` reads every such line a rule file shows (#957).
+# `iadd rules --check` reads every such line a rule file shows (#957).
 rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `seal rules --check` reads RELATIVE's check lines: a file a
+    """Whether `iadd rules --check` reads RELATIVE's check lines: a file a
     `RULE_FILES` glob names, or a document of this tree's policy root
     (`rules.py#policy_documents`)."""
     return relative in POLICY_DOCUMENTS or any(
@@ -71,7 +71,7 @@ POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 def _fence_reader():
     path = os.path.join(ROOT, "lib", "blocks.py")
-    spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
+    spec = importlib.util.spec_from_file_location("iadd_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -128,8 +128,8 @@ COVERED = [
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
     # the second.
-    "agents/sealer.md",
-    # The fifth definition (#84), on the sealer's terms exactly: a file
+    "agents/inspector.md",
+    # The fifth definition (#84), on the inspector's terms exactly: a file
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
     # Written anew and wrapped in #967.
@@ -217,6 +217,8 @@ COVERED = [
     "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
     "docs/layout/the-pact.md",
+    # The IADD definition (#1651), written wrapped and in at birth.
+    "docs/method/iadd.md",
 ]
 
 
@@ -335,7 +337,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     (#957).
 
     An agent definition closes each rule a case holds with one such line, and
-    `seal rules --check` reads every one in a rule file, so a wrapped line is a
+    `iadd rules --check` reads every one in a rule file, so a wrapped line is a
     broken target. The skip is that reader's: `rules.py#check_lines` read by
     `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
@@ -352,7 +354,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
 
 
 def test_a_line_the_reader_refuses_is_still_prose():
-    """S8. The skip is no wider than the reader: a spelling `seal rules --check`
+    """S8. The skip is no wider than the reader: a spelling `iadd rules --check`
     refuses stays under the limit in a rule file."""
     for label in ("Enforced by:", "Check:", "check: one.py,"):
         text = f"# D\n\n{label} {WIDE_TARGET}\n"

@@ -146,7 +146,7 @@ def eval_side(tmp_path, name, rev, tree):
     it; the path it is written to."""
     run = {
         "graders": [{"name": "shape-x", "passed": True}],
-        "agentic": {"cost": None, "tool_calls": None},
+        "iadd": {"cost": None, "tool_calls": None},
     }
     case = {
         "name": "c1",
@@ -162,7 +162,7 @@ def eval_side(tmp_path, name, rev, tree):
     }
     path = tmp_path / f"{name}.json"
     path.write_text(
-        json.dumps({"startedAt": name, "cases": [case], "agentic": meta}),
+        json.dumps({"startedAt": name, "cases": [case], "iadd": meta}),
         encoding="utf-8",
     )
     return str(path)
@@ -175,7 +175,7 @@ def read_before_986(path):
         result = json.load(f)
     for case in result["cases"]:
         for run in NI.case_runs(case):
-            run["agentic"] = {"report_rows": ["location: `src/a.py:40`"]}
+            run["iadd"] = {"report_rows": ["location: `src/a.py:40`"]}
     with open(path, "w", encoding="utf-8") as f:
         json.dump(result, f)
 
@@ -765,13 +765,13 @@ class Test_annotate:
         `<out>.raw/`."""
         events = [assistant([use("Bash", "a"), use("Read", "r")]), RESULT]
         result = NI.annotate(saved_side(tmp_path, [(events, None)]))
-        assert result["cases"][0]["arms"]["with"][0]["agentic"] == {
+        assert result["cases"][0]["arms"]["with"][0]["iadd"] == {
             "cost": {
                 k: RESULT[k] for k in ("total_cost_usd", "duration_ms", "modelUsage")
             },
             "tool_calls": 2,
         }
-        assert result["agentic"] == {
+        assert result["iadd"] == {
             "agent": "proofer",
             "preload": {"agents/proofer.md": "a" * 64},
             "preload_bytes": 10,
@@ -794,9 +794,9 @@ class Test_annotate:
         self, tmp_path, runs, partial, cut
     ):
         result = NI.annotate(saved_side(tmp_path, runs, partial=partial))
-        assert result["agentic"]["cut_short"] is cut
+        assert result["iadd"]["cut_short"] is cut
         if runs[0][0] is None:
-            run = result["cases"][0]["arms"]["with"][0]["agentic"]
+            run = result["cases"][0]["arms"]["with"][0]["iadd"]
             assert run == {"cost": None, "tool_calls": None}
 
     def test_refuses_a_machine_path_as_the_sides_rev(self, tmp_path):
@@ -805,7 +805,7 @@ class Test_annotate:
         result = NI.annotate(
             saved_side(tmp_path, [(None, None)], rev=str(tmp_path / "t"))
         )
-        assert result["agentic"]["rev"] == "tree"
+        assert result["iadd"]["rev"] == "tree"
 
 
 class Test_write_side:
@@ -856,16 +856,13 @@ class Test_run_side:
         data, plugin, kept = run_one_side(
             tmp_path, monkeypatch, [{"type": "system"}, sub, RESULT]
         )
-        run = data["cases"][0]["arms"]["with"][0]["agentic"]
+        run = data["cases"][0]["arms"]["with"][0]["iadd"]
         assert run["cost"]["total_cost_usd"] == 2.5
-        assert data["agentic"]["preload"] == NI.preload_hashes(str(plugin), "proofer")
-        assert data["agentic"]["preload_bytes"] == NI.preload_bytes(
-            str(plugin), "proofer"
-        )
-        assert data["agentic"]["rev"] == "tree"
+        assert data["iadd"]["preload"] == NI.preload_hashes(str(plugin), "proofer")
+        assert data["iadd"]["preload_bytes"] == NI.preload_bytes(str(plugin), "proofer")
+        assert data["iadd"]["rev"] == "tree"
         assert (
-            data["agentic"]["suite_rev"]
-            == git(ROOT, "rev-parse", "HEAD").stdout.strip()
+            data["iadd"]["suite_rev"] == git(ROOT, "rev-parse", "HEAD").stdout.strip()
         )
         assert not kept.exists(), "the kept run was left behind"
         saved = tmp_path / "side.raw"
@@ -895,7 +892,7 @@ class Test_run_side:
         monkeypatch.setattr(NI, "annotate", real)
         assert NI.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
         data = json.loads(out.read_text(encoding="utf-8"))
-        assert data["cases"][0]["arms"]["with"][0]["agentic"] == {
+        assert data["cases"][0]["arms"]["with"][0]["iadd"] == {
             "cost": None,
             "tool_calls": 1,
         }
@@ -943,7 +940,7 @@ class Test_kind:
     def test_accepts_the_three_prefixes(self, name, k):
         assert NI.kind(name) == k
 
-    @pytest.mark.parametrize("name", ["truthy-1", "seal-x", "x"])
+    @pytest.mark.parametrize("name", ["truthy-1", "inspect-x", "x"])
     def test_refuses_any_other_name(self, name):
         assert NI.kind(name) is None
 
@@ -959,7 +956,7 @@ RECORD_TRUTH = {
     "type": "regex",
     "weight": 1,
     "config": {
-        "target": {"source": "file", "path": "seal/threads/i/trail/rounds/round-1.md"},
+        "target": {"source": "file", "path": "iadd/threads/i/trail/rounds/round-1.md"},
         "pattern": TRUTH,
         "flags": "m",
         "match": "contains",
@@ -977,7 +974,7 @@ class Test_side_numbers:
                 {"name": "shape-x", "passed": True},
                 {"name": "note", "passed": True},
             ],
-            "agentic": {
+            "iadd": {
                 "cost": {
                     k: RESULT[k]
                     for k in ("total_cost_usd", "duration_ms", "modelUsage")
@@ -989,7 +986,7 @@ class Test_side_numbers:
         result = one_case_side([run], [RECORD_TRUTH, shape])
         result.update(
             startedAt="t0",
-            agentic={
+            iadd={
                 "cut_short": False,
                 "suite_rev": "s",
                 "suite_tree": "t",
@@ -1024,7 +1021,7 @@ class Test_side_numbers:
         not read again."""
         run = {
             "graders": [{"name": "truth-1", "passed": True}],
-            "agentic": {"report_text": ""},
+            "iadd": {"report_text": ""},
         }
         got = NI.side_numbers(one_case_side([run], [RECORD_TRUTH]))
         assert got["graders"] == {("c1", "truth-1"): ["truth", 1, 1]}
@@ -1036,7 +1033,7 @@ class Test_side_numbers:
             "modelUsage": RESULT["modelUsage"],
         }
         result = one_case_side(
-            [{"graders": [], "agentic": {"cost": cost}}, {"graders": []}]
+            [{"graders": [], "iadd": {"cost": cost}}, {"graders": []}]
         )
         result["partial"] = True
         got = NI.side_numbers(result)
@@ -1117,7 +1114,7 @@ VERDICTS = {
         numbers(
             graders={
                 ("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2),
-                ("c1", "reach-sealer"): ("reach", 0, 0, 2, 2),
+                ("c1", "reach-inspector"): ("reach", 0, 0, 2, 2),
             }
         ),
         "fail",
@@ -1127,7 +1124,7 @@ VERDICTS = {
         "pass",
     ),
     "rule 3: a reach grader the baseline lacks, short of every new run": (
-        numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
+        numbers(graders={("c1", "reach-inspector"): ("reach", 0, 0, 1, 2)}),
         "fail",
     ),
     "rule 1: a shape grader only the baseline carried, in a case both sides ran": (
@@ -1204,7 +1201,7 @@ class Test_verdict:
                 {
                     ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
                     ("c1", "reach-proofer"): ("reach", 2, 2, 1, 2),
-                    ("c1", "reach-sealer"): ("reach", 0, 0, 1, 2),
+                    ("c1", "reach-inspector"): ("reach", 0, 0, 1, 2),
                 },
                 [
                     "shape and reach graders passed 1/4 runs on the new side, fewer than "
@@ -1212,7 +1209,7 @@ class Test_verdict:
                     "c1/shape-report-exists 0/2 against 2/2",
                     "shape grader c1/shape-report-exists failed every new run (0/2) "
                     "where the baseline passed it 2/2 (rule 2)",
-                    "reach grader c1/reach-sealer, which the baseline lacks, failed on "
+                    "reach grader c1/reach-inspector, which the baseline lacks, failed on "
                     "the new side (1/2) (rule 3)",
                 ],
             ),
@@ -1449,7 +1446,7 @@ class Test_check_record:
 MODEL_GRADERS = {
     ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
     ("c1", "shape-commits-nothing"): ("shape", 2, 2, 2, 2),
-    ("c1", "reach-sealer"): ("reach", 2, 2, 2, 2),
+    ("c1", "reach-inspector"): ("reach", 2, 2, 2, 2),
     ("c1", "reach-framer"): ("reach", 0, 0, 1, 2),
 }
 
@@ -1501,7 +1498,7 @@ class Test_cheaper_model:
                 {
                     "graders": {
                         **MODEL_GRADERS,
-                        ("c1", "reach-sealer"): ("reach", 2, 2, 1, 2),
+                        ("c1", "reach-inspector"): ("reach", 2, 2, 1, 2),
                     }
                 },
                 "reach grader",
@@ -1609,7 +1606,7 @@ class Test_check:
         """A record written before #1487 carries the four row counts and the
         two `tokens per true find` rows; `check` and `model` read past them
         and give what they give the same record without them."""
-        now = NI.render("sealer", 4, side(GRADED), side(GRADED, spend=5.0))
+        now = NI.render("inspector", 4, side(GRADED), side(GRADED, spend=5.0))
         before = now.replace(
             "| New cut short | no |\n",
             "| New cut short | no |\n| Baseline report rows | 20 |\n"
@@ -1654,7 +1651,7 @@ class Test_model:
     ):
         path = tmp_path / "m.md"
         path.write_text(
-            NI.render("sealer", 4, side(GRADED), side(GRADED, spend=5.0)),
+            NI.render("inspector", 4, side(GRADED), side(GRADED, spend=5.0)),
             encoding="utf-8",
         )
         assert NI.main(["model", str(path)]) == 0
@@ -1667,14 +1664,14 @@ class Test_model:
     def test_refuses_a_record_it_cannot_read_or_trust(self, tmp_path, capsys, shape):
         path = tmp_path / "m.md"
         if shape == "edited":
-            text = NI.render("sealer", 4, side(GRADED), side(SHAPE_FELL, spend=5.0))
+            text = NI.render("inspector", 4, side(GRADED), side(SHAPE_FELL, spend=5.0))
             path.write_text(
                 text.replace("Verdict: fail", "Verdict: pass"), encoding="utf-8"
             )
         elif shape == "two suites":
             other = {"rev": "3" * 40, "tree": "4" * 40}
             path.write_text(
-                NI.render("sealer", 4, side(GRADED), side(GRADED, suite=other)),
+                NI.render("inspector", 4, side(GRADED), side(GRADED, suite=other)),
                 encoding="utf-8",
             )
         assert NI.main(["model", str(path)]) == 2

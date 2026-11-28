@@ -32,9 +32,9 @@ def test_the_floor_has_one_source():
     """`lib/launch.py` is the one file that spells the floor, the runner
     builds its virtualenv against the launcher's number, and `ruff.toml`,
     which cannot import, lints at that number."""
-    floor = tuple(load(LAUNCH, "agentic_launch_floor").FLOOR)
+    floor = tuple(load(LAUNCH, "iadd_launch_floor").FLOOR)
     assert floor_carriers() == {"lib/launch.py": floor}, floor_carriers()
-    assert tuple(load(RUNNER, "agentic_runner_floor").FLOOR) == floor
+    assert tuple(load(RUNNER, "iadd_runner_floor").FLOOR) == floor
     m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
     assert m, "ruff.toml lost its target-version"
     assert (int(m.group(1)), int(m.group(2))) == floor, (
@@ -87,7 +87,7 @@ def test_what_runs_before_any_floor_is_linted_at_the_floor():
     unfloored, missing = before_any_floor()
     targets = ruff_targets(RUFF)
     assert {
-        "skills/verify/scripts/seal_stamp.py",
+        "skills/verify/scripts/stamp.py",
         "hooks/core-start.py",
         "lib/core.py",
         "lib/launch.py",
@@ -105,7 +105,7 @@ def test_what_runs_before_any_floor_is_linted_at_the_floor():
 
 def test_a_script_reaches_the_modules_under_lib():
     """#1060. A script that puts `lib/` on its `sys.path` imports a module
-    there by its bare name, as `skills/implement/scripts/seal.py` does, so
+    there by its bare name, as `skills/implement/scripts/iadd.py` does, so
     `loaded_by` follows that import into `lib/`. A walk that looked only
     beside the script would find none of them, and the set above would
     shrink without failing."""

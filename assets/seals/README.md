@@ -1,11 +1,11 @@
 # assets/seals/ — the emblems the stamp has carried
 
-The stamp is the sealer's. It is drawn once per work item, at the commit of
-a `guarantee.md` reading `sealed` (`docs/checks/the-stamp.md` *The
+The stamp is the inspector's. It is drawn once per work item, at the commit of
+an `inspection.md` reading `cleared` (`docs/checks/the-stamp.md` *The
 stamp*): the panel of what the records at that commit say, and a wax disc
 with an emblem pressed into it. Before #975 the broad gate's run drew it
 when the run passed. It drew the gold lily, the red lily and, from 0.20.0
-through 0.22.0, the placeholder S below, which the sealer's stamp carried
+through 0.22.0, the placeholder S below, which the inspector's stamp carried
 through 0.23.0. From 0.23.1 through 0.25.0 the stamp carried the horned
 owl. From 0.25.1 it carries the little owl on a red wax seal. The emblem has
 changed since #30 first drew it. This directory keeps each version as the
@@ -48,7 +48,7 @@ page draws no vector drawing.
 The source of each entry is its tag, not a copy of the old code. The
 command under each entry draws it again from the tag. It loads that tag's
 `skills/verify/scripts/seal_stamp.py` and calls `stamp` over the module's
-`SAMPLE_ROWS` directly, because `seal stamp` on a pipe prints the letter
+`SAMPLE_ROWS` directly, because `iadd stamp` on a pipe prints the letter
 twin rather than the colours. Each lily's command passes `DEFAULT_SCALE`
 as well. From 0.20.0 the module reads its mark from `seal-mark.txt` beside
 it, so the commands of the placeholder S and of both owls write the tag's
@@ -100,7 +100,7 @@ it, so the commands of the placeholder S and of both owls write the tag's
 
 - **Releases:** 0.20.0 through 0.23.0. The disc is the same at every tag
   from v0.20.0 to v0.23.0. The sample panel beside it lost its `ledger` row
-  in 0.22.0 (#944) and became the sealer's shorter panel in 0.22.1 (#975).
+  in 0.22.0 (#944) and became the inspector's shorter panel in 0.22.1 (#975).
   The file is v0.22.1's, the last tag when this entry was written.
 - **Issue:** #832, through pull request #859. #832 settled the 28-cell
   frame and left the mark a placeholder: Georgia Bold's S, held as a chart
@@ -161,13 +161,13 @@ it, so the commands of the placeholder S and of both owls write the tag's
   tufts, and the little owl of Athena's coin (*Athene noctua*) has none. On
   2026-10-31 the owner chose this round-headed owl for both forms, and a
   red wax seal for the terminal's disc in place of the rim and the groove.
-- **The terminal's form:** `skills/verify/scripts/seal-mark.txt`, a 16 ×
+- **The terminal's form:** `skills/verify/scripts/stamp-mark.txt`, a 16 ×
   16 sprite drawn one cell at a time, one letter per cell, standing six
-  cells in from the disc's left and top edges. `seal_stamp.py#SPRITE_COLOURS`
+  cells in from the disc's left and top edges. `stamp.py#SPRITE_COLOURS`
   gives each letter's colour; `.` is the field, and a field cell whose
   upper-left neighbour is drawn takes the drop shadow, `DROP`. No cell is
   shaded by its neighbours, because shading breaks a mark this small. The
-  wax is computed (`seal_stamp.py#build`): an edge that wobbles, a lip lit
+  wax is computed (`stamp.py#build`): an edge that wobbles, a lip lit
   from the upper left with a gloss streak, a step ring lit the other way,
   and the pressed field, every cell one of fifteen colours. The wobble
   leaves the grid's first column and last half-row empty.
@@ -183,8 +183,8 @@ it, so the commands of the placeholder S and of both owls write the tag's
   into the wax, the owl's ringed eyes and scalloped breast, and the olive
   branch it perches on. It is painted in gradients of red of its own, not in the
   stamp's fifteen colours. The plugin's icon, `.claude-plugin/icon.png`, is
-  drawn from it, and the release note's `seal.png` is a copy of that icon,
-  which the release workflow's `seal` job attaches. Draw the icon again
+  drawn from it, and the release note's `mark.png` is a copy of that icon,
+  which the release workflow's `mark` job attaches. Draw the icon again
   from the repository's top directory with `resvg_py`, the Python binding of the
   resvg renderer, installed in a throwaway environment (`resvg_py` 0.5.0
   drew the committed file):

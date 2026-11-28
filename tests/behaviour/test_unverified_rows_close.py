@@ -73,12 +73,12 @@ def test_the_fence_walks_agree_shape_by_shape(lines):
     from conftest import load_lib_module
 
     spec = importlib.util.spec_from_file_location(
-        "agentic_tables_for_fence_walks",
+        "iadd_tables_for_fence_walks",
         os.path.join(ROOT, "lib", "tables.py"),
     )
     tables = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(tables)
-    blocks = load_lib_module("blocks.py", "agentic_blocks_for_fence_walks")
+    blocks = load_lib_module("blocks.py", "iadd_blocks_for_fence_walks")
     fenced = set()
     for first, last in lines_reader.fence_spans(lines):
         fenced.update(range(first, len(lines) if last is None else last + 1))

@@ -64,7 +64,6 @@ APPLIES_THE_SHARED_GUARD = {
     # #942's sweep of every census over each tracked file no module file
     # declares. It judges what it finds, so it skips the missing half.
     "tests/behaviour/test_every_tracked_file_meets_every_census.py#test_every_file_no_module_file_declares_meets_every_census": 1,
-    "tests/behaviour/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/behaviour/test_release_hygiene.py#tracked": 1,
     "tests/behaviour/test_every_entry_point_runs_at_the_floor.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing
@@ -86,7 +85,7 @@ APPLIES_THE_SHARED_GUARD = {
     # the missing half.
     "tests/behaviour/test_a_cited_section_stands_in_its_file.py#corpus": 1,
     # #1270's `<commit>:<path>` citations, and the commits named bare
-    # outside `seal/`. It refuses what it finds, so it skips the missing
+    # outside `iadd/`. It refuses what it finds, so it skips the missing
     # half.
     "tests/text/test_a_cited_commit_outlives_the_squash.py#cited": 1,
     # #1055's outline sweep over every tracked edition pair. It returns the
@@ -138,7 +137,7 @@ OPENS_NOTHING = {
         "lists no path and opens none"
     ),
     "tests/skills/test_test_layout.py#test_refuses_a_git_that_did_not_answer_in_one_line": (
-        "its parametrize names the words of the git reads `seal layout` "
+        "its parametrize names the words of the git reads `iadd layout` "
         "makes, `ls-files` among them, so that each one times out; the case "
         "lists no path and opens none"
     ),
@@ -149,13 +148,13 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/lib/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    # What a case staged in its own copy of a world: `seal mode`'s switch and
-    # the workflow it stages in `tests/skills/test_seal.py`.
+    # What a case staged in its own copy of a world: `iadd mode`'s switch and
+    # the workflow it stages in `tests/skills/test_iadd.py`.
     "tests/conftest.py#staged": 1,
     # #952's round 6 case writes stages 1 to 3 of one path into the index of
     # the repository it took, and counts that path's unmerged entries before
-    # and after `seal pr-checks remove`, once each; it opens no listed path.
-    "tests/skills/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
+    # and after `iadd pr-checks remove`, once each; it opens no listed path.
+    "tests/skills/test_iadd.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
     # #1374's case of `noninferiority.py#extract` stages one file in its own
     # fixture repository and compares the staged names after `extract`; it
     # opens no listed path.

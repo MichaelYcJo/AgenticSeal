@@ -1,4 +1,4 @@
-"""`/agentic:update` reads the plugins of the config directory in use (#1184).
+"""`/iadd:update` reads the plugins of the config directory in use (#1184).
 
 Claude Code keeps its plugins under the directory `CLAUDE_CONFIG_DIR`
 names, and under `~/.claude` where the variable is unset. A command of
@@ -60,12 +60,12 @@ def install(claude_dir, copy, version):
     is COPY, and a `plugin.json` in COPY at VERSION."""
     (copy / ".claude-plugin").mkdir(parents=True)
     (copy / ".claude-plugin" / "plugin.json").write_text(
-        json.dumps({"name": "agentic", "version": version}), encoding="utf-8"
+        json.dumps({"name": "iadd", "version": version}), encoding="utf-8"
     )
     record = claude_dir / "plugins" / "installed_plugins.json"
     record.parent.mkdir(parents=True)
     record.write_text(
-        json.dumps({"plugins": {"agentic@agenticseal": [{"installPath": str(copy)}]}}),
+        json.dumps({"plugins": {"iadd@iadd": [{"installPath": str(copy)}]}}),
         encoding="utf-8",
     )
 
@@ -114,7 +114,7 @@ def test_step_2b_prints_the_repair_with_this_sessions_paths(tmp_path):
             "-a",
             "--exclude",
             ".git",
-            f"{config}/plugins/marketplaces/agenticseal/",
+            f"{config}/plugins/marketplaces/iadd/",
             f"{copy}/",
         ],
         ["mkdir", "-p", f"{copy}/.in_use"],
@@ -143,7 +143,7 @@ def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
         (home / ".claude", "git@github.com:owner-home/repo-home.git"),
         (config, "https://github.com/owner-in-use/repo-in-use.git"),
     ):
-        clone = claude_dir / "plugins" / "marketplaces" / "agenticseal"
+        clone = claude_dir / "plugins" / "marketplaces" / "iadd"
         clone.mkdir(parents=True)
         git(clone, "init", "-q")
         git(clone, "remote", "add", "origin", url)

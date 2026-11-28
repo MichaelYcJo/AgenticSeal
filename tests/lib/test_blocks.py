@@ -25,7 +25,7 @@ from conftest import SPLITLINES_ONLY, census_case, load_lib_module, texts
 
 TARGET = "lib/blocks.py"
 
-blocks = load_lib_module("blocks.py", "agentic_blocks_under_test")
+blocks = load_lib_module("blocks.py", "iadd_blocks_under_test")
 # The name the splitter's cases read it by, from when they read it through
 # the reader that handed this module's `gfm_lines` to its callers.
 reader = blocks
@@ -305,31 +305,31 @@ class Test_gfm_lines:
 
 class Test_walk:
     def test_accepts_each_paired_fence_with_its_openers_info_string(self):
-        """#1198, *Scope* item 1: `lib/fields.py` reads a `seal` block
+        """#1198, *Scope* item 1: `lib/fields.py` reads an `iadd` block
         by its opener's info string, so the walk hands it, for every fence it
         pairs, the opener's index and the text after its run. Two fences that
         touch are two entries, and a fence quoted inside another is none."""
         fence = "`" * 3
         lines = [
-            f"{fence}seal",
+            f"{fence}iadd",
             "run: x",
             fence,
-            f"{fence} Seal note",
+            f"{fence} Iadd note",
             fence,
             "~~~~",
-            f"{fence}seal",
+            f"{fence}iadd",
             "~~~~",
             "prose",
         ]
-        assert blocks.walk(lines).opens == {0: "seal", 3: " Seal note", 5: ""}
+        assert blocks.walk(lines).opens == {0: "iadd", 3: " Iadd note", 5: ""}
 
     def test_refuses_an_entry_for_an_opener_that_never_closes(self):
         """An opener nobody closed is no fence: it stays in `unclosed`, and
         a pair below it still has its entry."""
         fence = "`" * 3
-        walked = blocks.walk(["~~~seal", "x", f"{fence}seal", "y", fence])
+        walked = blocks.walk(["~~~iadd", "x", f"{fence}iadd", "y", fence])
         assert walked.unclosed == [0], walked.unclosed
-        assert walked.opens == {2: "seal"}, walked.opens
+        assert walked.opens == {2: "iadd"}, walked.opens
 
     def test_the_walk_is_exact_somewhere(self):
         """The half above is empty if everything is uncertain. On the frame's

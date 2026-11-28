@@ -115,7 +115,7 @@ def build_tracked_tree(d, files, deleted=()):
     `files` is `{relative path: text}`; every one of them is committed, and
     each entry of `deleted` is then unlinked WITHOUT staging the removal, so
     it stays in the index and leaves the working tree. That is the state
-    `seal settle --apply` leaves, since it deletes each directory and stages
+    `iadd settle --apply` leaves, since it deletes each directory and stages
     nothing (`docs/releasing/release-checklist.md` *Settle what earlier
     releases left behind*), and the state `on_disk` below is about.
 
@@ -259,7 +259,7 @@ LIB = os.path.join(os.path.dirname(__file__), "..", "lib")
 # each have to remember. An empty template still leaves a complete repository:
 # `config`, `HEAD`, `objects/` and `refs/` are `git init`'s own work, not the
 # template's.
-_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="agentic-empty-git-template-")
+_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="iadd-empty-git-template-")
 os.environ["GIT_TEMPLATE_DIR"] = _EMPTY_GIT_TEMPLATE
 atexit.register(shutil.rmtree, _EMPTY_GIT_TEMPLATE, True)
 
@@ -281,7 +281,7 @@ os.environ["GIT_CONFIG_VALUE_0"] = "false"
 # has no token, so a case that falls through its stubs onto a live `gh` fails
 # there -- and passed on every developer's machine and under the broad gate,
 # because `gh` is logged in on both. Nothing local could see that class; CI
-# found it after the branch was sealed.
+# found it after the branch was cleared.
 #
 # `gh` looks for its login in three places, in this order: a token variable,
 # `hosts.yml` under its config directory, and the OS keyring. It reads the
@@ -301,8 +301,8 @@ GH_CREDENTIALS = (
     "GITHUB_ENTERPRISE_TOKEN",
 )
 # Not a credential: what `gh` finds in place of one.
-NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
-_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="agentic-empty-gh-config-")
+NOT_A_GH_TOKEN = "iadd-suite-runs-with-gh-logged-out"
+_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="iadd-empty-gh-config-")
 os.environ["GH_CONFIG_DIR"] = _EMPTY_GH_CONFIG
 atexit.register(shutil.rmtree, _EMPTY_GH_CONFIG, True)
 for _name in GH_CREDENTIALS:
@@ -340,7 +340,7 @@ for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
     del os.environ[_name]
 
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
-# exists (#866), except under `--sealing`, the broad gate's run, which asks
+# exists (#866), except under `--inspecting`, the broad gate's run, which asks
 # no state (#1620). A stub named `gh`, first on PATH from import,
 # answers that one question and passes every other call to the `gh` that was
 # on PATH, so `gh auth token` and the `PR` cell's question reach it as they
@@ -351,7 +351,7 @@ for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
 # A child that imports this file again -- an xdist worker, a probe that runs
 # it -- inherits a PATH that already holds a parent's stubs, so the real `gh`
 # is looked for past every one of them.
-GH_STUB_PREFIX = "agentic-gh-stubs-"
+GH_STUB_PREFIX = "iadd-gh-stubs-"
 REAL_GH = shutil.which(
     "gh",
     path=os.pathsep.join(
@@ -453,10 +453,10 @@ def load_lib_module(filename, name):
     return mod
 
 
-# `lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `lib/optin.py#MARKER`: an `iadd/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_lib_module("optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_lib_module("optin.py", "iadd_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -609,9 +609,9 @@ def posix_row_shell_or_skip():
 
 
 def local_home(repo):
-    """Create `<git-common-dir>/seal/` for `repo` and return its path.
+    """Create `<git-common-dir>/iadd/` for `repo` and return its path.
 
-    The local-mode root (#80). Asked of git rather than spelled `.git/seal`,
+    The local-mode root (#80). Asked of git rather than spelled `.git/iadd`,
     because in a linked worktree `.git` is a FILE and the root belongs to
     the main tree's common directory, which is what the scripts read.
     """
@@ -622,16 +622,16 @@ def local_home(repo):
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "seal"
+    home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "iadd"
     return mark_root(home)
 
 
 @pytest.fixture
 def local(repo):
-    """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
+    """The `repo` fixture in local mode: `iadd/` under `.git/` and nowhere
     else."""
     home = local_home(repo)
-    assert not (repo / "seal").exists()
+    assert not (repo / "iadd").exists()
     return repo, home
 
 
@@ -644,7 +644,7 @@ def declare_routing(
     Everything that used to key on a pull request number keys on this: the
     declaration names its branch, and the checked-out branch looks it up.
 
-    `home` is the root to write under when it is not `<repo>/seal/` -- the
+    `home` is the root to write under when it is not `<repo>/iadd/` -- the
     path `local_home` returned, for a local-mode fixture.
     """
     branch = subprocess.run(
@@ -653,7 +653,7 @@ def declare_routing(
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    d = mark_root(home if home else repo / "seal") / "threads" / item
+    d = mark_root(home if home else repo / "iadd") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -761,7 +761,7 @@ def rule_carriers(marker):
     so a case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     path = os.path.join(root, "skills", "settle", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
+    spec = importlib.util.spec_from_file_location("iadd_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
     return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
@@ -791,7 +791,7 @@ def texts():
 # test_no_collected_id_carries_the_interpreters_path` reads every id the suite
 # collected, and on a shard the items a case can see are only the shard's
 # own: `pytest-split` replaces the list with the group.
-COLLECTED_NODE_IDS = "agentic_collected_node_ids"
+COLLECTED_NODE_IDS = "iadd_collected_node_ids"
 
 
 def pytest_collection_modifyitems(session, items):
@@ -870,7 +870,7 @@ def flattened(text):
 
 # `lib/lines.py`, the one spelling of a markdown heading, which `section`
 # places headings by.
-_LINES = load_lib_module("lines.py", "agentic_lines_for_section")
+_LINES = load_lib_module("lines.py", "iadd_lines_for_section")
 
 
 def section(text, heading):
@@ -953,7 +953,7 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_lib_module("config.py", "agentic_config_for_tests")
+    return load_lib_module("config.py", "iadd_config_for_tests")
 
 
 # Earlier releases' `config.md` texts, which the table walker's two-cell
@@ -1031,7 +1031,7 @@ def shape_text(name):
 
 
 def opt_in_shared(repo):
-    return mark_root(repo / "seal")
+    return mark_root(repo / "iadd")
 
 
 def write_config(home, text):
@@ -1072,7 +1072,7 @@ def git_out(repo, *args):
 
 
 # `lib/gitcmd.py#FLAGS`, which `as_called` reads.
-_FLAGS = load_lib_module("gitcmd.py", "agentic_gitcmd_for_fixtures").FLAGS
+_FLAGS = load_lib_module("gitcmd.py", "iadd_gitcmd_for_fixtures").FLAGS
 
 
 def as_called(held):
@@ -1143,7 +1143,7 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
     (path / "f").write_text("2\n", encoding="utf-8")
     run("add", "f")
-    mark_root(path / "seal")
+    mark_root(path / "iadd")
     if declared:
         declare_routing(path, review=review)
     return path
@@ -1164,8 +1164,8 @@ def imported_roots(path):
 
 
 def config_json(*pairs):
-    """A `seal/config.json` holding one member per `(key, value)` in PAIRS,
-    in order, written as `seal mode` writes one; a key given twice is
+    """An `iadd/config.json` holding one member per `(key, value)` in PAIRS,
+    in order, written as `iadd mode` writes one; a key given twice is
     written twice, which a dict could not hold."""
     members = ",\n".join(
         f"  {json.dumps(key, ensure_ascii=False)}: "
@@ -1190,19 +1190,17 @@ def parity_file(sha):
     return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
-# --- a repository whose own `seal/` is a package (#1059) ---------------------
+# --- a repository whose own `iadd/` is a package (#1059) ---------------------
 #
-# Each command's cases that keep its records under `agentic-seal/` beside a
-# project's own `seal/` package share this world: the module files of
-# `tests/skills/` that hold them, and the `seal rules` case of
-# `tests/skills/test_rules.py`.
+# The cases of a repository whose own `iadd/` is a package, whose root is
+# then the local one (#1651), share this world.
 
 ITEM = "1794200000-a-work-item"
 REMOTE = "git@example.com:org/thing.git"
 # The project's own package, which no command of the plugin may write into.
 PACKAGE = {
-    "seal/__init__.py": "VERSION = 1\n",
-    "seal/README.md": "# seal\n\nThis package's own notes.\n",
+    "iadd/__init__.py": "VERSION = 1\n",
+    "iadd/README.md": "# iadd\n\nThis package's own notes.\n",
 }
 ROOT_RECORDS = {
     "follow-up.md": "# follow-up\n",
@@ -1220,7 +1218,7 @@ def records_at(home):
 
 @pytest.fixture
 def package(tmp_path):
-    """A repository on `main` whose committed `seal/` is the package, with
+    """A repository on `main` whose committed `iadd/` is the package, with
     REMOTE as `origin` and no root at either place."""
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -1232,23 +1230,15 @@ def package(tmp_path):
     return repo
 
 
-@pytest.fixture
-def shared(package):
-    """PACKAGE's repository with its root committed at `agentic-seal/`."""
-    records_at(package / "agentic-seal")
-    commit_everything_as_e(package, "the root")
-    return package
-
-
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
 # and the cases of `tests/lib/test_config.py` that run it over a signer's config
-# share one world: the pact's repository, whose `seal/config.json` lists the
-# signer in its `Pact signers` key and whose `seal/pact.md` carries one clause
+# share one world: the pact's repository, whose `iadd/config.json` lists the
+# signer in its `Pact signers` key and whose `iadd/pact.md` carries one clause
 # committed as v1 and then v2 on `main` and v3 on a side branch HEAD does not
 # hold, and the signer beside it, which names the pact in its
-# `seal/config.json`.
+# `iadd/config.json`.
 
 
 @functools.cache
@@ -1266,8 +1256,8 @@ PACT_URL = "git@example.com:org/orders-api.git"
 SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
 CLAUSE_PATH = "## Order response shape / ### Fields"
-PACT = "seal/pact.md"
-SPEC = "seal/threads/1790000000-x/frame/design.md"
+PACT = "iadd/pact.md"
+SPEC = "iadd/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` key names in the reader's cases, and what
 # `lib/config.py#pact_declaration` answers for it.
@@ -1283,7 +1273,7 @@ def pact(fields):
 
 
 def pact_config(*signers):
-    """The pact's repository's `seal/config.json`: `Mode`, then a `Pact
+    """The pact's repository's `iadd/config.json`: `Mode`, then a `Pact
     signers` key listing SIGNERS separated by `;`."""
     return config_json(("Mode", "shared"), ("Pact signers", "; ".join(signers)))
 
@@ -1296,7 +1286,7 @@ def clause(fields):
 
 
 def signer_config(*pairs):
-    """A signer's `seal/config.json`: `Mode` and then each of PAIRS."""
+    """A signer's `iadd/config.json`: `Mode` and then each of PAIRS."""
     return config_json(("Mode", "shared"), *pairs)
 
 
@@ -1328,8 +1318,8 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
-    write(api, "seal/config.json", pact_config(SIGNER_URL))
-    mark_root(api / "seal")
+    write(api, "iadd/config.json", pact_config(SIGNER_URL))
+    mark_root(api / "iadd")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
     commit(api, "pact v2")
@@ -1339,8 +1329,8 @@ def _template(tmp_path_factory):
     git(api, "switch", "-q", "main")
     web = base / "work" / "orders-web"
     init(web, SIGNER_URL)
-    write(web, "seal/config.json", signer_config(("Pact", PACT_URL)))
-    mark_root(web / "seal")
+    write(web, "iadd/config.json", signer_config(("Pact", PACT_URL)))
+    mark_root(web / "iadd")
     commit(web, "signer")
     return base
 
@@ -1371,13 +1361,13 @@ class World:
 
     def sign(self, *signers):
         """Write the pact's repository's config listing SIGNERS."""
-        write(self.api, "seal/config.json", pact_config(*signers))
+        write(self.api, "iadd/config.json", pact_config(*signers))
 
     def map(self, *entries):
         """Write the machine-local map, one member per `(remote, path)`."""
         write(
             self.home,
-            ".claude/agentic/pact-paths.json",
+            ".claude/iadd/pact-paths.json",
             config_json(*((remote, str(path)) for remote, path in entries)),
         )
 
@@ -1426,11 +1416,11 @@ def declare_automation(home, answer, branch, item="1780000000-a-work-item"):
     return d / "routing.md"
 
 
-# --- a `seal` block, as `lib/fields.py` reads one ---------------------------
+# --- an `iadd` block, as `lib/fields.py` reads one ---------------------------
 
 
-def seal_block(*lines, opener="`" * 3 + "seal"):
-    """A `seal` block holding LINES, closed, with a newline after it.
+def iadd_block(*lines, opener="`" * 3 + "iadd"):
+    """An `iadd` block holding LINES, closed, with a newline after it.
     `tests/lib/test_fields.py` and `tests/skills/test_chain_check.py`
     write records with it."""
     return "\n".join([opener, *lines, "`" * 3]) + "\n"
@@ -1440,7 +1430,7 @@ def seal_block(*lines, opener="`" * 3 + "seal"):
 
 
 def home(repo):
-    mark_root(repo / "seal")
+    mark_root(repo / "iadd")
 
 
 def legacy(repo):
@@ -1449,7 +1439,7 @@ def legacy(repo):
 
 
 def scratch(repo):
-    (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
+    (repo / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
 
 
 # --- a console the gates cannot encode to --------------------------------------
@@ -1473,7 +1463,7 @@ def _console_repo_template():
     shape."""
     global _CONSOLE_REPO_TEMPLATE
     if _CONSOLE_REPO_TEMPLATE is None:
-        d = pathlib.Path(tempfile.mkdtemp(prefix="agentic-console-repo-template-"))
+        d = pathlib.Path(tempfile.mkdtemp(prefix="iadd-console-repo-template-"))
         d = d / "repo"
         d.mkdir(parents=True)
         git = lambda *a: subprocess.run(
@@ -1493,7 +1483,7 @@ def _console_repo_template():
 def opted_in_repo(where):
     """An opted-in repository, at a path holding non-ASCII."""
     shutil.copytree(_console_repo_template(), where)
-    mark_root(where / "seal")
+    mark_root(where / "iadd")
     return where
 
 
@@ -1560,9 +1550,9 @@ def tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
-    mark_root(repo / "seal")
+    mark_root(repo / "iadd")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-        item = repo / "seal" / "threads" / name
+        item = repo / "iadd" / "threads" / name
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text(
             f"# {name}\n\nWhat it decided.\n", "utf-8"
@@ -1572,7 +1562,7 @@ def tree(tmp_path):
     git(repo, "config", "user.name", "x")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "released")
-    later = repo / "seal" / "threads" / "1700000004-delta"
+    later = repo / "iadd" / "threads" / "1700000004-delta"
     (later / "frame").mkdir(parents=True)
     (later / "frame" / "design.md").write_text(
         "# delta\n\nIn flight.\n", encoding="utf-8"

@@ -1,7 +1,7 @@
 ---
 name: agent-contract
 description: |
-  The rules every AgenticSeal agent works under. Not a command to run: the
+  The rules every IADD agent works under. Not a command to run: the
   harness injects it into each agent at startup through the `skills:` list
   in the agent's definition, and an orchestrator session may load it to be
   bound by the same rules.
@@ -106,16 +106,16 @@ one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most.
 
-## 11 Where the plugin's paths and the `seal/` root resolve, and the record language
+## 11 Where the plugin's paths and the `iadd/` root resolve, and the record language
 
 Every `skills/`, `templates/`, `docs/` and `agents/` path here and in your
 definition is the plugin's, at the root two directories above the base
 directory the harness printed with this file; the repository you work in may
 hold other files at those paths.
 
-Every `seal/…` path here and in the skills means the records root, the
+Every `iadd/…` path here and in the skills means the records root, the
 first of the places the opening paragraph of `skills/core/SKILL.md` names
-that holds the marker. That paragraph also defines `seal/` as the root's
+that holds the marker. That paragraph also defines `iadd/` as the root's
 name. The prose in the records follows `Record language` in `config.json`
 under that root: `templates/setup/config.md` *Record language* lists the
 records, and `templates/setup/config.md` *An absent language key is a
@@ -231,7 +231,7 @@ dated measurement, or a date or a cut the sentence names is a claim about
 that moment and stays, and a release still open is no such moment. A line
 of the plugin's forms that a check reads by value keeps the value its form
 gives it: the `Branch` row of `routing.md`, and the `target:` line of a
-round record and of `guarantee.md`. A value whose source is a file the
+round record and of `inspection.md`. A value whose source is a file the
 work item's own commit has written is a state of its branch, not one
 outside it, and a sentence that states it stays: the version that the work
 item carrying the move has written to the version file, and states in its

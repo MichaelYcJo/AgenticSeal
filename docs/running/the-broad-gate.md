@@ -8,17 +8,17 @@ runs, and what it is allowed to say.
 ## One act, one owner, and the owner is the orchestrator
 
 **A prohibition needs a holder, and the holder is the orchestrator.** No
-agent runs the broad gate. The orchestrator runs `seal gate --base <base>
+agent runs the broad gate. The orchestrator runs `iadd gate --base <base>
 --record <item>` once the rounds settle, with nothing else running, commits
-the record, and then spawns the sealer, which reads that record and runs
+the record, and then spawns the inspector, which reads that record and runs
 nothing broad. A run inside an agent would be a second run of a suite the
 orchestrator takes once, and a prohibition with no holder is one every reader
 reasons past.
 
-The run judges nothing. `seal gate` runs the repository's broad command,
+The run judges nothing. `iadd gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `trail/gate.md`;
-the sealer's own verdict, which follows the run, is a separate file
-(`docs/forms/the-guarantee.md` *The guarantee*). A run that judges is a run
+the inspector's own verdict, which follows the run, is a separate file
+(`docs/forms/the-inspection.md` *The inspection*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
 check: tests/text/test_broad_gate_rule.py
 
@@ -26,10 +26,10 @@ check: tests/text/test_broad_gate_rule.py
 Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
-no values file and no drawing. The verdict word `sealed` is the sealer's,
-and the stamp is queued from that verdict by the sealer, in either mode
+no values file and no drawing. The verdict word `cleared` is the inspector's,
+and the stamp is queued from that verdict by the inspector, in either mode
 (`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
-a sealed work item.
+a cleared work item.
 check: tests/skills/test_broad_gate.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
@@ -46,8 +46,8 @@ an exit of 0 from the command does not say that nothing the session ran
 failed. Where a stop chose that code, as a test that calls
 `pytest.exit()` with a return code of 0 or `os._exit(0)` does, it does
 not say that the session ran every test it collected either. A run
-passed on that exit would write `trail/gate.md`, and the sealer would
-guarantee a suite that failed or that nobody finished. So the gate
+passed on that exit would write `trail/gate.md`, and the inspector would
+clear a suite that failed or that nobody finished. So the gate
 reads the pass off its own recorder's record. It counts a session as
 stopped part-way where its record holds no `end` line, where that
 line's `stopped` is not an empty list, or where its exit is not 0, 1

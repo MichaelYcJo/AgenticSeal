@@ -27,7 +27,7 @@ from test_core_start import start
 
 TARGET = "hooks/ask-under-automation.py"
 
-hook = load(TARGET, "agentic_ask_under_automation")
+hook = load(TARGET, "iadd_ask_under_automation")
 
 EVENT = "PreToolUse"
 ITEM = "1780000000-a-work-item"
@@ -53,7 +53,7 @@ def declared(where, answer="yes", branch=BRANCH):
     `routing.md` naming BRANCH, its `Automation` row reading ANSWER."""
     repo = git_repo(where)
     git(repo, "checkout", "-q", "-b", BRANCH)
-    declare_automation(repo / "seal", answer, branch, ITEM)
+    declare_automation(repo / "iadd", answer, branch, ITEM)
     return repo
 
 

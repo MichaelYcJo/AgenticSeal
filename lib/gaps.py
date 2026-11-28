@@ -5,7 +5,7 @@ who answers it, and this module reads those rows: `check_text` reads one
 memo's text into its open rows, its closed rows and what it could not
 read, `check_file` reads one memo on disk, and `open_record_rows` lists a
 work item's open rows. `skills/verify/scripts/unverified_check.py`, the
-`seal unverified` command, reports them over a tree, and
+`iadd unverified` command, reports them over a tree, and
 `skills/settle/scripts/settle.py` refuses to take a directory that still
 holds one.
 
@@ -251,13 +251,13 @@ def open_record_rows(root, directory):
     """`[(file, what is open)]` for a work item's record on disk, DIRECTORY
     `/`-joined under ROOT.
 
-    The rows `seal settle --apply` refuses to take with a directory, and its
+    The rows `iadd settle --apply` refuses to take with a directory, and its
     dry run lists: every open item in `gaps.md`'s `## Not verified`. Each is
     a claim with an answerer rather than a rule, and a directory taken with
     one loses it: the only record that a production workflow is red can sit
     in a retiring closing memo.
 
-    The record is read by `check_text`, as `seal unverified` reads it. A
+    The record is read by `check_text`, as `iadd unverified` reads it. A
     closing memo whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
     the rule `check_text` above is written to. A directory with no `gaps.md`

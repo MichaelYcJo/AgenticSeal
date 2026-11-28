@@ -1,40 +1,40 @@
 #!/usr/bin/env python3
-"""seal pr-body: a pull request body, the work item's first part, its
+"""iadd pr-body: a pull request body, the work item's first part, its
 `pr.<lang>.md` where the two language keys differ and its `pr.md`, and then
 the part its other records hold, copied from them.
 
-  seal pr-body <item> --body <file>           write the body
-  seal pr-body <item> --body <file> --check   say whether it is still theirs
+  iadd pr-body <item> --body <file>           write the body
+  iadd pr-body <item> --body <file> --check   say whether it is still theirs
 
-A body written by hand restates the records, and most of the sealer's
+A body written by hand restates the records, and most of the inspector's
 withheld verdicts are over a sentence of it that restates one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
-phase records' paths, each round record's `seal` blocks and its findings'
-headings, the broad run's `seal` blocks, `gaps.md`'s `## Not verified` and
+phase records' paths, each round record's `iadd` blocks and its findings'
+headings, the broad run's `iadd` blocks, `gaps.md`'s `## Not verified` and
 `## Not done` sections, and every table line of `frame/questions.md`. It
 copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`.
 
-One fixed line depends on a record's verdict: the seal mark, `MARK`,
+One fixed line depends on a record's verdict: the inspection mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the changelog's section where `seal/config.json`'s
-`Pull request seal mark` key reads `yes` and the work item's `guarantee.md`
-reads `sealed` at HEAD, as `seal_mark` reads them. Its address is built
+between `HEADING` and the changelog's section where `iadd/config.json`'s
+`Pull request inspection mark` key reads `yes` and the work item's `inspection.md`
+reads `cleared` at HEAD, as `inspection_mark` reads them. Its address is built
 from the plugin's manifest, which is read and never written, and names no
 version, so two releases of the plugin compose one line. It carries
-no record text, and `--check` composes it the same way, so the sealer's
+no record text, and `--check` composes it the same way, so the inspector's
 check, run before its own verdict exists, reads a part with no mark from
 that run. The key and HEAD are read in the work item's own checkout, and in
 the working directory's where the item sits under the common git directory.
-A value other than `yes`, a seal that checkout cannot be read against, and
+A value other than `yes`, an inspection that checkout cannot read, and
 a manifest the address cannot be built from are named on one line opening
-`seal pr-body:` and change no exit code.
+`iadd pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, its files written as their
 bytes stand, and `HEADING` follows it on its own line. The part is
-composed from `seal/config.json`'s `Commit and pull request language` and
+composed from `iadd/config.json`'s `Commit and pull request language` and
 `Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
 one file matching `pr.*.md` beside `pr.md`, its renderings in the commit
@@ -51,7 +51,7 @@ there.
 Each line of `pr.md` in the quote form is read against the record it
 quotes, and `pr.<lang>.md` is not read for quotes. The form is the one
 spelling `skills/code-review/orchestration.md` *Orchestrator: the pull
-request opens once the sealer seals* gives: the line opens with `- "`, the
+request opens once the work item is cleared* gives: the line opens with `- "`, the
 quote runs to the line's last `" (` before a backtick, so a `"` inside it
 is itself, a backticked path under the work item's directory follows, then
 any text, and the line ends with `)`. Both forms refuse at `pr.md`'s line
@@ -59,7 +59,7 @@ where the path names no file of the work item's directory, one outside it
 among them, and where the file's text, with each run of whitespace made
 one space, does not hold the quote read the same way. A line that holds
 `" (` before a backtick outside the form is named, on the line opening
-`seal pr-body:`, as a line not read, and decides nothing.
+`iadd pr-body:`, as a line not read, and decides nothing.
 
 Below the line `HEADING` holds, the changelog fragment stands
 first, whole and outside any fold, so the pull request's reader meets it
@@ -86,10 +86,10 @@ sections after the changelog's fold one at a time, the longest first,
 until the body fits. A folded section keeps its heading, and a line of
 `FIXED`, `FOLDED`, stands in place of its text for each record `SECTIONS`
 names for it, a directory named once. The changelog's section never folds.
-The body is measured with room for the seal mark's line whether or not the
-mark is written, so the run after the seal folds what the sealer's check
+The body is measured with room for the inspection mark's line whether or not the
+mark is written, so the run after the inspection folds what the inspector's check
 folded. Both forms name the folded sections on one line opening
-`seal pr-body:`, and both refuse on the work item's directory where the
+`iadd pr-body:`, and both refuse on the work item's directory where the
 body passes `LIMIT` with every section folded that a fold shortens,
 naming the length of the first part's files and of the changelog. Every
 copied line is refused or passed before any fold, so a line's refusal
@@ -98,7 +98,7 @@ does not hang on the length of the other records.
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `lib/fields.py` reads by the record's headings, and
 `trail/gate.md` through `lib/fields.py`, the one reader of a record's
-`seal` blocks; a record either refuses is refused here with its sentence.
+`iadd` blocks; a record either refuses is refused here with its sentence.
 The other records' headings are read through `lib/lines.py`'s `readable`
 and `sections`, so a heading inside a fence is no heading, and every
 record's lines through `lib/blocks.py#gfm_lines`. No record is parsed any
@@ -127,17 +127,17 @@ Limits, stated here and not guarded:
 - A quote is read as a substring of the file its path names, so one that
   stands in the file under a heading or row other than the one its
   coordinate names passes; what follows the path is not read, and that
-  reading stays the rounds' and the sealer's. Each line is read, inside a
+  reading stays the rounds' and the inspector's. Each line is read, inside a
   fence too, and a quote with no words stands in any file.
 - Exit 2's line names `<item>` as it was given, or the module that would not
-  load by its installed path. The normal flow gives neither: the sealer is
+  load by its installed path. The normal flow gives neither: the inspector is
   handed a work item's directory that exists, from an installed plugin.
 
 Exit: 0 written, or under `--check` the part above the heading is the lines
 of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
 opens with `refused:` naming the body file by its name, or a record, the
-work item's directory or `config.json` by its path under the `seal/`
+work item's directory or `config.json` by its path under the `iadd/`
 root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
@@ -190,7 +190,7 @@ except ImportError:
 # whose `HEADING` is the closing memo's section,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of a `seal/config.json` key, and
+# `lib/config.py`, the one reader of an `iadd/config.json` key, and
 # `lib/closing.py`, whose `keywords_in` is the one reader of a closing
 # keyword. An absent file is `lib/sibling.py#load`'s sentence and exit 2. As
 # a command, a module that raises while it loads ends the run at exit 2;
@@ -205,7 +205,7 @@ except (OSError, SyntaxError, ImportError, ValueError) as _exc:
     if __name__ != "__main__":
         raise
     print(
-        f"seal pr-body: a reader of the records would not load ({_exc})",
+        f"iadd pr-body: a reader of the records would not load ({_exc})",
         file=sys.stderr,
     )
     raise SystemExit(2) from None
@@ -223,7 +223,7 @@ HEADING = "## From the records"
 # character outside the Basic Multilingual Plane as two and is never less
 # than the code-point count GitHub is reported to use, so a body within it
 # fits under either count. Raising it does not make a longer body reach a
-# pull request; it moves the refusal back to `gh pr create`, after the seal.
+# pull request; it moves the refusal back to `gh pr create`, after the inspection.
 LIMIT = 65536
 # The fold the generated part's sections after the changelog's stand in,
 # opened under the changelog's section and ended on the part's last line.
@@ -257,7 +257,7 @@ QUESTIONS = OPTIN.QUESTIONS
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
 # A quote of `pr.md`, in the one spelling `skills/code-review/orchestration.md`
-# *Orchestrator: the pull request opens once the sealer seals* gives it: a
+# *Orchestrator: the pull request opens once the work item is cleared* gives it: a
 # line opening with `QUOTE_OPEN`, the quote, `QUOTE_MARK`, the path under the
 # work item's directory and its closing backtick, any text, and `)` at the
 # line's end. The quote runs to the line's last `QUOTE_MARK`, so a `"` inside
@@ -306,12 +306,12 @@ PHASE_RE = re.compile(r"phase-(\d+)\.md")
 # character is this.
 TABLE = "|"
 
-# Every fixed line the generated part can hold, beside the seal mark,
+# Every fixed line the generated part can hold, beside the inspection mark,
 # `MARK`. `{name}` is the work item's directory name, `{path}` a record's
-# path under it, and `{home}` the root's name, `_in_tree`'s.
+# path under it, and `{home}` the root's name, `lib/optin.py#HOME`.
 SUMMARY = (
     f"<summary>Copied from the records in {{home}}/{OPTIN.WORK_ITEMS}/{{name}}/ "
-    "by seal pr-body.</summary>"
+    "by iadd pr-body.</summary>"
 )
 CHANGED = "## What changed"
 BUILT = "## How it was built"
@@ -337,47 +337,47 @@ FOLDED = (
     f"Not copied here, so the body stays within GitHub's {LIMIT:,} characters: "
     "`{path}` holds what this section copies."
 )
-# What `seal pr-body` says where it folded a section, after `seal pr-body: `,
-# and `compared`'s note beside `seal_mark`'s sentence.
+# What `iadd pr-body` says where it folded a section, after `iadd pr-body: `,
+# and `compared`'s note beside `inspection_mark`'s sentence.
 FOLD_NOTE = (
     f"folded {{headings}} so the body stays within GitHub's {LIMIT:,} "
     "characters; each folded section names the record that holds it"
 )
 # The refusal on the work item's directory where folding every section that
-# a fold shortens leaves the body, measured with the seal mark's room
+# a fold shortens leaves the body, measured with the inspection mark's room
 # (`_room`), past `LIMIT`. The length it gives is that measure, so the line
 # says the room is in it.
 TOO_LONG = (
-    "the body, counted with room for the seal mark's line whether or not it "
+    "the body, counted with room for the inspection mark's line whether or not it "
     "is written, would be {length:,} characters with every section after "
     f"`{CHANGED}` folded that a fold shortens, past GitHub's {LIMIT:,}; "
-    "{files}, so {which} is shortened before `seal pr-body` runs again"
+    "{files}, so {which} is shortened before `iadd pr-body` runs again"
 )
 
-# The seal mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `seal/config.json`'s `MARK_KEY` turns it on
-# (`lib/config.py#switch`) and the work item is sealed at HEAD
-# (`seal_mark`). Its address is built from the plugin's manifest, which
+# The inspection mark, one fixed line between `HEADING`'s blank line and
+# `FOLD`, written where `iadd/config.json`'s `MARK_KEY` turns it on
+# (`lib/config.py#switch`) and the work item is cleared at HEAD
+# (`inspection_mark`). Its address is built from the plugin's manifest, which
 # stands three levels above HERE, at the plugin's root, and which this reads
 # and never writes.
-MARK_KEY = "Pull request seal mark"
+MARK_KEY = "Pull request inspection mark"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
 MARK_FIELDS = ("repository", "icon")
 MARK = '<img src="{src}" alt="{alt}" width="{width}">'
-MARK_ALT = "Sealed"
+MARK_ALT = "Cleared"
 MARK_WIDTH = 128
-# What `seal_mark` says where the mark is not written and nothing else
+# What `inspection_mark` says where the mark is not written and nothing else
 # names why, and the words that close the switch's sentence on `MARK_KEY`;
-# printed after `seal pr-body: `.
-NO_MARK = "the body carries no seal mark"
+# printed after `iadd pr-body: `.
+NO_MARK = "the body carries no inspection mark"
 BASE_UNSEEN = (
-    "the guarantee names the base `{base}`, which this repository cannot "
-    f"resolve, so whether its seal is at HEAD is not read and {NO_MARK}"
+    "the inspection names the base `{base}`, which this repository cannot "
+    f"resolve, so whether it has lapsed is not read and {NO_MARK}"
 )
 NOT_IN_HISTORY = (
-    "the guarantee is sealed at `{commit}`, which HEAD in {root} does not "
-    f"hold, so whether its seal is at HEAD is not read and {NO_MARK}"
+    "the inspection is cleared at `{commit}`, which HEAD in {root} does not "
+    f"hold, so whether it has lapsed is not read and {NO_MARK}"
 )
 NO_MANIFEST = (
     f"`{MANIFEST_NAME}` is not read ({{why}}), so the mark's address is not "
@@ -571,7 +571,7 @@ def first_part(item, root):
     each as `read_own` reads it.
 
     The two language keys are read from the root's `config.json` through
-    `lib/config.py#declared_value`, in the same checkout `seal_mark` reads,
+    `lib/config.py#declared_value`, in the same checkout `inspection_mark` reads,
     and compared with case folded. Where they name different languages,
     the work item's one file matching `TRANSLATED` comes first, then
     `pr.md`; where they name one language, `pr.md` comes first, then each
@@ -628,42 +628,33 @@ def _names(parts):
     return " then ".join(f"`{name}`" for name, _text in parts)
 
 
-def _in_tree(root):
-    """The `/`-joined name the records stand under in the repository at
-    ROOT: the shared root's name in the tree, `lib/optin.py#home_name`'s,
-    which is `seal` or, beside a project's own `seal/`, the second name;
-    and `lib/optin.py#HOME` where the root is local or absent,
-    the name the text gives the root, since no path in the tree holds it."""
-    return OPTIN.home_name(root) or OPTIN.HOME
-
-
-def _seal_at_head(item, root, base=None):
-    """`(sealed, note)`: whether `guarantee.md` in the work item's directory
-    ITEM is sealed at HEAD of the repository at ROOT, the way
-    `chain_check.py#guarantee` asks it. Its blocks are read through
-    `lib/fields.py` with no refusal, the newest reads `sealed`, and
+def _cleared_at_head(item, root, base=None):
+    """`(cleared, note)`: whether `inspection.md` in the work item's directory
+    ITEM is cleared at HEAD of the repository at ROOT, the way
+    `chain_check.py#inspection` asks it. Its blocks are read through
+    `lib/fields.py` with no refusal, the newest reads `cleared`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
     HEAD or followed only by the closing records. The base `follows` reads
     against is BASE where it is given, the base the pull request's check
-    runs against and its guarantee arm reads, so a commit the base gained
-    after the seal, which the merge commit CI checks out reaches, is not
-    read as following the seal; and otherwise the base the same
+    runs against and its inspection arm reads, so a commit the base gained
+    after the inspection, which the merge commit CI checks out reaches, is not
+    read as following the inspection; and otherwise the base the same
     `target:` line names, which is right at the branch head, where no later
-    base commit is reachable. NOTE names what ROOT cannot read the seal
+    base commit is reachable. NOTE names what ROOT cannot read the inspection
     against: a base it cannot resolve, where `follows` would list no later
-    commit, and a sealed commit its HEAD does not hold, as in a checkout
-    other than the work item's. Every other way of not being sealed is the
-    sealer's and the pull request check's to name."""
+    commit, and a cleared commit its HEAD does not hold, as in a checkout
+    other than the work item's. Every other way of not being cleared is the
+    inspector's and the pull request check's to name."""
     try:
-        with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
+        with open(os.path.join(item, OPTIN.INSPECTION), encoding="utf-8") as handle:
             text = handle.read()
     except (OSError, UnicodeDecodeError):
         return False, None
-    found = CHAIN.FIELDS.read(text, CHAIN.FIELDS.GUARANTEE)
+    found = CHAIN.FIELDS.read(text, CHAIN.FIELDS.INSPECTION)
     if found.refusals or not found.blocks:
         return False, None
     newest = found.blocks[-1]
-    if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.SEALED:
+    if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.CLEARED:
         return False, None
     target = newest.fields[CHAIN.FIELDS.TARGET].match
     base = base or target["base"]
@@ -673,7 +664,7 @@ def _seal_at_head(item, root, base=None):
     ):
         return False, BASE_UNSEEN.format(base=base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-    rel = f"{_in_tree(root)}/{OPTIN.WORK_ITEMS}/{name}"
+    rel = f"{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{name}"
     behind = CHAIN.follows(
         root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
     )
@@ -711,26 +702,26 @@ def _mark_line(manifest):
     ), None
 
 
-def seal_mark(item, root, manifest=None, base=None):
+def inspection_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
     at ROOT: the mark `_unfolded` writes under `HEADING`, or None, and the
-    one sentence `seal pr-body` prints about it, or None.
+    one sentence `iadd pr-body` prints about it, or None.
 
     The mark is written where `MARK_KEY` in the root's `config.json` turns
-    it on, as `lib/config.py#switch` reads it, and the work item is sealed
+    it on, as `lib/config.py#switch` reads it, and the work item is cleared
     at HEAD against BASE where it is given, and otherwise against the
-    guarantee's own base (`_seal_at_head`). An absent
-    or empty key, and a work item not sealed at HEAD, write no mark and say
+    inspection's own base (`_cleared_at_head`). An absent
+    or empty key, and a work item not cleared at HEAD, write no mark and say
     nothing. Any other value, a refused key, a base that does not resolve,
-    a sealed commit HEAD does not hold, and a manifest the address cannot be
+    a cleared commit HEAD does not hold, and a manifest the address cannot be
     built from, at MANIFEST or the
     plugin's own, write no mark and are named. Nothing here refuses: the
     mark is a picture, and no key of it stops the body."""
     on, note = CONFIG.switch(OPTIN.home_at(root), MARK_KEY, NO_MARK)
     if not on:
         return None, note
-    sealed, note = _seal_at_head(item, root, base)
-    if not sealed:
+    cleared, note = _cleared_at_head(item, root, base)
+    if not cleared:
         return None, note
     return _mark_line(manifest or MANIFEST)
 
@@ -802,7 +793,7 @@ def _built(texts):
 
 def _round(rel, number, text):
     """The blocks of one round record, read through `chain_check.py`, in the
-    record's order: each `seal` block outside every finding, the prose under
+    record's order: each `iadd` block outside every finding, the prose under
     `## Findings` before its first finding, and each finding's heading one
     level down followed by its finding block and its close block, each
     block copied whole."""
@@ -950,7 +941,7 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
     blank line, the line MARK and a blank line where it is given, the
     changelog's section followed by a blank line, outside any fold so the
     reader meets it before the fold, `FOLD`, the summary naming the copy
-    under HOME, the root's name as `_in_tree` gives it, and a blank line.
+    under HOME, the root's name, `lib/optin.py#HOME`, and a blank line.
     SECTIONS holds one `(heading, whole, folded)` per row of `SECTIONS`, in
     body order: WHOLE its lines each block followed by a blank line, and
     FOLDED its heading and one `FOLDED` line per record its row names, laid
@@ -1021,12 +1012,12 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
 
 
 def _room(mark, manifest=None):
-    """The units the seal mark's line and the blank line under it would take
-    where MARK, the mark `seal_mark` gave, is not given: the line
+    """The units the inspection mark's line and the blank line under it would take
+    where MARK, the mark `inspection_mark` gave, is not given: the line
     `_mark_line` builds from MANIFEST or the plugin's own, `MANIFEST`. Zero
     where MARK is given, since it stands in the body then, and where the
     line cannot be built. The fold measures the body with this room, so
-    the run before the seal and the run after it fold the same sections."""
+    the run before the inspection and the run after it fold the same sections."""
     if mark:
         return 0
     line, _note = _mark_line(manifest or MANIFEST)
@@ -1081,7 +1072,7 @@ def _folded(top, sections, parts=(), texts=None, room=0):
 
 
 def _noted(note, headings, parts=()):
-    """NOTE, `seal_mark`'s sentence, `FOLD_NOTE` naming HEADINGS where any
+    """NOTE, `inspection_mark`'s sentence, `FOLD_NOTE` naming HEADINGS where any
     section was folded, and `UNREAD_QUOTES` naming the lines of `pr.md`
     among PARTS, `first_part`'s files, that `quote_lines` did not read,
     joined by `; `; None where none stands."""
@@ -1105,7 +1096,7 @@ def _joined(below):
 def compose(name, texts, mark=None, home=OPTIN.HOME, parts=()):
     """The generated part of the body for the work item called NAME, from
     `read_item`'s mapping TEXTS: `HEADING`, then the part `_folded` lays
-    out, the seal mark MARK first where `seal_mark` gave one, the summary
+    out, the inspection mark MARK first where `inspection_mark` gave one, the summary
     naming the copy under HOME, the fold's end the last. PARTS are the
     files of the body's first part, as `first_part` gives them, which the
     caller writes in front of the text: the fold measures the body they
@@ -1131,7 +1122,7 @@ def split(body):
                 None,
                 0,
                 f"no line reads `{HEADING}`, so the body is not one this command "
-                "wrote: run `seal pr-body <item> --body <file>`, which writes it "
+                "wrote: run `iadd pr-body <item> --body <file>`, which writes it "
                 "whole, and check it again",
             )
         ]
@@ -1208,7 +1199,7 @@ def _check(below, body, parts):
     lines."""
     if body is None:
         raise Refused(
-            [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
+            [(None, 0, "is not there; `iadd pr-body <item> --body <file>` writes it")]
         )
     head, generated = split(body)
     said = BLOCKS.gfm_lines(generated)
@@ -1234,25 +1225,25 @@ def _check(below, body, parts):
 
 def compared(item, body, root, manifest=None, base=None):
     """`(note, causes)` for BODY, a pull request body's text or None where
-    there is none, against what `seal pr-body` composes for the work item's
+    there is none, against what `iadd pr-body` composes for the work item's
     directory ITEM in the repository at ROOT: the first part `first_part`
-    gives from the two language keys, `HEADING`, the seal mark `seal_mark`
+    gives from the two language keys, `HEADING`, the inspection mark `inspection_mark`
     gives from MANIFEST or the plugin's own, read against BASE where it is
     given, and the records' copy, folded as `_folded` folds the body `main`
     writes, with the mark's room from MANIFEST or the plugin's own. NOTE is
-    `_noted`'s: `seal_mark`'s sentence, `UNREAD_QUOTES` where a line of
+    `_noted`'s: `inspection_mark`'s sentence, `UNREAD_QUOTES` where a line of
     `pr.md` was not read as a quote, and `FOLD_NOTE` where a section was
     folded, joined by `; `, or None where none stands; CAUSES are the `(where,
     line, why)` of `Refused`, a record's, the root's `config.json`'s or the
     body's, empty where BODY is that composition. `main --check` and the
     pull request's check, `chain_check.py#body`, both call this, so the
-    body is read by one code path at the sealer and at the pull request."""
-    mark, note = seal_mark(item, root, manifest, base)
+    body is read by one code path at the inspector and at the pull request."""
+    mark, note = inspection_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     headings, parts = [], []
     try:
         texts = read_item(item)
-        top, sections = _unfolded(name, texts, mark, _in_tree(root))
+        top, sections = _unfolded(name, texts, mark, OPTIN.HOME)
         parts = first_part(item, root)
         below, headings = _folded(top, sections, parts, texts, _room(mark, manifest))
         _check(below, body, parts)
@@ -1263,10 +1254,10 @@ def compared(item, body, root, manifest=None, base=None):
 
 def _place(where, line, item, body, home):
     """Where a cause stands, with no machine path in it: the body file BODY
-    by its name, and a record by its path under HOME, the root's name as
-    `_in_tree` gives it, whatever path the work item ITEM was given by,
-    `ROOT_CONFIG` as the root's `config.json`. The sealer copies the first
-    `refused:` line into a `guarantee.md` that is committed."""
+    by its name, and a record by its path under HOME, the root's name,
+    `lib/optin.py#HOME`, whatever path the work item ITEM was given by,
+    `ROOT_CONFIG` as the root's `config.json`. The inspector copies the first
+    `refused:` line into an `inspection.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:
@@ -1279,7 +1270,7 @@ def _place(where, line, item, body, home):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="seal pr-body",
+        prog="iadd pr-body",
         description="Write a pull request body: the work item's `pr.<lang>.md` "
         f"where the two language keys differ, its `{OWN_PART}`, the line "
         f"`{HEADING}`, and the part its other records hold; or check it.",
@@ -1295,7 +1286,7 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     if not os.path.isdir(args.item):
-        print(f"seal pr-body: {args.item} is not a directory", file=sys.stderr)
+        print(f"iadd pr-body: {args.item} is not a directory", file=sys.stderr)
         return 2
     name = os.path.basename(os.path.normpath(os.path.abspath(args.item)))
     # The mark is read in the work item's own checkout, so a run from
@@ -1304,7 +1295,7 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
-    home = _in_tree(root)
+    home = OPTIN.HOME
     if args.check:
         try:
             note, causes = compared(args.item, _body(args.body), root)
@@ -1317,13 +1308,13 @@ def main(argv=None):
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         if causes:
             return 1
-        said = f"seal pr-body: {note}\n" if note else ""
+        said = f"iadd pr-body: {note}\n" if note else ""
         print(
             f"{said}matches: {args.body} is {_names(parts)} above `{HEADING}` "
             "and the records' text below it"
         )
         return 0
-    mark, note = seal_mark(args.item, root)
+    mark, note = inspection_mark(args.item, root)
     try:
         texts = read_item(args.item)
         top, sections = _unfolded(name, texts, mark, home)
@@ -1344,7 +1335,7 @@ def main(argv=None):
             print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
     note = _noted(note, headings, parts)
-    said = f"seal pr-body: {note}\n" if note else ""
+    said = f"iadd pr-body: {note}\n" if note else ""
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0
 

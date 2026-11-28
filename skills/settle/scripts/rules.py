@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-"""seal rules: a document's sections with what their tests guard, or every check line read.
+"""iadd rules: a document's sections with what their tests guard, or every check line read.
 
-  seal rules <doc>          every heading of DOC, and under each the targets
+  iadd rules <doc>          every heading of DOC, and under each the targets
                             of its `check:` lines, each with the first
                             sentence of its docstring, resolved in the
                             repository the current directory is in
-  seal rules --check        every `check:` line in every rule file read, and
+  iadd rules --check        every `check:` line in every rule file read, and
                             each one that is out of grammar or names a target
                             that does not resolve named; each line that opens
                             like one and is not one named as not read
-  seal rules ... --root DIR resolve in DIR instead
+  iadd rules ... --root DIR resolve in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
-that holds it, and a rule file lists its tests by `check:` line. `seal rules <doc>`
+that holds it, and a rule file lists its tests by `check:` line. `iadd rules <doc>`
 prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
 The grammar of the line is `skills/settle/rule-changes.md` *A rule has one shape*,
-and this module is its one reader. `seal rules --check` reads every rule file
+and this module is its one reader. `iadd rules --check` reads every rule file
 `RULE_FILES` names, every document of the policy root
 `skills/settle/scripts/fold_check.py#documents` lists (`policy_documents`),
 and every line a renderer shows in them, inside a rule
@@ -31,7 +31,7 @@ the line into the policy root.
 **It reads one shape.** A check line is `check: ` after any leading spaces.
 A line that opens like one and is not one, another case, emphasis, block
 markup before the label, a space before the colon, the plural or the old
-label `Enforced by`, is printed as `seal rules: not read: path:line:
+label `Enforced by`, is printed as `iadd rules: not read: path:line:
 heading: why` and decides nothing; whether it meant a check line is
 review's to judge. A target wrapped onto the line below is not read either,
 and nothing names it: the line below is prose.
@@ -39,22 +39,22 @@ and nothing names it: the line below is prose.
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by review alone.
 
-`seal rules --check` excuses one shape of a pending rule change: a refused
+`iadd rules --check` excuses one shape of a pending rule change: a refused
 line inside a section that an unsettled design's `remove` with no `from`
-takes out at the settle is printed as `seal rules: excused: path:line:
+takes out at the settle is printed as `iadd rules: excused: path:line:
 heading: why; <work item> removes this section at the settle`, and is no
 refusal. The designs are read through
-`skills/settle/scripts/rule_changes.py#pending`, under `<root>/seal/threads/`,
+`skills/settle/scripts/rule_changes.py#pending`, under `<root>/iadd/threads/`,
 the root taken under its own name (`records_root`).
 A pending `change`, or a `remove` with a `from`, whose `from` holds the line
 excuses nothing, so the test the line names stays until the settle. In local
 mode the designs sit under the common git directory, which a CI checkout does
 not hold, so no line is excused there.
 
-Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
-`seal rules --check` 0 every line holds or is excused, whatever lines it did
+Exit codes: `iadd rules <doc>` 0 the document was read, whatever its lines say.
+`iadd rules --check` 0 every line holds or is excused, whatever lines it did
 not read, 1 a line is refused,
-each named as `seal rules: path:line: heading: why`. 2 for either: a file it had to read cannot
+each named as `iadd rules: path:line: heading: why`. 2 for either: a file it had to read cannot
 be read, a module it reads through is not in the tree, or neither or both of
 DOC and `--check` were given.
 """
@@ -220,12 +220,11 @@ def rule_files(root):
 
 
 def records_root(root):
-    """The `seal/` root in the tree at `root`, under the name
-    `lib/optin.py#home_name` gives, or `optin.HOME` where no shared root is
-    marked: an unmarked `seal/` is read under the name `seal`, and
+    """The `iadd/` root in the tree at `root`, under the root's name,
+    `lib/optin.py#HOME`: an unmarked `iadd/` is read under that name, and
     a root in local mode is not in the tree a CI checkout holds."""
     optin = sibling("optin")
-    return os.path.join(root, optin.home_name(root) or optin.HOME)
+    return os.path.join(root, optin.HOME)
 
 
 def policy_documents(root):
@@ -404,23 +403,23 @@ def check(root):
     nor a line not read is a refusal."""
     found, excused, unread, files, lines = unresolved(root)
     for failure in found:
-        print(f"seal rules: {failure}")
+        print(f"iadd rules: {failure}")
     for line in excused:
-        print(f"seal rules: excused: {line}")
+        print(f"iadd rules: excused: {line}")
     for line in unread:
-        print(f"seal rules: not read: {line}")
+        print(f"iadd rules: not read: {line}")
     if found:
         print(
-            f"seal rules: {len(found)} refused in {lines} check lines of {files} rule files."
+            f"iadd rules: {len(found)} refused in {lines} check lines of {files} rule files."
         )
         return 1
     if excused:
         print(
-            f"seal rules: {len(excused)} excused in {lines} check lines of {files} "
+            f"iadd rules: {len(excused)} excused in {lines} check lines of {files} "
             "rule files, and every other line holds."
         )
         return 0
-    print(f"seal rules: all {lines} check lines in {files} rule files hold.")
+    print(f"iadd rules: all {lines} check lines in {files} rule files hold.")
     return 0
 
 
@@ -513,13 +512,13 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     if args.check == (args.doc is not None):
-        sys.stderr.write("seal rules: name a document, or --check, and not both.\n")
+        sys.stderr.write("iadd rules: name a document, or --check, and not both.\n")
         return 2
     root = os.path.abspath(args.root or os.getcwd())
     try:
         if args.root is None:
             # Typed anywhere inside a repository, the command reads that
-            # repository, as `seal fold` does. `bin/` is on a user's PATH,
+            # repository, as `iadd fold` does. `bin/` is on a user's PATH,
             # and the tree this script ships in is the plugin's, not theirs.
             root = sibling("optin").repo_root(root) or root
         if args.check:
@@ -533,11 +532,11 @@ def main(argv=None):
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except (OSError, UnicodeDecodeError) as error:
-            sys.stderr.write(f"seal rules: cannot read {args.doc}: {error}.\n")
+            sys.stderr.write(f"iadd rules: cannot read {args.doc}: {error}.\n")
             return 2
         sys.stdout.write(render(root, text))
     except Unreadable as error:
-        sys.stderr.write(f"seal rules: {error}.\n")
+        sys.stderr.write(f"iadd rules: {error}.\n")
         return 2
     return 0
 

@@ -27,7 +27,7 @@ that goes on, and the caller's own line names `Absent.path` and what goes
 unread.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
-`seal_stamp.py` reaches it on whatever `python3` starts it.
+`stamp.py` reaches it on whatever `python3` starts it.
 """
 
 import contextlib
