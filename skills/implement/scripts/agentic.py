@@ -1731,8 +1731,9 @@ def left_workflow_line(text):
     to = f"v{version}" if version else "the installed release"
     return (
         f"{WORKFLOW} stays, {here}: a release before this one fails every pull "
-        f"request with no {optin.HOME}/ in the tree. Move its `--branch` line "
-        f"to {to}, or run `agentic pr-checks remove`"
+        f"request with no {optin.HOME}/ in the tree. Run `agentic pr-checks "
+        f"remove`, or move its `--branch` line to {to} and point its mode step "
+        "at `skills/implement/scripts/agentic.py`"
     )
 
 

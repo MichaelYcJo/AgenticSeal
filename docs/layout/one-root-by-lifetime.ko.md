@@ -142,9 +142,11 @@ check: tests/behaviour/test_first_setup_asks_once.py
 트리에서 루트를 찾지 못하니 커밋 트레일러만 판단합니다. local 모드 세션이 쓴
 커밋에는 `IADD-Routing` 트레일러가 없으니 통과하고, 전환 전에 만든 커밋의
 트레일러가 작업 항목을 가리키면 준비된 PR 을 실패시킵니다.
-그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
-`agentic pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
-`agentic mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
+그보다 오래된 릴리스로 고정된 워크플로는 `agentic pr-checks remove` 로 빼거나,
+`--branch` 줄을 설치된 릴리스로 옮기고 mode 단계가
+`skills/implement/scripts/agentic.py` 를 돌리게 고치기 전까지 그곳의 모든 PR 을
+실패시키고, `agentic mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려
+줍니다.
 check: tests/skills/test_agentic.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된

@@ -2920,8 +2920,9 @@ class Test_switch:
         to = f"v{version}" if installed else "the installed release"
         assert (
             f"  .github/workflows/hygiene.yml stays, {here}: a release before "
-            "this one fails every pull request with no agentory/ in the tree. Move "
-            f"its `--branch` line to {to}, or run `agentic pr-checks remove`\n"
+            "this one fails every pull request with no agentory/ in the tree. Run "
+            f"`agentic pr-checks remove`, or move its `--branch` line to {to} and "
+            "point its mode step at `skills/implement/scripts/agentic.py`\n"
         ) in out
         assert "read nothing as declared" not in out, out
 

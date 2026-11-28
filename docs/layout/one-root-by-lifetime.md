@@ -151,8 +151,10 @@ nothing is declared, and judges the commit trailers alone. It passes the
 commits a local-mode session writes, which carry no `IADD-Routing` trailer,
 and fails a ready pull request where a commit made before the switch carries
 a trailer naming a work item. One pinned to an older release fails every pull
-request there until its `--branch` line moves or `agentic pr-checks remove`
-takes it out, and `agentic mode local` names the pin when it leaves such a file.
+request there until `agentic pr-checks remove` takes it out, or until its
+`--branch` line moves to the installed release and its mode step runs
+`skills/implement/scripts/agentic.py`, and `agentic mode local` names the pin
+when it leaves such a file.
 check: tests/skills/test_agentic.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A

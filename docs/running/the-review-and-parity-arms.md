@@ -154,8 +154,9 @@ nobody compared with nothing that reads it. In local mode no pull-request
 check reads a round record, the cost the review arm's declaration already
 states. A repository whose
 `.github/workflows/hygiene.yml` pins a plugin release older than this rule
-runs a `chain-check` that reads no `original:` line, until a person moves
-the pin's `v<version>` to the installed release. And a declaration
+runs a `chain-check` that reads no `original:` line, until a person writes
+that file again with `agentic pr-checks remove` and then `agentic pr-checks install`,
+which pins the installed release. And a declaration
 rewritten from `through the review chain` to `straight to the PR` after
 code was committed leaves those commits compared by nobody, because the
 check reads the answer at HEAD.
