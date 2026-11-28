@@ -9,8 +9,9 @@ that ships a release fires, and a tag pushed by hand (#1117):
       previous tag holds, become the release note at that tag, each under a
       link to the pull request that added it (#1139)
   A2  a release already at the tag is left exactly as it is, exit 0
-  A3  a tag whose range added no fragment the previous tag does not hold goes
-      RED, naming the range's tags
+  A3  a tag whose range added no fragment the previous tag does not hold, and
+      carries more than settles, goes RED, naming the range's tags and each
+      commit of the range that is no settle
   A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
@@ -19,6 +20,11 @@ that ships a release fires, and a tag pushed by hand (#1117):
       holding one line per change with the issues it closed (#1153), every
       outside contributor thanked by handle -- over the fragments, folded;
       with no pull request to read it is the fragments alone (#572)
+  A6  a range of settles alone, each commit other than a merge removing
+      whole a work item directory that stood at its parent, is noted from
+      the body of the release pull request whose merge commit is the tag,
+      in the place the fragments take, and goes RED where that body cannot
+      be read (#1655)
 
 #1053 removed the gathered release files, so the fragments are read from the
 history at the tag (S1, S5, S6), and the note carries the release's theme,
@@ -78,6 +84,10 @@ NOTES = "- **A thing that changed.** And what it changes for a reader."
 ENTRIES = [("1700000000-a-work-item", NOTES, 42)]
 # The line the note writes above that fragment.
 LINK = f"[#42](https://github.com/{REPO}/pull/42)"
+# A release pull request's body, which a range of settles alone is noted
+# from, and what `release_pull_body` says of where it came from.
+RELEASE_BODY = "## What changed\n\n- **A settle closed two work items.** Nothing else."
+FROM_RELEASE_PULL = "the body of the release pull request #500"
 
 
 def module(path, name):
@@ -168,11 +178,16 @@ def wire(
     existing=(),
     pulls=(),
     milestones=(),
+    settles=(False, ()),
+    release_pull=(None, "no release pull request was read"),
     **env,
 ):
     """The script, with fixture fragments and no route to GitHub. `entries`
     are the fragments the range added, read after `PREVIOUS`; `milestones` is
-    the milestone list, None for one that cannot be read."""
+    the milestone list, None for one that cannot be read. `settles` is what
+    `settles` reads of the range, and `release_pull` what
+    `release_pull_body` returns; `tracker.asked` holds each call of the two,
+    in order."""
     mod = publisher()
     monkeypatch.setattr(
         mod,
@@ -181,6 +196,18 @@ def wire(
     )
     tracker = Releases(existing)
     tracker.message = message
+    tracker.asked = []
+
+    def settle_reading(revisions):
+        tracker.asked.append(("settles", revisions))
+        return settles[0], list(settles[1])
+
+    def release_reading(repo, version, tag):
+        tracker.asked.append(("release_pull_body", repo, version, tag))
+        return release_pull
+
+    monkeypatch.setattr(mod, "settles", settle_reading)
+    monkeypatch.setattr(mod, "release_pull_body", release_reading)
     monkeypatch.setattr(mod, "ROOT", str(tmp_path))
     monkeypatch.setattr(mod, "release_exists", tracker.exists)
     monkeypatch.setattr(mod, "previous_tag", lambda tag: PREVIOUS)
@@ -413,6 +440,9 @@ class Test_main:
         assert f"{LINK}\n{NOTES}" in body, body
         assert "changelog/" not in body, "the note still names a gathered file"
         assert "published the release" in capsys.readouterr().out
+        # S5 of #1655: a range that added a fragment is noted from it, and
+        # neither the settle reading nor the release pull request is asked.
+        assert tracker.asked == [], tracker.asked
 
     def test_the_note_is_built_from_the_fragments_the_range_added(
         self, monkeypatch, tmp_path, capsys
@@ -588,31 +618,73 @@ class Test_main:
         out = capsys.readouterr().out
         assert said in out and "no theme line" in out, out
 
+    @pytest.mark.parametrize(
+        "kw",
+        [
+            pytest.param({}, id="fragments"),
+            pytest.param(
+                {
+                    "entries": [],
+                    "settles": (True, ()),
+                    "release_pull": (RELEASE_BODY, ""),
+                },
+                id="settles alone",
+            ),
+        ],
+    )
     def test_an_existing_release_is_left_exactly_as_it_is(
-        self, monkeypatch, tmp_path, capsys
+        self, monkeypatch, tmp_path, capsys, kw
     ):
         """A2. A re-pushed tag and a re-run job both land here. The note may have
-        been edited by hand after publication, so the only safe act is none."""
+        been edited by hand after publication, so the only safe act is none.
+        A range of settles alone meets the same guard before its release pull
+        request is read (#1655)."""
         mod, tracker = wire(
-            monkeypatch, tmp_path, message=title_line(), existing=(TAG,)
+            monkeypatch, tmp_path, message=title_line(), existing=(TAG,), **kw
         )
         assert mod.main() == 0
         assert tracker.calls == [], (
             "something ran against GitHub for a release that already exists"
         )
+        assert not [a for a in tracker.asked if a[0] == "release_pull_body"], (
+            "the release pull request was read for a release that already exists"
+        )
         assert "already exists" in capsys.readouterr().out
 
+    @pytest.mark.parametrize(
+        "unsettled",
+        [
+            pytest.param((), id="no commit but merges"),
+            pytest.param(
+                (("abc1234", "fix: a change"), ("def5678", "docs: a sentence")),
+                id="commits that are no settle",
+            ),
+        ],
+    )
     def test_refuses_a_tag_whose_range_added_no_fragment(
-        self, monkeypatch, tmp_path, capsys
+        self, monkeypatch, tmp_path, capsys, unsettled
     ):
         """A3, and S5 of #1053. This is the release shipping unexplained, and the
         body is the whole of what the job publishes — so it is the one direction
         that fails. The message names both tags of the range it read, and says
-        a fragment the previous tag holds is not counted (round 2 of #1053)."""
-        mod, tracker = wire(monkeypatch, tmp_path, entries=[], message=title_line())
+        a fragment the previous tag holds is not counted (round 2 of #1053).
+        A range that holds no commit but merges, or a commit that is no settle,
+        is not a range of settles alone, and the log names each such commit
+        by its short hash and subject (S2 of #1655). Seen red against the
+        script before #1655 on the naming, which it did not print."""
+        mod, tracker = wire(
+            monkeypatch,
+            tmp_path,
+            entries=[],
+            message=title_line(),
+            settles=(bool(unsettled), unsettled),
+        )
         assert mod.main() == 1
         assert tracker.creates() == [], "it published a release with no notes"
+        assert not [a for a in tracker.asked if a[0] == "release_pull_body"]
         out = capsys.readouterr().out
+        for short, subject in unsettled:
+            assert f"{short} {subject} is no settle" in out, out
         assert PREVIOUS in out and TAG in out, (
             "the message does not name the range it read, so the job log does "
             "not say what to fix"
@@ -880,6 +952,69 @@ class Test_main:
         assert len(tracker.creates()) == 1
         assert "could not write created=true" in capsys.readouterr().out
 
+    def test_a_range_of_settles_alone_is_noted_from_the_release_pull_request(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """A6, S1 of #1655. A settle writes no fragment, so a range of settles
+        alone carries the release pull request's body in the place the
+        fragments take: the note opens with the header the mark finds,
+        exactly once, and the body stands inside the fold that ends it. The
+        title, the release and `created=true` are any note's. Seen red against
+        the script before #1655, where `main` returned 1."""
+        out = tmp_path / "github_output"
+        mod, tracker = wire(
+            monkeypatch,
+            tmp_path,
+            entries=[],
+            message=title_line(),
+            pulls=RELEASE,
+            settles=(True, ()),
+            release_pull=(RELEASE_BODY, FROM_RELEASE_PULL),
+            GITHUB_OUTPUT=str(out),
+        )
+        assert mod.main() == 0
+        created = tracker.creates()
+        assert len(created) == 1, tracker.calls
+        args = created[0]
+        assert args[args.index("--title") + 1] == f"{VERSION} — {SYMPTOMS}"
+        body = args[args.index("--notes") + 1]
+        assert body.startswith(HEADER + "\n"), body[:200]
+        assert body.count(HEADER) == 1, body
+        assert body.endswith(
+            f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
+            f"{RELEASE_BODY}\n\n</details>"
+        ), body
+        assert out.read_text(encoding="utf-8") == "created=true\n"
+        assert tracker.asked == [
+            ("settles", f"{PREVIOUS}..{TAG}"),
+            ("release_pull_body", REPO, VERSION, TAG),
+        ], tracker.asked
+        assert FROM_RELEASE_PULL in capsys.readouterr().out
+
+    def test_a_range_of_settles_alone_with_no_release_pull_request_goes_red(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """A6, S4 of #1655. Without the release pull request's body a range
+        of settles alone has no text to publish, so the job goes red with
+        the line `release_pull_body` gave, creates nothing and writes no
+        `created`. Seen red against the script before #1655 on that line,
+        which it did not print."""
+        out = tmp_path / "github_output"
+        said = "no pull request merged from release/v1.2.3 into main is the tag"
+        mod, tracker = wire(
+            monkeypatch,
+            tmp_path,
+            entries=[],
+            message=title_line(),
+            settles=(True, ()),
+            release_pull=(None, said),
+            GITHUB_OUTPUT=str(out),
+        )
+        assert mod.main() == 1
+        assert tracker.creates() == [], tracker.calls
+        assert said in capsys.readouterr().out
+        assert not out.exists()
+
 
 class Test_module:
     def test_the_title_line_pattern_is_linear_in_the_line(self):
@@ -905,7 +1040,8 @@ class Test_module:
         """The set is the pull requests merged into `release/vX.Y.Z` — the base
         every feature branch squashes into — and a failed `gh` call is None,
         with the log saying what the note is instead (#1053: the theme line
-        and the fragments)."""
+        and the fragments, or for a range of settles alone the release pull
+        request's body, #1655)."""
         mod = publisher()
         seen = []
 
@@ -932,8 +1068,21 @@ class Test_module:
         )
         assert mod.merged_pulls(REPO, VERSION) is None
         out = capsys.readouterr().out
-        assert "the note is the theme line and the fragments alone" in out, out
+        assert (
+            "the note is the theme line and the fragments or the release pull "
+            "request's body alone" in out
+        ), out
         assert "gh pr list failed, so" in out and "alone: HTTP 502" in out, out
+
+        monkeypatch.setattr(
+            mod.gitcmd.subprocess, "run", lambda args, **_: Done(0, "not json")
+        )
+        assert mod.merged_pulls(REPO, VERSION) is None
+        assert capsys.readouterr().out == (
+            "gh pr list printed something that is not JSON, so the note is the "
+            "theme line and the fragments or the release pull request's body "
+            "alone\n"
+        )
 
     def test_a_create_gh_refuses_stops_the_run_in_the_runners_line(self, monkeypatch):
         """A release GitHub did not create is a red job, said in
@@ -993,6 +1142,13 @@ class Test_module:
         assert str(stopped.value.code).startswith(
             "`git log -1 --format=%B v9.9.9` exited 128: fatal: "
         ), stopped.value.code
+        # The settle reading's own reads stop the run the same way (#1655).
+        with pytest.raises(SystemExit) as stopped:
+            mod.settles("v9.9.9")
+        assert str(stopped.value.code).startswith("`git log --no-merges "), (
+            stopped.value.code
+        )
+        assert " exited 128: fatal: " in str(stopped.value.code), stopped.value.code
 
     def test_the_header_is_built_by_one_function_and_its_marked_twin_by_another(
         self, monkeypatch, tmp_path
@@ -1309,6 +1465,50 @@ class Test_module:
             ("1700000002-plain", "- plain entry", 6),
         ]
 
+    def test_a_settle_is_a_commit_that_removes_a_work_item_directory_whole(
+        self, tmp_path, monkeypatch
+    ):
+        """A6, S3 of #1655, on a real history. A commit is a settle where it
+        removes whole a directory under `agentory/threads/` that stood at its
+        parent, as `chain_check.py#settled` reads one. A commit that removes
+        one file of a directory that stays, and one that removes a whole
+        directory outside the root, are no settle, and each is named by its
+        short hash and subject, oldest first. A range that holds no commit
+        but a merge holds none to judge, so it is no range of settles alone.
+        Seen red against the script before #1655, where the reading did not
+        exist."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "agentory/threads/{}/{}"
+        write(repo, thread.format("1700000000-gone", "changelog.md"), "- gone\n")
+        write(repo, thread.format("1700000001-kept", "a.md"), "a\n")
+        write(repo, thread.format("1700000001-kept", "b.md"), "b\n")
+        write(repo, "docs/old/c.md", "c\n")
+        commit_everything(repo, "the release before")
+        git_out(repo, "tag", PREVIOUS)
+        git_out(repo, "rm", "-q", "-r", "agentory/threads/1700000000-gone")
+        settle = commit_everything(repo, "the settle")
+        git_out(repo, "rm", "-q", "agentory/threads/1700000001-kept/a.md")
+        part = commit_everything(repo, "a part of a work item")
+        git_out(repo, "rm", "-q", "-r", "docs/old")
+        outside = commit_everything(repo, "a directory outside the root")
+        merge = git_out(
+            repo, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-p", "HEAD~1", "-m", "m"
+        )
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.settles(f"{PREVIOUS}..{settle}") == (True, [])
+        assert mod.settles(f"{PREVIOUS}..{outside}") == (
+            True,
+            [
+                (git_out(repo, "rev-parse", "--short", part), "a part of a work item"),
+                (
+                    git_out(repo, "rev-parse", "--short", outside),
+                    "a directory outside the root",
+                ),
+            ],
+        )
+        assert mod.settles(f"{outside}..{merge}") == (False, [])
+
     def test_the_line_the_checklist_copies_is_the_line_the_reader_reads(self):
         """S17 of #1000. The command in `docs/releasing/release-checklist.md` *The
         release pull request*, filled with a version and a symptom, is the merge
@@ -1398,6 +1598,122 @@ class Test_release_exists:
         assert str(stopped.value.code) == (
             f"gh api releases/tags/{TAG} failed: {stderr}"
         )
+
+
+def gh_pr_list_answers(monkeypatch, mod, returncode, stdout, stderr=""):
+    """`gh` replaced by one answer and `git` run for real, so
+    `release_pull_body` itself is what runs. Returns the argv of each `gh`
+    run."""
+    real, asked = mod.gitcmd.subprocess.run, []
+
+    def run(argv, *args, **kwargs):
+        if "-C" in list(argv):
+            return real(argv, *args, **kwargs)
+        asked.append(list(argv))
+        return Done(returncode, stdout, stderr)
+
+    monkeypatch.setattr(mod.gitcmd.subprocess, "run", run)
+    return asked
+
+
+class Test_release_pull_body:
+    """`release_pull_body` reads the body of the pull request merged from
+    `release/v<version>` into `main` whose merge commit is the tagged
+    commit, or says why there is none (A6, S4 of #1655). Seen red against
+    the script before #1655, where the reader did not exist."""
+
+    def tagged(self, tmp_path, monkeypatch):
+        """The script at a repository whose `TAG` names a commit; the
+        commit's full hash."""
+        repo = git_repo(tmp_path / "repo")
+        git_out(repo, "tag", TAG)
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        return mod, git_out(repo, "rev-parse", "HEAD")
+
+    def test_accepts_the_body_of_the_pull_request_the_tag_merged(
+        self, tmp_path, monkeypatch
+    ):
+        mod, commit = self.tagged(tmp_path, monkeypatch)
+        listed = [
+            {"number": 499, "body": "an older one", "mergeCommit": {"oid": "0" * 40}},
+            {
+                "number": 500,
+                "body": f"\n{RELEASE_BODY}\n",
+                "mergeCommit": {"oid": commit},
+            },
+        ]
+        asked = gh_pr_list_answers(monkeypatch, mod, 0, json.dumps(listed))
+        assert mod.release_pull_body(REPO, VERSION, TAG) == (
+            RELEASE_BODY,
+            FROM_RELEASE_PULL,
+        )
+        args = asked[0]
+        assert args[1:3] == ["pr", "list"], args
+        assert args[args.index("--repo") + 1] == REPO
+        assert args[args.index("--base") + 1] == "main"
+        assert args[args.index("--head") + 1] == f"release/v{VERSION}"
+        assert args[args.index("--state") + 1] == "merged"
+        fields = args[args.index("--json") + 1].split(",")
+        assert "body" in fields and "mergeCommit" in fields, fields
+
+    @pytest.mark.parametrize(
+        "returncode, stdout, stderr, said",
+        [
+            pytest.param(
+                1,
+                "",
+                "HTTP 502",
+                "the release pull request could not be listed: HTTP 502",
+                id="gh fails",
+            ),
+            pytest.param(
+                0,
+                "not json",
+                "",
+                "gh pr list printed something that is not JSON, so the release "
+                "pull request could not be read",
+                id="no JSON",
+            ),
+            pytest.param(
+                0,
+                json.dumps([{"number": 499, "body": "x", "mergeCommit": {"oid": "0"}}]),
+                "",
+                f"no pull request merged from release/v{VERSION} into main has "
+                f"{TAG}'s commit as its merge commit",
+                id="none merged at the tag",
+            ),
+            pytest.param(
+                0,
+                "MERGED_HERE",
+                "",
+                "the release pull request #500 has an empty body",
+                id="an empty body",
+            ),
+        ],
+    )
+    def test_refuses_a_release_pull_request_that_cannot_be_read(
+        self, tmp_path, monkeypatch, returncode, stdout, stderr, said
+    ):
+        mod, commit = self.tagged(tmp_path, monkeypatch)
+        if stdout == "MERGED_HERE":
+            stdout = json.dumps(
+                [{"number": 500, "body": " \n", "mergeCommit": {"oid": commit}}]
+            )
+        gh_pr_list_answers(monkeypatch, mod, returncode, stdout, stderr)
+        assert mod.release_pull_body(REPO, VERSION, TAG) == (None, said)
+
+    def test_a_gh_that_gave_no_answer_is_a_list_that_could_not_be_read(
+        self, tmp_path, monkeypatch
+    ):
+        mod, _ = self.tagged(tmp_path, monkeypatch)
+        unanswered(monkeypatch, "pr", "list")
+        body, said = mod.release_pull_body(REPO, VERSION, TAG)
+        assert body is None
+        assert said.startswith(
+            "the release pull request could not be listed: `gh pr list --repo "
+        ), said
+        assert said.endswith("did not finish within 60 seconds"), said
 
 
 class Test_section:

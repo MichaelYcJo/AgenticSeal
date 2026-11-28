@@ -465,6 +465,11 @@ history; in local mode no commit holds them, and the dry run names
 opened a work item would leave a directory for the next settle to remove, and
 settling would never end.
 
+So a settle writes no changelog fragment. In the plugin's own repository,
+where a release carries settles alone, its release workflow,
+`.github/scripts/publish_release_note.py`, builds the note from the body of
+the release pull request where any other note carries the fragments.
+
 ## What this does not do
 
 - The script does not judge. Which decision is latest, whether the code has
