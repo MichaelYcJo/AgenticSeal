@@ -29,6 +29,23 @@ merges it.
 
 ## The principles
 
+- IADD claims only the work run through the IADD process, and a cleared
+  inspection says that the work went through it. A session doing other work
+  is not bound by the process (`skills/core/SKILL.md`, its opening
+  paragraph). The plugin may offer a route outside IADD, and shows where it
+  was taken.
+  - **The person sees the route.** The answer `direct` names, in its
+    description, every party and record that does not run
+    (`skills/implement/routing-question.md` *Question 1, the mode*). Under
+    the answer `agentic`, the orchestrator that takes it writes its
+    grounds into the commit
+    (`skills/implement/orchestration.md` *Under agentic*).
+  - **The commit and the pull request show it.** Where the root is shared,
+    each commit of such a route carries `IADD-Routing: no work item`, and
+    the pull request's check prints those commits
+    (`docs/checks/the-routing-check.md` *At the pull request*).
+  - **An inspection stands only on a work item**, and so does the mark
+    drawn from it (`docs/forms/the-inspection.md` *The inspection*).
 - No party approves its own work: the party that draws the frame does not
   build to it, and each agent reaches its result on its own target without
   leaning on another's (`skills/core/SKILL.md` *Each agent judges its own
