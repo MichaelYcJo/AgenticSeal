@@ -70,10 +70,10 @@ search has the keep file `frame/keep-<N>.txt`. A search that is to print
 no line stays a search of its own and has no keep file. A *Verifiable how*
 cell in `frame/design.md` that rests on a search that keeps lines names
 the phase whose search it is, and runs no search of its own. The keep
-file of phase `<N>` holds each line its search is to print at that
-phase's close, written as `git grep` prints it with no line number,
-`path:content`, and sorted under `LC_ALL=C sort`. Those lines are the
-lines the design keeps and the lines a later phase changes or removes.
+file of phase `<N>` holds each line its search is to print
+at that phase's close, written as `git grep` prints it with no line
+number, `path:content`, and sorted under `LC_ALL=C sort`. Those lines are
+the lines the design keeps and the lines a later phase changes or removes.
 Where an earlier phase runs the same search, a phase's own lines are the
 lines its keep file lacks and the earlier phase's keep file holds. Where
 the old spelling stands in a path, `frame/keep-<N>-paths.txt` holds, the
