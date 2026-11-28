@@ -1,0 +1,9 @@
+.github/scripts/publish_release_note.py:    `milestone_titles` states. A `gh` that gave no answer is a list that
+docs/releasing/issues-and-milestones.md:**`merged: X.Y.Z` goes on earlier inside that same release**, at the squash
+docs/releasing/issues-and-milestones.md:`merged: X.Y.Z` before the release ships.**
+docs/releasing/issues-and-milestones.md:`release/*` and puts `merged: X.Y.Z` on every issue the arriving pull
+docs/releasing/release-checklist.md:Leave the `merged: X.Y.Z` labels where they are. They accumulate, one per
+docs/releasing/release-checklist.md:`HEAD_BRANCH=release/vX.Y.Z`, `HEAD_SHA=origin/release/vX.Y.Z` and `REPO`
+skills/settle/scripts/settle.py:    "merged: {listed}"
+skills/settle/scripts/settle.py:    "settle: `gh` cannot be asked which pull requests merged: {why}. Nothing "
+tests/skills/test_settle.py:            f"settle: `gh` cannot be asked which pull requests merged: {said}. "
