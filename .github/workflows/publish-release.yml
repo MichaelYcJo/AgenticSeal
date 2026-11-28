@@ -17,7 +17,9 @@ name: publish the release note
 # runs. A tag pushed by hand fires the workflow too and is passed on as it
 # is. The note is built from the changelog fragments the release's commits
 # added and the previous version tag does not already hold, read from the
-# history at the tag (`.github/scripts/publish_release_note.py`'s docstring
+# history at the tag. Where the release carries settles alone, which write no
+# fragment, it is built from the body of the release pull request whose merge
+# commit the tag names (`.github/scripts/publish_release_note.py`'s docstring
 # says how).
 #
 # Then the mark (#718). A second job, `mark`, runs only when `publish` created
