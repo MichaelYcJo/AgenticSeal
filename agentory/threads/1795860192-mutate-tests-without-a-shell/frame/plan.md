@@ -17,7 +17,7 @@ The tree as read at `8e130543`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 to 4 | the new cases red against `8e130543` and green after; `uv run --no-project tests/run_tests.py -q tests/skills/test_mutation_check.py tests/text tests/behaviour`; `uvx ruff check` and `format --check` on both Python files | |
+| 1 | *Scope* items 1 to 4 | the new cases red against `8e130543` and green after; `uv run --no-project tests/run_tests.py -q tests/skills/test_mutation_check.py tests/text tests/behaviour`; `uvx ruff check` and `format --check` on both Python files || d86d5c6f |
 
 ## Overlap with the release
 
