@@ -1,0 +1,142 @@
+# Design: 1795841830-find-leftovers-before-a-round
+
+## Grounding
+
+The tree as read at `bbb66b38`, on the branch `feat/1659-find-leftovers-before-a-round`, whose parent `991a51c7` is the release branch's tip as read on 2026-11-28.
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| G1. `routing.md` answers `Planning` framer, `Implementation` crafter, `Review` through the review chain, `Automation` yes (`read`) | The frame is drawn before the build, a crafter builds each phase, and every question this frame leaves has a default |
+| G2. #1659's body holds the owner's decision of 2026-11-28 to accept all three points of the proposal, and the issue has no comments (`executed`: `gh issue view 1659 --json title,body,comments`, run by the framer on 2026-11-28, printed `"comments":[]`) | The frame builds all three points and does not weigh whether to build each. How each is worded, and where it stands, is this frame's |
+| G3. `agents/framer.md` *A search you write into a cell is run before the cell states its result*, lines 170 to 187, accounts for a line the design keeps by narrowing the search until it no longer matches the line, by naming the line's file in the cell, or by excluding the file by name or by pathspec (`read`) | These are the three accounts the issue's point 1 replaces. Each one hides every other line its file or its pattern covers |
+| G4. #1658's work item applied point 1 by hand before this rule existed. At the tag `v0.40.0` its directory `agentory/threads/1795830609-iadd-is-the-method-and-a-product-only-expresses-it/` holds `frame/keep.txt`, `frame/keep-3.txt` and `frame/keep-4.txt`, its `frame/design.md` *The keep file* gives the command and the update rule, and its `frame/plan.md` *Judgments of the run* row of 2026-11-28 records the fold (`executed`: `git ls-tree -r --name-only v0.40.0 -- agentory/threads` and `git show` of each file) | The form this work writes into the rules is the one that work ran: one keep file per phase, each line as `git grep` prints it without a line number, sorted under `LC_ALL=C sort`, and compared by `diff`. Its *Alternatives considered* rejected one keep file with an expected diff per phase, because `diff`'s hunk headers move with every kept line a phase adds |
+| G5. At `v0.40.0`, `frame/keep.txt` of G4 is 180,217 bytes and 633 lines, and `frame/keep-3.txt` is 219,331 bytes and 896 lines (`executed`: `git show <tag>:<path> \| wc -c` and `\| wc -l`) | A keep file can be far past `Document token ceiling`, 25000 tokens in `agentory/config.json`. No party reads it whole: `diff` reads it, and a round reads the lines a commit changes in it |
+| G6. In a `git clone --no-local` of `bbb66b38` under the framer's scratch directory: a keep file written from `git grep -P 'seal' -- . ':!<this work item's directory>'` and compared with the same command by `diff -` printed nothing and exited 0; after one line holding `seal` was appended to `.gitattributes`, a file that already held kept lines, the same command printed `< .gitattributes:a new seal line` and exited 1 (`executed`) | A line added to a file that holds kept lines is printed at once. Under the account of G3 that names the file, the line would print nothing |
+| G7. In the same clone, `git -c grep.lineNumber=true grep -P 'seal'` printed `.claude-plugin/marketplace.json:2:` with a line number, and `--no-line-number` took it out; `git -c color.grep=always grep` wrote colour escapes into a pipe, which `--no-color` takes out; `git grep` run from `docs/` with the pathspec `.` searched `docs/` alone and printed paths relative to it (`executed`) | A person's git configuration changes what `git grep` prints, so the command carries `--no-color --no-line-number`, and it runs from the repository's top level |
+| G8. In the same clone, `git ls-files -- ':(icase)*SEAL*'` printed 19 paths, and `git ls-files -- ':(icase)*SEAL*' ':!assets'` printed none, since all 19 stand under `assets/` (`executed`) | A path that holds an old spelling is listed by `git ls-files` with a pathspec and the same exclusion, with no `grep`. #1658's frame ran `grep -P` in one filter, which the crafter's `grep` refused while it printed nothing (its `frame/design.md` *Grounding* G26 at `v0.40.0`, `read`) |
+| G9. `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, row *Phase boundary* (line 144), runs the set "in one command"; `agents/crafter.md` *Order of work* step 7 (lines 58 to 60) and `skills/implement/fix-pass.md` *The narrow set, then the read of the range* (lines 95 to 97) run it "as one command through the repository's runner"; `skills/implement/SKILL.md` line 203 has the builder type "the one command" the row names (`read`) | A test file that only a second suite runs, such as a built-app or end-to-end suite, is in the set by name and is run by no command. These four sentences are where point 2 lands |
+| G10. `skills/verify/SKILL.md` *The narrow command still has to be able to fail*, row *Names or places only* (line 197), proves a rename "otherwise" by "the search for the old spelling and its empty result in the phase record" (`read`) | A rename's search keeps lines as often as not, so the row's proof becomes the keep file's command printing nothing |
+| G11. `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* says a test file reads a path when its cases open it, import it or load it, directly or through another test file (`read`) | An end-to-end test that drives a built app does not open the source path, so point 2 adds a suite to a phase where the phase changes that suite's test file, as the issue words it, and leaves the reading rule as it is |
+| G12. This repository runs its suite with `bin/test <files> -q` (`CONTRIBUTING.md` *Running the checks*), and its evals with `evals/scripts/noninferiority.py run`, where "Nothing in the tree makes a later edit owe a run" (`evals/README.md`) (`read`). This work changes no file under `evals/` | Each phase's *Verified by* names `bin/test`. No file of either phase's set is owned by the eval harness |
+| G13. `skills/implement/orchestration.md` *Under agentic* (lines 449 to 520) weighs `direct` and each routing row, and nothing in it weighs whether an issue's parts would cost less as several work items (`read`; `executed`: `git grep -n -i 'several work items\|one work item per\|more than one work item\|split.*work item\|work items of one issue\|same issue' -- skills docs agents templates` printed `docs/README.md:41`, `docs/running/measuring-a-run.md:136`, `skills/implement/merge-order.md:15` and a comment of `skills/verify/scripts/session_cost.py:3059`, none of which weighs splitting one issue) | Point 3 is a new paragraph of that subsection, written as a weighing (`skills/core/SKILL.md` *A rule is guidance for a judgment, not a sequence to execute*) |
+| G14. `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*, its *Target* row, bounds a verifying round to the diff of the fixes and says its cost "runs close to a finding round", set by the frame, the inherited records and the probes (`read`) | The issue says the cost of a large work item falls on its finding rounds. The tree adds that every round, the verifying one included, pays for the frame and the records it reads, so a split shrinks what each round of each part reads, and the weighing says so |
+| G15. `docs/releasing/branch-and-release.md` gives `Part of #N` as the form for a pull request that advances an issue without finishing it, and `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* has `pr.md` hold the `Closes` and `Part of` lines (`read`) | A split names its form by citing these, and writes no new one |
+| G16. The policy root is `docs/`, since `agentory/config.json` holds no `Policy root` key (`executed`: `cat agentory/config.json`), and `docs/layout/the-record-layout.md` has no `.ko.md` edition (`executed`: `ls docs/layout/`). This work's subject is the agents' and the skills' text, not the policy root, so its change to that document goes into `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*, `read`). No other design is unsettled: `agentory/threads/` holds this work item alone (`executed`: `ls agentory/threads/`) | The record layout's table, its glance row, its *leave together* sentence and its one-record paragraph take the keep file through the settle |
+| G17. `skills/implement/scripts/range_read.py` lines 118 to 122 append `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md` and `changelog.md` whole, and no keep file (`read`) | The sentence of `skills/implement/SKILL.md` line 280 that calls these "the three frame files" stays true once it names them, and a keep file reaches the builder's read as the hunks of the range |
+| G18. Rule-text counts of the frame's files: the search `S2` of *Data & interfaces* printed seven lines at `bbb66b38` (`executed`) | Each is a count contract rule 19 refuses once a frame holds a keep file, and Scope item 5 rewrites each |
+| G19. `skills/settle/scripts/fold_check.py#documents` measures the policy root's documents (line 119) and no file under `agentory/threads/` (`read`) | No script holds a keep file to the ceiling. The rule that does is `docs/layout/the-record-layout.md` *Every kind of record, at a glance*, row *A work item's files*, "each file under target", which the rule changes qualify |
+| G20. `agentory/follow-up.md` rows 46 to 49 each ask whether a mechanism's next releases count fewer findings of one kind than a dated measurement, answered by the repository owner (`read`) | The issue's *How it is measured* goes into one row of that shape, so the keep of the three changes is read against what they catch (`skills/core/SKILL.md` *The rule a mechanism is kept against*) |
+| G21. `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* asks a `### Process changes` table of a work item whose diff changes an `agents/*.md` file, a `skills/*/orchestration.md` file, `skills/implement/fix-pass.md` or `skills/implement/fold-and-reframe.md` (`read`). The latest GitHub Release, `v0.40.1`, holds no `### Process changes` table, and `v0.40.0` holds three rows, none about a phase boundary or a search (`executed`: `gh release view --json body`) | The last phase's `changelog.md` ends with that table |
+| G22. Tests that quote a sentence this work rewrites: `git grep` over `tests` and `evals` for "Your writes are", "a write not named here", "three files under", "names that line", "one command per" and "its empty result" printed one line, a fixture sentence of `tests/text/test_every_agent_reads_the_contract.py`, which no rewrite touches (`executed`) | No test pins the text the phases rewrite. The tree-wide test files still read every changed file at each phase boundary |
+| G23. `.claude-plugin/plugin.json` at `bbb66b38` reads `"version": "0.40.1"`, and the release branch is `origin/release/v0.41.0` (`executed`: `grep -n '"version"'` and `git log origin/release/v0.41.0`) | `frame/plan.md` *Overlap with the release* states whether this work item carries the version move |
+
+## Scope
+
+In:
+
+1. `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it* gains the keep file's rule, its one home, as *Data & interfaces* *The keep file* gives it: what a keep file holds, the two commands, what a `<` line and a `>` line mean, the reason `frame/design.md` gives for each kind of kept line, and when the builder writes a keep file. The row *Names or places only* of *The narrow command still has to be able to fail* proves a rename, where the repository keeps no census of old spellings, by the frame's keep commands printing nothing, named in the phase record, in place of "the search for the old spelling and its empty result".
+2. `agents/framer.md` *A search you write into a cell is run before the cell states its result* accounts for each line the search prints in one of two ways: a line the build removes or changes is named by a *Scope* item or a `## Removes` row, and a line the design keeps is a line of the phase's keep file, by Scope item 1's rule. No file name, no pathspec but the work item's directory and no narrowing of the pattern accounts for a line. A pathspec states what the search is about, the whole tree for a rename. The cell states that the search, or its keep command, prints nothing. *Job* names the keep files among the framer's writes, *Order of work* step 7 writes them after `plan.md`, step 8's first item reads "Each path you wrote, absolute", and *An orchestrator's reading of the frame is answered in one exchange* folds into "the frame's files".
+3. `agents/crafter.md` *Job* names, among the crafter's writes, the keep file lines a phase writes by Scope item 1's rule, and cites that section.
+4. `skills/implement/SKILL.md` *3. The SDD file set* gains a row for `frame/keep-<N>.txt` and `frame/keep-<N>-paths.txt`: started from no template, written by the framer, kept in step by the builder, holding the lines the search of phase `<N>` prints at that phase's close, written before implementing. Line 280's "the three frame files" names `frame/design.md`, `frame/plan.md` and `frame/questions.md`.
+5. Every other sentence `S2` prints is rewritten so that it states no count of the frame's files: `skills/implement/fold-and-reframe.md` line 22 rewrites "every sentence of your three files" as every sentence of the frame's files, and every line of a keep file, that the decision changes; line 30 names the three files it has the framer read; `skills/implement/orchestration.md` line 214 reads "into the frame's files".
+6. `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*: the *Phase boundary* row runs its set with one command for each suite that owns a file of it, the commands the phase's *Verified by* cell names, and a paragraph below the table says what a suite is (a command the repository runs test files with: a unit runner, a built-app or end-to-end runner, an eval harness), that a test file belongs to the suite whose command runs it, and that a file named to a runner it does not belong to is not run as its suite runs it. The *Review rounds 1..n* row keeps its words, since it draws the same set.
+7. `agents/framer.md` gains a rule: each phase's *Verified by* cell names the command of every suite that owns a test file the phase changes, a built-app or end-to-end suite among them, and of every suite the rest of the phase's *Phase boundary* set falls in. The framer finds the suites in the repository's contribution guide, its CI workflows and its runners' configuration.
+8. `agents/crafter.md` *Order of work* step 7, `skills/implement/fix-pass.md` *The narrow set, then the read of the range* and `skills/implement/SKILL.md` line 203 run the set as the *Phase boundary* row now says, citing it rather than restating "one command". Step 7 adds what the crafter does where a file of the set belongs to a suite the cell does not name: it runs the file under that suite and names the missing command in the phase record.
+9. `skills/implement/orchestration.md` *Under agentic* gains a paragraph that weighs routing an issue's parts as separate work items: parts of different kinds that each leave the tree whole at their own merge, such as a records migration, a rename, a loader and a docs rewrite; that every round reads its work item's frame and records and a finding round reads the whole range (G14), so a split shrinks each round; that each extra work item costs a broad run, an inspection and a pull request; and that the name families of one rename stay phases of one work item, since Scope items 1 and 6 find a rename's leftovers before a round. Where the orchestrator splits, each part's `routing.md` *Why this way* names the issue and the other parts, each part but the one that finishes the issue carries `Part of #N` in its `pr.md`, and the parts merge by `skills/implement/merge-order.md`. It states a weighing, not a rule to split.
+10. `agentory/follow-up.md` gains one row in the shape of G20: whether the work items routed after the release that carries #1659 count fewer round findings that are a rename's leftovers, fewer findings a phase's own suites would have shown, and fewer rounds and hours per work item, than the work items routed before it, read from the flow logs (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*); answered by the repository owner.
+11. The last phase writes `changelog.md`, ending with a `### Process changes` table of one row per point (G21).
+
+Out:
+
+- `agents/framer.md`'s frontmatter `description`, which names the three frame records: it says what the agent is for when a session picks it, and *Job* owns the list of its writes. #1650 weighs the descriptions' cost in the same release.
+- The read lists of `agents/crafter.md`, `agents/proofer.md` and `agents/inspector.md`: a keep file is reached through the cell that names it, and its changed lines through the range.
+- A script, a gate or a check that reads a keep file: the owner's decision keeps the account to `git grep`, `sort` and `diff` (#1659 point 1).
+- A new test or eval case: each rule here is a party's instruction, which no case can hold short of an eval run, and `evals/README.md` owes no run to an edit (G12). Review reads the rules.
+- `evals/behaviour/crafter/rule-crafter-rename/`: its fixture's plan verifies a rename by its unit case and holds no search, so the new rules ask nothing more of it (`read`: `scaffold.sh` line 106).
+- Frames committed before the release that carries this work keep the account they were written with.
+
+## User scenarios & acceptance *(mandatory)*
+
+| Scenario | Given / When / Then | Verifiable how |
+|---|---|---|
+| A rename's leftovers show at a phase's close | Given a frame whose phase `<N>` renames a name and keeps some of its lines, when the crafter closes phase `<N>`, then the keep command prints every line of the old name that `frame/keep-<N>.txt` does not hold, in one run, before the first round | G6's probe shows the mechanism. The proofer reads Scope items 1 and 2 in `skills/verify/SKILL.md` and `agents/framer.md` against *Data & interfaces* *The keep file* |
+| A kept file hides no other line | Given a file that holds a kept line, when a phase leaves a second line of the old name in it, then the keep command prints that line | G6's second run printed `< .gitattributes:a new seal line` |
+| A changed end-to-end test runs under its own suite | Given a phase that changes a test file only a built-app suite runs, when the crafter closes the phase, then the phase's *Verified by* names that suite's command and the crafter runs the file under it | The proofer reads Scope items 6 to 8; `S3` prints nothing |
+| An issue of separable parts is weighed for a split | Given an issue whose parts merge on their own, when the orchestrator routes it under `agentic`, then *Under agentic* gives it the costs to weigh and the forms a split writes | The proofer reads Scope item 9 against #1659 point 3 and `skills/core/SKILL.md` *A rule is guidance for a judgment, not a sequence to execute* |
+| No rule text keeps the file-level account or a count of the frame's files | Given the tree after phase 1, when `S1` and `S2` run, then each prints nothing | `S1` and `S2` of *Data & interfaces* *The searches* |
+
+## Data & interfaces
+
+### The keep file
+
+**What it holds.** `frame/keep-<N>.txt` holds each line the content search of phase `<N>`'s *Verified by* cell is to print at that phase's close, written as `git grep` prints it with no line number, `path:content`, and sorted under `LC_ALL=C sort`. Those lines are the lines the design keeps and the lines a later phase changes. A phase's own lines are those its keep file lacks and the earlier one holds. `frame/keep-<N>-paths.txt` holds, the same way, each path the path search is to print; a phase whose old spelling stands in no path has none. `frame/design.md` gives the reason for each kind of kept line, as a table of kinds where many lines share one, and names the lines a later phase changes by that phase's *Scope* items; it does not copy the lines.
+
+**The commands.** Both run from the repository's top level (G7). `<dir>` is the work item's directory from the top level, `agentory/threads/<work-item-id>`:
+
+```
+git grep --no-color --no-line-number -P '<old spelling>' -- . ':!<dir>' | LC_ALL=C sort | diff - <dir>/frame/keep-<N>.txt
+git ls-files -- '<pathspec of the old spelling>' ':!<dir>' | LC_ALL=C sort | diff - <dir>/frame/keep-<N>-paths.txt
+```
+
+Each prints nothing and exits 0 when the phase is done, and its exit code is `diff`'s. A line `<` is one the tree holds and the keep file does not: a leftover, or a line the phase wrote that holds a kept kind. A line `>` is one the keep file holds and the tree does not: a kept line the phase changed or removed. Where the records root is local, the work item's directory stands outside the tree, the exclusion is dropped, and `<dir>` in the `diff` operand is the directory's path under the root.
+
+**Who writes it.** The framer writes each keep file before the build, from the commands' output at the commit `## Grounding` names. The builder edits a keep file only to follow a kind the design keeps: where a phase rewrites a kept line, as a rewrap does, or writes a line that holds a kept kind, it writes the line into its own keep file and every later one in the same commit, and a kept line the tree no longer holds leaves them the same way. The phase record names each line the phase added, changed or removed in a keep file, with its kind, and the round reads each against the design's reasons. A line of no kept kind goes into no keep file. A new kind is a departure from the frame, named in the phase record and folded by the framer.
+
+### The searches
+
+Each runs from the top level, at `bbb66b38` as read, and over the rule text this work rewrites. Each pathspec names the directories that hold rule text, so the frame's own quotes of the patterns, under `agentory/`, are outside it.
+
+```
+S1  git grep -n -e "names that line's file" -e "by name or by pathspec" -e 'its empty result' -- agents skills docs templates
+S2  git grep -n -i -e 'three files' -e 'three frame files' -e 'three paths' -- agents skills docs templates
+S3  git grep -n -e 'in one command, the cases' -e 'as one command through the' -e 'the one command the' -- agents skills docs templates
+```
+
+At `bbb66b38` (`executed`):
+
+- `S1` printed `agents/framer.md:178`, `agents/framer.md:179` and `skills/verify/SKILL.md:197`. Scope item 2 rewrites the first two, Scope item 1 the third. After phase 1 it prints nothing.
+- `S2` printed `agents/framer.md:32`, `:115` and `:250`, `skills/implement/SKILL.md:280`, `skills/implement/fold-and-reframe.md:22` and `:30`, and `skills/implement/orchestration.md:214`. Scope items 2, 4 and 5 rewrite them. After phase 1 it prints nothing. Two test docstrings say "the three frame files" of `agentic range`'s output, `tests/skills/test_range_read.py:289` and a comment of `tests/behaviour/test_the_set_a_work_item_always_has.py:153`; they stand outside the pathspec and stay true by G17.
+- `S3` printed `agents/crafter.md:59`, `skills/implement/SKILL.md:203`, `skills/implement/fix-pass.md:97` and `skills/verify/SKILL.md:144`. Scope items 6 and 8 rewrite them. After phase 2 it prints nothing.
+
+No search of this frame keeps a line, so none has a keep file.
+
+## Rule changes
+
+- add
+  file: docs/layout/the-record-layout.md
+  section: agentory/threads/<work-item-id>/
+  to: | `frame/keep-<N>.txt` | which lines the content search of phase N's *Verified by* cell prints at that phase's close, one line each as `git grep` prints it with no line number; `diff` reads it and no party reads it whole (`skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*) |
+- add
+  file: docs/layout/the-record-layout.md
+  section: agentory/threads/<work-item-id>/
+  to: | `frame/keep-<N>-paths.txt` | which paths the path search of phase N's *Verified by* cell prints at that phase's close, where the old spelling stands in a path |
+- change
+  file: docs/layout/the-record-layout.md
+  section: agentory/threads/<work-item-id>/
+  from: `routing.md`, the frame (`frame/design.md`, `frame/plan.md`, `frame/questions.md`), the trail
+  to: `routing.md`, the frame (`frame/design.md`, `frame/plan.md`, `frame/questions.md`, and each keep file `frame/keep-<N>.txt` and `frame/keep-<N>-paths.txt`), the trail
+- change
+  file: docs/layout/the-record-layout.md
+  section: agentory/threads/<work-item-id>/
+  from: In which phases, by which approach and with which commit each closed is `frame/plan.md`'s.
+  to: In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. Which lines and paths a phase's search keeps is that phase's keep file's.
+- change
+  file: docs/layout/the-record-layout.md
+  section: Every kind of record, at a glance
+  from: | A work item's files | `agentory/threads/<work-item-id>/` | each file under target |
+  to: | A work item's files | `agentory/threads/<work-item-id>/` | each file under target, but a keep file, which `diff` reads and no party reads whole |
+
+## Removes
+
+| Removes | Coordinate | Where it lands, or why it can go |
+|---|---|---|
+| the account of a kept line by narrowing the search, by naming its file, and by excluding its file by name or by pathspec | `agents/framer.md` *A search you write into a cell is run before the cell states its result* | the keep file of `skills/verify/SKILL.md` *An absence claim is only as good as the search behind it*. Each removed account hides every other line its file or pattern covers (G3, G6) |
+| the cell naming the work item's directory in place of excluding it | the same rule | the keep command excludes the directory, since the frame's quotes of the pattern would otherwise be printed as `<` lines |
+| a rename's proof by "the search for the old spelling and its empty result" | `skills/verify/SKILL.md` *The narrow command still has to be able to fail*, row *Names or places only* | the frame's keep commands printing nothing, named in the phase record |
+| the set run "in one command" | `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, row *Phase boundary* | one command for each suite that owns a file of the set, as the phase's *Verified by* names them |
+| the restatements "as one command through the repository's runner" and "the one command" | `agents/crafter.md` *Order of work* step 7, `skills/implement/fix-pass.md` *The narrow set, then the read of the range*, `skills/implement/SKILL.md` *Find the runner, and type the narrow form* | the *Phase boundary* row, which each cites |
+| the counts of the frame's files | the lines `S2` printed | the files named, or "the frame's files" |
+
+The keep file is a form this design adds. What it takes out in return is the three accounts of the first row, which it replaces, and it adds no script, gate or check. Scope item 6 adds no mechanism: it moves the set the row already runs under the commands that run it. Scope item 9 adds a weighing and removes nothing, since no text weighs a split today (G13).
+
+Framed 2026-11-28 by framer, before the build.
