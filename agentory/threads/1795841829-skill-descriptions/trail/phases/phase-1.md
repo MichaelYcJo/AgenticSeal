@@ -44,7 +44,7 @@ total 3386
 
 **The contract's case keeps its name.** `#test_the_contract_is_a_skill_that_preloads_and_is_not_a_command` no longer holds the preload itself: the new case does, for every preloaded skill. The frame names no rename, and a rename of a case is no part of *Scope* item 4, so the name stays and the module docstring names the case that holds the preload.
 
-**The phase-boundary set ran as one command at `8fc3c2fe`, before this record and `gaps.md` were written:**
+**The phase-boundary set ran as one command at `fbbe27a1`, before the record's citation was fixed and before this record and `gaps.md` were written:**
 
 ```
 bin/test tests/text tests/behaviour tests/lib/test_core.py tests/lib/test_gaps.py tests/hooks/test_core_start.py tests/hooks/test_edit_leaves_copies.py tests/skills/test_payload_meter.py tests/skills/test_session_cost.py tests/skills/test_passages.py tests/skills/test_rules.py tests/skills/test_settle.py tests/skills/test_rule_changes.py tests/skills/test_fold_check.py tests/skills/test_chain_check.py tests/skills/test_agentic.py tests/skills/test_broad_gate.py tests/github/test_release_mark.py -q

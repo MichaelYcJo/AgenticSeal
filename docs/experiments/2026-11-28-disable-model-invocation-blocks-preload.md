@@ -57,7 +57,8 @@ The token was `b8c05beca29b`. In `flag-on/` alone,
 
 The working directory was an empty repository made with `git init`. It
 holds no `agentory/` root, so no core hook prints the core into the
-session. Each clone was run from it, both runs in parallel:
+session. Each clone was run from it with this command, as the
+orchestrator's account of the run gives it:
 
 ```
 claude -p "$P" --plugin-dir <clone> \
