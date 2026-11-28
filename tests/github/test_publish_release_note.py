@@ -670,8 +670,8 @@ class Test_main:
         a fragment the previous tag holds is not counted (round 2 of #1053).
         A range that holds no commit but merges, or a commit that is no settle,
         is not a range of settles alone, and the log names each such commit
-        by its short hash and subject (S2 of #1655). Seen red at `3729b409`
-        on the naming, which that code did not print."""
+        by its short hash and subject (S2 of #1655). Seen red against the
+        script before #1655 on the naming, which it did not print."""
         mod, tracker = wire(
             monkeypatch,
             tmp_path,
@@ -959,8 +959,8 @@ class Test_main:
         alone carries the release pull request's body in the place the
         fragments take: the note opens with the header the mark finds,
         exactly once, and the body stands inside the fold that ends it. The
-        title, the release and `created=true` are any note's. Seen red at
-        `3729b409`, where `main` returned 1."""
+        title, the release and `created=true` are any note's. Seen red against
+        the script before #1655, where `main` returned 1."""
         out = tmp_path / "github_output"
         mod, tracker = wire(
             monkeypatch,
@@ -997,8 +997,8 @@ class Test_main:
         """A6, S4 of #1655. Without the release pull request's body a range
         of settles alone has no text to publish, so the job goes red with
         the line `release_pull_body` gave, creates nothing and writes no
-        `created`. Seen red at `3729b409` on that line, which that code did
-        not print."""
+        `created`. Seen red against the script before #1655 on that line,
+        which it did not print."""
         out = tmp_path / "github_output"
         said = "no pull request merged from release/v1.2.3 into main is the tag"
         mod, tracker = wire(
@@ -1461,7 +1461,8 @@ class Test_module:
         directory outside the root, are no settle, and each is named by its
         short hash and subject, oldest first. A range that holds no commit
         but a merge holds none to judge, so it is no range of settles alone.
-        Seen red at `3729b409`, where the reading did not exist."""
+        Seen red against the script before #1655, where the reading did not
+        exist."""
         repo = git_repo(tmp_path / "repo")
         thread = "agentory/threads/{}/{}"
         write(repo, thread.format("1700000000-gone", "changelog.md"), "- gone\n")
@@ -1604,8 +1605,8 @@ def gh_pr_list_answers(monkeypatch, mod, returncode, stdout, stderr=""):
 class Test_release_pull_body:
     """`release_pull_body` reads the body of the pull request merged from
     `release/v<version>` into `main` whose merge commit is the tagged
-    commit, or says why there is none (A6, S4 of #1655). Seen red at
-    `3729b409`, where the reader did not exist."""
+    commit, or says why there is none (A6, S4 of #1655). Seen red against
+    the script before #1655, where the reader did not exist."""
 
     def tagged(self, tmp_path, monkeypatch):
         """The script at a repository whose `TAG` names a commit; the
