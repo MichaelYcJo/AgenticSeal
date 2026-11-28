@@ -35,6 +35,11 @@ The class was built from what makes the defect: each character of the strip's se
             (" \t\ntrue -q\n\r ", False, []),
 ```
 
+```iadd
+verdict: fixed 61a61101
+answer: The two cases became the round's one, `(" \t\ntrue -q\n\r ", False, [])`, which puts a space, a tab, a carriage return and a newline at each end. Six mutants of the strip each read `red`: stripping only the newline, dropping the space, the tab or the carriage return from its set, `rstrip`, and `lstrip`. That run was executed, at `<scratchpad>/1795860192-mutate-tests-without-a-shell/fix-3/mutate.txt`. `bin/test tests/skills/test_mutation_check.py -q -p no:xdist` passes at `61a61101`.
+```
+
 ## Confirmations
 
 ```iadd

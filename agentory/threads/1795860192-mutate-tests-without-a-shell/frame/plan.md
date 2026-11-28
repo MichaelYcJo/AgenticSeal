@@ -32,3 +32,4 @@ A `--tests` that held a shell operator outside quotes ran its first program alon
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-28 | Which prefix the pull request's title takes: `fix:`. | The command reported `SURVIVED` for a run in which the cases that watch the unit never ran, against the rule in `skills/verify/agentic-mutate.md` that every run which measured nothing exits 2. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
+| 2026-11-28 | Whether a round follows round 3's fix pass: yes, round 4, a verifying round on that fix. | The findings fell from five to three to one, each round's a regression of the fix before it, so the run converges. The one fix changes a test's case, outside the records, which the row *No fix that no round reads* gives to a round. Round 4's target is that one case. | `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* |
