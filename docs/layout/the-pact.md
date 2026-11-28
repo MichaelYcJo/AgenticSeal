@@ -121,7 +121,7 @@ pact's repository is where the reconciliation runs.
 **`agentic pact`, run at the pact's repository, reads every signer the
 `Pact signers` key of that repository's `agentory/config.json` lists and says
 which way each mismatch points.** It finds each checkout through
-`~/.claude/iadd/pact-paths.json`, a JSON object from remote URL to
+`~/.claude/agentic/pact-paths.json`, a JSON object from remote URL to
 checkout path, or the one sibling directory with that origin, guessing
 nothing; refuses a
 signer whose config does not name the pact; and grades every anchor naming

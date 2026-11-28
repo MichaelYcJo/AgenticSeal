@@ -2516,7 +2516,7 @@ class Test_pins_and_copies_in:
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "agentory/parity.json"
-routing_module = load(chain.ROUTING, "iadd_routing_for_chain_tests")
+routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
 def with_original(text, said):

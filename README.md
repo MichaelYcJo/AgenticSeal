@@ -327,7 +327,7 @@ finding even where the design never named it. Your session asks about it
 once, the first time it sets up a repository, and `/iadd:parity-setup`
 decides it later.
 Your checkout path of the original stays out of the committed file, in
-`~/.claude/iadd/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
+`~/.claude/agentic/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
 method.
 
 ## What runs on your machine
@@ -393,10 +393,10 @@ with, and the places the `PostToolUse` hook names, go into the session's
 own context, as a file the session opens does. These side effects are
 worth stating outright: the inspector's `agentic stamp --inspection`, run once on
 an `inspection.md` reading `cleared`, writes the stamp's values under
-`<git-common-dir>/iadd-stamp/`, which the stamp's hook renames once
+`<git-common-dir>/agentic-stamp/`, which the stamp's hook renames once
 drawn and nothing prunes, and a `cleared` refused because its audited commit
 is not on the work item's branch leaves an empty file under
-`<git-common-dir>/iadd-stamp-refused/`, in either mode, which nothing
+`<git-common-dir>/agentic-stamp-refused/`, in either mode, which nothing
 prunes either.
 
 No hook reaches a network. The places below do: each is a command or a

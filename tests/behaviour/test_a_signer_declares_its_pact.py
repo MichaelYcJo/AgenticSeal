@@ -33,7 +33,7 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
     read from the tree or written by the tree's serializer, not retyped."""
     agentic = load_module(
         os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
-        "iadd_for_the_silent_set",
+        "agentic_for_the_silent_set",
     )
     pairs, refusal = config.config_pairs(os.path.join(ROOT, "agentory"))
     assert refusal is None, refusal

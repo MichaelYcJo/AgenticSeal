@@ -6,6 +6,7 @@
 |---|---|
 | The broad gate over phase 1's commits: the full suite, the repository-wide lint and the format check of `agentory/config.json`'s `Broad gate` key. The crafter ran the phase-boundary set, which left out the test files `trail/phases/phase-1.md` lists as reading no path the phase changed, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 | The broad gate over phase 2's commits. The crafter ran the phase-boundary set, every test file but `tests/github/test_durations_union.py`, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
+| The broad gate over phase 3's commits. The crafter ran the phase-boundary set, every test file `git ls-files 'tests/*test_*.py'` lists, and linted and formatted the Python files it changed | the orchestrator, at the broad run |
 
 ## Not done
 

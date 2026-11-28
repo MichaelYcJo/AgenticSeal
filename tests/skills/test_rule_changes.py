@@ -22,7 +22,7 @@ TARGET = "skills/settle/scripts/rule_changes.py"
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "iadd_rule_changes",
+    "agentic_rule_changes",
 )
 
 

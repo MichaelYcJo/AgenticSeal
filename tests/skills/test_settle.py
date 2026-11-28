@@ -82,7 +82,7 @@ settle = load_module(SCRIPT, "settle")
 plain = test_unverified_check.plain
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "iadd_rule_changes",
+    "agentic_rule_changes",
 )
 # The runner every git and `gh` command of `settle` starts through, the one
 # instance `lib/sibling.py#load` hands both scripts.
@@ -765,7 +765,7 @@ def answer_of(answers, args):
     return 0, json.dumps(answers.get("branches", {}).get(branch, [])) + "\n", ""
 
 
-GH_HOME = "IADD_SETTLE_GH_STUB_HOME"
+GH_HOME = "AGENTIC_SETTLE_GH_STUB_HOME"
 
 GH_STUB = (
     "import json, os, sys\n\n"
@@ -3481,7 +3481,7 @@ class Test_main:
         item = repo / "agentory" / "threads" / "1700000001-alpha"
         (item / "frame").mkdir(parents=True)
         (item / "frame" / "design.md").write_text("# a\n", encoding="utf-8")
-        (repo / ".git" / "iadd-scratch").write_text("", encoding="utf-8")
+        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
@@ -3489,7 +3489,7 @@ class Test_main:
         )
         assert r.returncode == 2, r.stdout + r.stderr
         assert "has opted out" in r.stderr, r.stderr
-        assert "iadd-scratch" in r.stderr, r.stderr
+        assert "agentic-scratch" in r.stderr, r.stderr
         assert "has nothing to settle" not in r.stderr, (
             "a repository holding a work item is still being told it has none"
         )
@@ -3505,7 +3505,7 @@ class Test_main:
         repo = tmp_path / "repo"
         repo.mkdir()
         git_out(repo, "init", "-q")
-        (repo / ".git" / "iadd-scratch").mkdir()
+        (repo / ".git" / "agentic-scratch").mkdir()
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,

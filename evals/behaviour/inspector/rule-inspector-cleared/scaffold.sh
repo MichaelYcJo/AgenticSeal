@@ -1,21 +1,21 @@
 set -eu
 git init -q -b main .
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'IADD_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
     return text.upper() + "!"
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'src/__init__.py')"
-cat > 'src/__init__.py' <<'IADD_EOF'
+cat > 'src/__init__.py' <<'AGENTIC_EOF'
 
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/__init__.py')"
-cat > 'tests/__init__.py' <<'IADD_EOF'
+cat > 'tests/__init__.py' <<'AGENTIC_EOF'
 
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/test_textutil.py')"
-cat > 'tests/test_textutil.py' <<'IADD_EOF'
+cat > 'tests/test_textutil.py' <<'AGENTIC_EOF'
 import unittest
 
 from src.textutil import shout
@@ -28,35 +28,35 @@ class ShoutTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'README.md')"
-cat > 'README.md' <<'IADD_EOF'
+cat > 'README.md' <<'AGENTIC_EOF'
 # textutil
 
 Small text helpers.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'CONTRIBUTING.md')"
-cat > 'CONTRIBUTING.md' <<'IADD_EOF'
+cat > 'CONTRIBUTING.md' <<'AGENTIC_EOF'
 # Contributing
 
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/README.md')"
-cat > 'agentory/README.md' <<'IADD_EOF'
+cat > 'agentory/README.md' <<'AGENTIC_EOF'
 # What IADD keeps in agentory/
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/config.json')"
-cat > 'agentory/config.json' <<'IADD_EOF'
+cat > 'agentory/config.json' <<'AGENTIC_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q",
   "Commit and pull request language": "English",
   "Record language": "English"
 }
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/routing.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/routing.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/routing.md' <<'AGENTIC_EOF'
 # Routing: 1790000030-inspection-cleared
 
 | Axis | Answer |
@@ -67,12 +67,12 @@ cat > 'agentory/threads/1790000030-inspection-cleared/routing.md' <<'IADD_EOF'
 | Implementation | crafter |
 | Automation | yes |
 | Branch | feat/inspection-cleared |
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/inspection-cleared
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/frame/design.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/frame/design.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/frame/design.md' <<'AGENTIC_EOF'
 # Design: shout keeps empty text empty
 
 ## Scope
@@ -91,9 +91,9 @@ otherwise (#101).
 none
 
 Framed 2026-10-14 by framer, before the build.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/frame/plan.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/frame/plan.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout keeps empty text empty
 
 ## Phases
@@ -101,20 +101,20 @@ cat > 'agentory/threads/1790000030-inspection-cleared/frame/plan.md' <<'IADD_EOF
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `shout("")` and its case | `python3 -m unittest tests.test_textutil -q` | |
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'frame: shout keeps empty text empty'
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'IADD_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark; empty text
     stays empty."""
     if not text:
         return ""
     return text.upper() + "!"
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/test_textutil.py')"
-cat > 'tests/test_textutil.py' <<'IADD_EOF'
+cat > 'tests/test_textutil.py' <<'AGENTIC_EOF'
 import unittest
 
 from src.textutil import shout
@@ -130,12 +130,12 @@ class ShoutTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'fix: shout keeps empty text empty'
 build=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/trail/phases/phase-1.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/trail/phases/phase-1.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/trail/phases/phase-1.md' <<'AGENTIC_EOF'
 # Phase 1: 1790000030-inspection-cleared
 
 ## What this phase found
@@ -144,9 +144,9 @@ cat > 'agentory/threads/1790000030-inspection-cleared/trail/phases/phase-1.md' <
 before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/trail/rounds/round-1.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/trail/rounds/round-1.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/trail/rounds/round-1.md' <<'AGENTIC_EOF'
 # Review round 1: 1790000030-inspection-cleared
 
 ```iadd
@@ -170,13 +170,13 @@ read against S1.
 | Command | Result |
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/changelog.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/changelog.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/changelog.md' <<'AGENTIC_EOF'
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/gaps.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/gaps.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/gaps.md' <<'AGENTIC_EOF'
 # Closing memo: 1790000030-inspection-cleared
 
 ## Not verified
@@ -187,34 +187,34 @@ cat > 'agentory/threads/1790000030-inspection-cleared/gaps.md' <<'IADD_EOF'
 ## Not done
 
 nothing
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/pr.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/pr.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/pr.md' <<'AGENTIC_EOF'
 Closes #101.
-IADD_EOF
+AGENTIC_EOF
 sed "s/b0b0b0b/$build/" 'agentory/threads/1790000030-inspection-cleared/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'agentory/threads/1790000030-inspection-cleared/trail/rounds/round-1.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, pr.md, round 1 and the changelog'
 run=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'agentory/threads/1790000030-inspection-cleared/trail/gate.md')"
-cat > 'agentory/threads/1790000030-inspection-cleared/trail/gate.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000030-inspection-cleared/trail/gate.md' <<'AGENTIC_EOF'
 # 1790000030-inspection-cleared — broad gate
 
 ```iadd
 run: a0a0a0a against c0c0c0c
 ```
-IADD_EOF
+AGENTIC_EOF
 sed "s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" 'agentory/threads/1790000030-inspection-cleared/trail/gate.md' > record.tmp && mv record.tmp 'agentory/threads/1790000030-inspection-cleared/trail/gate.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the broad run on record'
 mkdir -p "$(dirname '.git/1790000030-inspection-cleared/issue-101.md')"
-cat > '.git/1790000030-inspection-cleared/issue-101.md' <<'IADD_EOF'
+cat > '.git/1790000030-inspection-cleared/issue-101.md' <<'AGENTIC_EOF'
 # #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname '.git/1790000030-inspection-cleared/pr-body.md')"
-cat > '.git/1790000030-inspection-cleared/pr-body.md' <<'IADD_EOF'
+cat > '.git/1790000030-inspection-cleared/pr-body.md' <<'AGENTIC_EOF'
 Closes #101.
 ## From the records
 
@@ -273,5 +273,5 @@ nothing
 `frame/questions.md` is not in this work item.
 
 </details>
-IADD_EOF
+AGENTIC_EOF
 sed "s/b0b0b0b/$build/; s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" '.git/1790000030-inspection-cleared/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-inspection-cleared/pr-body.md'

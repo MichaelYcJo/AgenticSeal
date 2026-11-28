@@ -88,7 +88,7 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "iadd_publish_release_note_for_tests")
+    return module(SCRIPT, "agentic_publish_release_note_for_tests")
 
 
 class Done:

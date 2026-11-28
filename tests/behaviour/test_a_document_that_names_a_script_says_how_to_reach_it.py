@@ -64,7 +64,7 @@ from conftest import ROOT, load_module, read
 
 AGENTIC = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
-    "iadd_for_the_locator_rule",
+    "agentic_for_the_locator_rule",
 )
 
 # The subcommand each script answers to, by the script's file name.

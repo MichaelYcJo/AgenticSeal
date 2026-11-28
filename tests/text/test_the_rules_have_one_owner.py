@@ -24,14 +24,14 @@ from conftest import ROOT, flat, load_lib_module, load_module
 
 def script(*parts):
     """The script at PARTS under the repository, loaded as a module."""
-    return load_module(os.path.join(ROOT, *parts), f"iadd_{parts[-1][:-3]}_owner")
+    return load_module(os.path.join(ROOT, *parts), f"agentic_{parts[-1][:-3]}_owner")
 
 
 # The code that defines the words and codes the owners spell: the close
 # verdicts, the line keywords of a verifying round, the broad gate's words
 # beside a failing file, and the wait's exit codes and states.
 chain = script("skills", "code-review", "scripts", "chain_check.py")
-fields = load_lib_module("fields.py", "iadd_fields_owner")
+fields = load_lib_module("fields.py", "agentic_fields_owner")
 gate = script("skills", "verify", "scripts", "broad_gate.py")
 wait = script("skills", "code-review", "scripts", "pr_wait.py")
 LINE_KEYWORDS = tuple(

@@ -422,7 +422,7 @@ def shared_rule():
     import importlib.util
 
     path = os.path.join(ROOT, "lib", "lines.py")
-    spec = importlib.util.spec_from_file_location("iadd_lines_for_the_oracle", path)
+    spec = importlib.util.spec_from_file_location("agentic_lines_for_the_oracle", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

@@ -53,7 +53,7 @@ def reader_module():
     `chain_check.py` loads for `trail/rounds/round-N.md`. A second implementation
     here would be free to drift from what actually reads these records."""
     spec = importlib.util.spec_from_file_location(
-        "iadd_phase_reader_for_tests",
+        "agentic_phase_reader_for_tests",
         os.path.join(ROOT, "lib", "lines.py"),
     )
     module = importlib.util.module_from_spec(spec)

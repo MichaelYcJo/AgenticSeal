@@ -211,7 +211,7 @@ MANIFEST = "manifest.json"
 # Machine-local state, beside the root with everything else that must never
 # leave this clone. Inside the root it would ride into the next zip and, in
 # shared mode, into a commit.
-STATE = "iadd-last-export.json"
+STATE = "agentic-last-export.json"
 
 UNSAFE_IN_A_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DRIVE = re.compile(r"^[A-Za-z]:")

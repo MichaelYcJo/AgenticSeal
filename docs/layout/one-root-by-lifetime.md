@@ -85,7 +85,7 @@ because the hooks, the skills and the `agentic` commands are the plugin's. The f
 direction is that no folder at either place means not opted in, and a
 command that cannot tell reads the repository as not opted in.
 A throwaway repository reads as not opted in with an empty file,
-`.git/iadd-scratch`, under the common git directory, which no commit can
+`.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
 check: tests/lib/test_optin.py
 

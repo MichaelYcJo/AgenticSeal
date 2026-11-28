@@ -1125,7 +1125,7 @@ def _moved_main(root, base, olds, news):
         _test_modules(present, lambda p: _read(root, p)),
     )
     python = _interpreter(root)
-    holder = tempfile.mkdtemp(prefix="iadd-layout-moved-")
+    holder = tempfile.mkdtemp(prefix="agentic-layout-moved-")
     tree = os.path.join(holder, "base")
     try:
         added = gitcmd.git(root, "worktree", "add", "--detach", "--quiet", tree, sha)

@@ -45,7 +45,7 @@ from test_tables import leaves_both
 
 TARGET = "lib/routing.py"
 
-routing = load_lib_module("routing.py", "iadd_routing")
+routing = load_lib_module("routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"

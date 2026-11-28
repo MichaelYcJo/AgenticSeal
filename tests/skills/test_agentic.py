@@ -87,7 +87,7 @@ from conftest import (
 
 TARGET = "skills/implement/scripts/agentic.py"
 
-AGENTIC = load_module(os.path.join(ROOT, *TARGET.split("/")), "iadd_under_test")
+AGENTIC = load_module(os.path.join(ROOT, *TARGET.split("/")), "agentic_under_test")
 
 ITEM = "1788000000-a-work-item"
 SSH = "git@example.com:org/thing.git"
@@ -109,8 +109,8 @@ CLOSING = (
 # Session state that sits beside the root under the common git directory.
 # None may be in a zip, and a new file beside the root joins the list.
 BESIDE_THE_ROOT = (
-    "iadd-stamp-refused",
-    "iadd-last-export.json",
+    "agentic-stamp-refused",
+    "agentic-last-export.json",
 )
 WORKFLOW_PATH = os.path.join(".github", "workflows", "hygiene.yml")
 TWO_MODE_KEYS = config_json(
@@ -181,7 +181,7 @@ def gitlink_at(repo, where, sha):
 @pytest.fixture(scope="module")
 def _worlds(tmp_path_factory):
     """Every world of the module, built once; see the module docstring."""
-    base = tmp_path_factory.mktemp("iadd-worlds")
+    base = tmp_path_factory.mktemp("agentic-worlds")
     plain = clone_at(base / "plain")
     holding(roots(copied(plain, base / "local", SSH))[1])
     shared = copied(plain, base / "shared")
@@ -564,7 +564,9 @@ class Test_module:
         file is how a file passes one and fails the other; `agentic.py` re-exports
         this one rather than keeping a copy."""
         path = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
-        spec = importlib.util.spec_from_file_location("iadd_command_one_parser", path)
+        spec = importlib.util.spec_from_file_location(
+            "agentic_command_one_parser", path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
@@ -581,7 +583,7 @@ class Test_module:
         second copy that could drift from the one the `Pact` row goes through."""
         agentic = load_module(
             os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
-            "iadd_for_the_pact",
+            "agentic_for_the_pact",
         )
         assert agentic.normalise_remote is agentic.repo_config.normalise_remote
 
@@ -919,7 +921,7 @@ class Test_export:
         repo = at_top(take("local"), SSH)
         for name in BESIDE_THE_ROOT:
             write(repo / ".git", name, "session state\n")
-        write(repo / ".git", "iadd-mode-choice/a-session", "x")
+        write(repo / ".git", "agentic-mode-choice/a-session", "x")
         assert said(capsys, repo, "export")[0] == 0
         with zipfile.ZipFile(only_zip(tmp_path)) as archive:
             assert archive.namelist() == MEMBERS
@@ -928,10 +930,10 @@ class Test_export:
         self, take, at_top, capsys, tmp_path
     ):
         repo = at_top(take("local"), SSH)
-        write(repo / ".git", "iadd-last-export.json", "secret-branch\n")
+        write(repo / ".git", "agentic-last-export.json", "secret-branch\n")
         _shared, local = roots(repo)
         symlink_or_skip(
-            os.path.join("..", "iadd-last-export.json"),
+            os.path.join("..", "agentic-last-export.json"),
             os.path.join(local, "leak.md"),
         )
         code, out = said(capsys, repo, "export")
@@ -1001,10 +1003,10 @@ class Test_export:
             and not (plain / ".git" / "agentory").exists()
         )
         local = at_top(take("local"), SSH)
-        write(local / ".git", "iadd-scratch", "")
+        write(local / ".git", "agentic-scratch", "")
         code, out = said(capsys, local, "export")
         assert code == 1
-        assert "marked throwaway (iadd-scratch" in out
+        assert "marked throwaway (agentic-scratch" in out
 
     @pytest.mark.parametrize("shape", ["a file", "a broken link"])
     def test_refuses_a_partial_name_somebody_holds(
@@ -1094,16 +1096,16 @@ class Test_no_root:
             "not inside a git repository — agentic works on a clone\n"
         )
         repo = take("plain")
-        write(repo / ".git", "iadd-scratch", "")
+        write(repo / ".git", "agentic-scratch", "")
         assert AGENTIC.no_root(str(repo), "", "") == 1
-        assert "marked throwaway (iadd-scratch" in capsys.readouterr().out
+        assert "marked throwaway (agentic-scratch" in capsys.readouterr().out
 
 
 class Test_state_path:
     def test_accepts_a_clone_as_a_file_beside_the_root(self, _worlds):
         repo = _worlds / "local"
         assert same(
-            AGENTIC.state_path(str(repo)), repo / ".git" / "iadd-last-export.json"
+            AGENTIC.state_path(str(repo)), repo / ".git" / "agentic-last-export.json"
         )
 
     def test_refuses_a_directory_outside_git(self, tmp_path):
@@ -1129,7 +1131,7 @@ class Test_write_state:
 class Test_read_state:
     def test_accepts_what_the_last_export_wrote(self, take):
         repo = take("local")
-        write(repo / ".git", "iadd-last-export.json", '{"items": {"a": "b"}}')
+        write(repo / ".git", "agentic-last-export.json", '{"items": {"a": "b"}}')
         assert AGENTIC.read_state(str(repo)) == {"items": {"a": "b"}}
 
     @pytest.mark.parametrize(
@@ -1138,9 +1140,9 @@ class Test_read_state:
     def test_refuses_a_state_it_cannot_read_as_none(self, take, text):
         repo = take("local")
         if text == "\udcff":
-            (repo / ".git" / "iadd-last-export.json").write_bytes(b"\xff{")
+            (repo / ".git" / "agentic-last-export.json").write_bytes(b"\xff{")
         elif text is not None:
-            write(repo / ".git", "iadd-last-export.json", text)
+            write(repo / ".git", "agentic-last-export.json", text)
         assert AGENTIC.read_state(str(repo)) is None
 
 
@@ -1743,7 +1745,7 @@ class Test_import_:
             info = zipfile.ZipInfo(name)
             if name == "agentory/leak.md":
                 info.external_attr = (0o120777 << 16) | 0o200000
-            archive.writestr(info, "../iadd-last-export.json")
+            archive.writestr(info, "../agentic-last-export.json")
         code, out = said(capsys, other, "import", str(hostile))
         assert code == 1, out
         assert out.startswith(f"{hostile} holds members this command will not write:\n")
@@ -3636,7 +3638,7 @@ class Test_check:
     def test_refuses_to_count_against_no_export(self, take, at_top, capsys, state):
         repo = at_top(take("local"))
         if state is not None:
-            write(repo / ".git", "iadd-last-export.json", state)
+            write(repo / ".git", "agentic-last-export.json", state)
         code, out = said(capsys, repo, "export", "--check")
         assert code == 0
         assert (

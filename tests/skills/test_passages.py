@@ -20,7 +20,7 @@ TARGET = "skills/settle/scripts/passages.py"
 
 passages = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
-    "iadd_passages",
+    "agentic_passages",
 )
 WINDOW = passages.WINDOW
 

@@ -54,7 +54,7 @@ CONFTEST = os.path.join(TESTS, "conftest.py")
 TOKENS = ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN")
 
 # Pinned verbatim: the conftest's placeholder, which is not a credential.
-NOT_A_GH_TOKEN = "iadd-suite-runs-with-gh-logged-out"
+NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
 
 # The variables a `pull_request` run of `tests` sets for every step (#1058).
 PULL_REQUEST_RUN = {

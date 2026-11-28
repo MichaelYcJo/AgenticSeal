@@ -64,7 +64,7 @@ from conftest import ROOT, git_listing, load_module, on_disk
 
 passages = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
-    "iadd_passages_for_the_paste_check",
+    "agentic_passages_for_the_paste_check",
 )
 WINDOW, TOP_FILES = passages.WINDOW, passages.TOP_FILES
 in_corpus, words, windows = passages.in_corpus, passages.words, passages.windows

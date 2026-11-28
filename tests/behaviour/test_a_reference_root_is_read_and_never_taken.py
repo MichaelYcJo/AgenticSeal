@@ -25,7 +25,7 @@ from conftest import ROOT, load_module
 
 AGENTIC = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
-    "iadd_for_the_reference_root",
+    "agentic_for_the_reference_root",
 )
 
 

@@ -32,9 +32,9 @@ def test_the_floor_has_one_source():
     """`lib/launch.py` is the one file that spells the floor, the runner
     builds its virtualenv against the launcher's number, and `ruff.toml`,
     which cannot import, lints at that number."""
-    floor = tuple(load(LAUNCH, "iadd_launch_floor").FLOOR)
+    floor = tuple(load(LAUNCH, "agentic_launch_floor").FLOOR)
     assert floor_carriers() == {"lib/launch.py": floor}, floor_carriers()
-    assert tuple(load(RUNNER, "iadd_runner_floor").FLOOR) == floor
+    assert tuple(load(RUNNER, "agentic_runner_floor").FLOOR) == floor
     m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
     assert m, "ruff.toml lost its target-version"
     assert (int(m.group(1)), int(m.group(2))) == floor, (

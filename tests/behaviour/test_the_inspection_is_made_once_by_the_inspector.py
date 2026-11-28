@@ -21,12 +21,12 @@ from conftest import ROOT, load_module
 
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 RECORDER_SOURCE = os.path.join(
-    ROOT, "skills", "verify", "scripts", "pytest_record", "iadd_pytest_record.py"
+    ROOT, "skills", "verify", "scripts", "pytest_record", "agentic_pytest_record.py"
 )
 
 
 def gate_module():
-    return load_module(GATE, "iadd_broad_gate_for_tests")
+    return load_module(GATE, "agentic_broad_gate_for_tests")
 
 
 # =============================================================================
@@ -119,7 +119,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     causes = (
         "the command started no pytest, because a part before its runner failed "
         "or it has none; none it started loaded the recorder; or the one that "
-        "did could not write its record and warned 'iadd_pytest_record: no "
+        "did could not write its record and warned 'agentic_pytest_record: no "
         "record written' in "
     )
     assert (
@@ -191,7 +191,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # The warning the recorder prints where it writes no record, which the
     # reasons above quote and a reader finds on `suite.txt`.
     with open(RECORDER_SOURCE, encoding="utf-8") as handle:
-        assert "iadd_pytest_record: no record written" in handle.read()
+        assert "agentic_pytest_record: no record written" in handle.read()
     assert gate.NOT_REACHED.format(code=2) == (
         "new? not measured: the command ran once at the base and exited 2, and no "
         "pytest it ran there collected this file, so the run may have ended "
@@ -262,7 +262,7 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         # The plugin flag the gate appends to `PYTEST_ADDOPTS`, and the two
         # variables it hands the command, which a person writing the key
         # keeps.
-        "`-p iadd_pytest_record`",
+        "`-p agentic_pytest_record`",
         "`PYTEST_ADDOPTS`",
         "`PYTHONPATH`",
         # The words `broad_gate.py` prints beside a failing file, which a

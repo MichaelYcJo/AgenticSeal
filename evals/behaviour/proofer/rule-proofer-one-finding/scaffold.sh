@@ -1,21 +1,21 @@
 set -eu
 git init -q -b main .
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'IADD_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
     return text.upper() + "!"
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'src/__init__.py')"
-cat > 'src/__init__.py' <<'IADD_EOF'
+cat > 'src/__init__.py' <<'AGENTIC_EOF'
 
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/__init__.py')"
-cat > 'tests/__init__.py' <<'IADD_EOF'
+cat > 'tests/__init__.py' <<'AGENTIC_EOF'
 
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/test_textutil.py')"
-cat > 'tests/test_textutil.py' <<'IADD_EOF'
+cat > 'tests/test_textutil.py' <<'AGENTIC_EOF'
 import unittest
 
 from src.textutil import shout
@@ -28,33 +28,33 @@ class ShoutTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'README.md')"
-cat > 'README.md' <<'IADD_EOF'
+cat > 'README.md' <<'AGENTIC_EOF'
 # textutil
 
 Small text helpers.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'CONTRIBUTING.md')"
-cat > 'CONTRIBUTING.md' <<'IADD_EOF'
+cat > 'CONTRIBUTING.md' <<'AGENTIC_EOF'
 # Contributing
 
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/README.md')"
-cat > 'agentory/README.md' <<'IADD_EOF'
+cat > 'agentory/README.md' <<'AGENTIC_EOF'
 # What IADD keeps in agentory/
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/config.json')"
-cat > 'agentory/config.json' <<'IADD_EOF'
+cat > 'agentory/config.json' <<'AGENTIC_EOF'
 {
   "Mode": "shared",
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md')"
-cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' <<'AGENTIC_EOF'
 # Routing: 1790000001-shout-ends-with-one-exclamation-mark
 
 | Axis | Answer |
@@ -65,12 +65,12 @@ cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.
 | Implementation | crafter |
 | Automation | yes |
 | Branch | feat/shout-exclaims |
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/shout-exclaims
 mkdir -p "$(dirname 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md')"
-cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'AGENTIC_EOF'
 # Design: shout ends with one exclamation mark
 
 ## Scope
@@ -86,9 +86,9 @@ cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/de
 | S2 | `shout_twice("hi")` | `"HI! HI!"` |
 
 Framed 2026-10-14 by framer, before the build.
-IADD_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md')"
-cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md' <<'IADD_EOF'
+cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout_twice
 
 ## Phases
@@ -96,11 +96,11 @@ cat > 'agentory/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/pl
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `shout_twice(text)` in `src/textutil.py` | `python3 -m unittest tests.test_textutil -q` | |
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'frame: shout_twice'
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'IADD_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
     return text.upper() + "!"
@@ -109,6 +109,6 @@ def shout(text):
 def shout_twice(text):
     """Return shout(TEXT) twice."""
     return shout(text) + shout(text)
-IADD_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'feat: shout_twice'

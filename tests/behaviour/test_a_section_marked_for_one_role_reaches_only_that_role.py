@@ -49,7 +49,9 @@ READER = os.path.join(ROOT, "lib", "blocks.py")
 
 
 def _reader():
-    spec = importlib.util.spec_from_file_location("iadd_fence_rule_for_roles", READER)
+    spec = importlib.util.spec_from_file_location(
+        "agentic_fence_rule_for_roles", READER
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

@@ -359,7 +359,7 @@ class TestDefinition:
         # The line `broad_gate.py` prints to stderr when it keeps its
         # outputs, which the orchestrator matches in the gate's output and
         # quotes.
-        assert "`outputs kept under iadd-gate-<random>/`" in text
+        assert "`outputs kept under agentic-gate-<random>/`" in text
 
 
 # --- the document that states the inspection ------------------------------------

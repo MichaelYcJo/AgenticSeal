@@ -30,12 +30,12 @@ from conftest import ROOT, flattened, load_lib_module, load_module, read
 
 # The reader of `routing.md`, whose constants are each row's label and the
 # answers it accepts.
-routing = load_lib_module("routing.py", "iadd_routing_for_waiver")
+routing = load_lib_module("routing.py", "agentic_routing_for_waiver")
 # The chain check, whose `TRAILER` and `NO_WORK_ITEM` spell the trailer it
 # reads on a pull request's commits, with its value under `direct`.
 chain = load_module(
     os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
-    "iadd_chain_check_for_waiver",
+    "agentic_chain_check_for_waiver",
 )
 NO_WORK_ITEM_TRAILER = f"`{chain.TRAILER}: {chain.NO_WORK_ITEM}`"
 
@@ -82,9 +82,9 @@ def in_force(rel, section):
 
     rules = load_module(
         os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-        "iadd_rule_changes_for_waiver",
+        "agentic_rule_changes_for_waiver",
     )
-    config = load_lib_module("config.py", "iadd_config_for_waiver")
+    config = load_lib_module("config.py", "agentic_config_for_waiver")
     text = read(*rel.split("/"))
     span, why = rules.section_lines(text, section)
     assert span, f"{rel}: {why}"

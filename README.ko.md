@@ -327,7 +327,7 @@ tracer 가 가져옵니다. 프레임은 옮기는 진입점마다 원본이 내
 내보내는데 새 코드가 빠뜨린 항목은 설계가 이름을 적지 않았어도 지적이
 됩니다. 세션이 저장소를 처음 설정할 때 한 번 물어보고, 나중에
 정하려면 `/iadd:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
-커밋되는 파일에 들어가지 않고 `~/.claude/iadd/parity-paths.json` 에
+커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.json` 에
 저장됩니다. 방법은 `skills/legacy-parity/SKILL.md` 에 있습니다.
 
 ## 내 컴퓨터에서 도는 것
@@ -392,9 +392,9 @@ fix pass 마다 디렉터리를 하나씩 따로 씁니다. 에이전트는 자�
 들어갈 뿐입니다. 다음 부수 효과는
 밝혀 둡니다. 검수자가 `cleared` 로 읽히는 `inspection.md` 에 한 번 돌리는
 `agentic stamp --inspection` 은 도장에 들어갈 값을
-`<git-common-dir>/iadd-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
+`<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
-`cleared` 는 어느 모드에서든 `<git-common-dir>/iadd-stamp-refused/` 아래에 빈
+`cleared` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
 파일을 남깁니다. 이 파일도 지우는 것이 없습니다.
 
 훅은 모두 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은

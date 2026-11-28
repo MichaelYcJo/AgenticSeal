@@ -169,7 +169,7 @@ def routing(item, branch, planning, implementation):
 
 def write(path, text):
     """A scaffold line that writes TEXT to PATH, its directory made first."""
-    delimiter = "IADD_EOF"
+    delimiter = "AGENTIC_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
     return f"mkdir -p \"$(dirname '{path}')\"\ncat > '{path}' <<'{delimiter}'\n{text.rstrip()}\n{delimiter}"

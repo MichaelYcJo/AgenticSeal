@@ -533,7 +533,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
     editions."""
     text = read(*parts)
     # The name of the opt-out file, which `lib/optin.py` looks for.
-    assert "iadd-scratch" in section(text, opt_in), "/".join(parts)
+    assert "agentic-scratch" in section(text, opt_in), "/".join(parts)
     body = flattened(section(text, setup))
     # The template path, the local root's path and the harness tool, which
     # the orchestrator resolves at first setup.

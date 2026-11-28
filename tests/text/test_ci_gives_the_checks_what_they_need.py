@@ -93,7 +93,7 @@ CANCEL_ON_PULL_REQUEST = "${{ github.event_name == 'pull_request' }}"
 # The workflow the plugin ships, by its repository path, and the prefix its
 # steps put before a script of the plugin's clone.
 TEMPLATE = "templates/setup/hygiene.yml"
-CLONE = '"$RUNNER_TEMP/iadd/'
+CLONE = '"$RUNNER_TEMP/agentic/'
 
 
 def loaded():

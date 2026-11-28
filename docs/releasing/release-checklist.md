@@ -306,8 +306,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
-      `PYTEST_ADDOPTS='-p iadd_pytest_record'`, and
-      `IADD_RECORD_DIR` and `IADD_RECORD_KEY` naming a directory
+      `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
+      `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_mark.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)

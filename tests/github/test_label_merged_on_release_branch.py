@@ -48,7 +48,9 @@ def signal():
     exists not to have, and a test that stubbed them out could not see one
     arrive.
     """
-    spec = importlib.util.spec_from_file_location("iadd_label_merged_for_tests", SCRIPT)
+    spec = importlib.util.spec_from_file_location(
+        "agentic_label_merged_for_tests", SCRIPT
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

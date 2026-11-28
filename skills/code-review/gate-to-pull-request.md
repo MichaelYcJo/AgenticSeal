@@ -134,7 +134,7 @@ tell.** The gate resolves the base to the ref CI reads, in the order
 `docs/running/the-broad-gate.md` *What the gate runs* gives. Quote, as printed,
 in your report to the person and not in the pull request body, where
 resolving the base moved it, where the run handed itself to the tree's copy
-of the gate, and its `outputs kept under iadd-gate-<random>/` line. Each is
+of the gate, and its `outputs kept under agentic-gate-<random>/` line. Each is
 a fact a reader learns from nowhere else, and the gate prints it after the
 last round, so no record holds it and `pr.md` cannot quote it.
 

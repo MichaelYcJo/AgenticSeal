@@ -16,7 +16,7 @@ inspector has read anything and draws nothing (`docs/running/the-broad-gate.md`
 `Verdict: cleared`, under either root. Where the reader the pull request's check
 reads it through refuses none of its lines and its newest verdict block reads
 `Verdict: cleared`, the command writes the stamp's values under
-`<git-common-dir>/iadd-stamp/` of the clone the path is in, and prints one
+`<git-common-dir>/agentic-stamp/` of the clone the path is in, and prints one
 line naming the file and `agentic stamp --from <path>`, which the inspector's
 hand-back carries to the orchestrator. The queue is keyed by the clone and by
 nothing else, so the stamp script reads no environment variable. The `Stop`
@@ -56,7 +56,7 @@ base, the work item, the newest broad run and the count of round records.
 Two limits follow from the queue's key. Where two sessions work in one clone,
 the one whose turn ends first draws every stamp pending there. A values file an
 earlier release wrote into a per-session directory under
-`<git-common-dir>/iadd-stamp/` is neither drawn nor counted, and
+`<git-common-dir>/agentic-stamp/` is neither drawn nor counted, and
 `agentic stamp --from` draws it by hand.
 check: stamp-drawn-once
 
@@ -66,7 +66,7 @@ reading `cleared` that this clone recorded refusing is skipped, so the inspector
 new audit draws the work item's one stamp.** The new audit's block stands below
 the refused verdict's block, and without a record that earlier block would
 count as the stamp. The record is an empty file,
-`<git-common-dir>/iadd-stamp-refused/<id>-<target>`, beside the values
+`<git-common-dir>/agentic-stamp-refused/<id>-<target>`, beside the values
 directory and never listed with it. One writer leaves it, for a row that stands
 in its own clone and nowhere else: `agentic stamp --inspection`, in either mode,
 where the `Branch` row's branch stands and does not hold the audited commit. It

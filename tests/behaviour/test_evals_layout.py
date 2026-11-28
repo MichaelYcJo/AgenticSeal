@@ -248,7 +248,7 @@ def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
 def load_rule_cases():
     """`evals/scripts/rule_cases.py` as a module, under a name of its own."""
     path = os.path.join(EVALS, "scripts", "rule_cases.py")
-    spec = importlib.util.spec_from_file_location("iadd_rule_cases_for_layout", path)
+    spec = importlib.util.spec_from_file_location("agentic_rule_cases_for_layout", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

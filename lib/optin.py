@@ -12,7 +12,7 @@ is the root itself"). An `agentory/` without the marker is a directory the proje
 keeps for itself, as a package named `agentory` does, and declares nothing; the
 root of such a repository is the local one.
 
-`<git-common-dir>/iadd-scratch` takes that declaration back. A repository
+`<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
 decision, which is what developing these gates consists of — carries the same
 `agentory/` as a repository under review, and the gates cannot tell them apart:
@@ -68,7 +68,7 @@ PARITY_CONFIG = "parity.json"
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
 # test. A directory of this name is not the opt-out — see `opted_out()` below.
-SCRATCH = "iadd-scratch"
+SCRATCH = "agentic-scratch"
 # The first line of `templates/setup/agentory-README.md`, which first setup writes
 # into every root: an `agentory/` is the plugin's root only where its `README.md`
 # opens with this line. `tests/lib/test_optin.py` pins the template's first

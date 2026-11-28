@@ -30,7 +30,7 @@ from test_settle import past_the_bound, unanswered
 TARGET = "skills/verify/scripts/test_layout.py"
 
 _SPEC = importlib.util.spec_from_file_location(
-    "iadd_test_layout_under_test", os.path.join(ROOT, *TARGET.split("/"))
+    "agentic_test_layout_under_test", os.path.join(ROOT, *TARGET.split("/"))
 )
 layout = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(layout)

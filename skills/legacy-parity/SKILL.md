@@ -48,7 +48,7 @@ later phase or behaviour left behind with the decision recorded under the
 policy root.
 
 A machine-local checkout path
-never goes in it: it lives in `~/.claude/iadd/parity-paths.json`, one JSON
+never goes in it: it lives in `~/.claude/agentic/parity-paths.json`, one JSON
 object from the origin remote URL to the checkout path, so worktrees and
 second checkouts resolve to one entry.
 

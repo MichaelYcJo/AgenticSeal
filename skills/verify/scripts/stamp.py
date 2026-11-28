@@ -801,7 +801,7 @@ def is_terminal(stream):
 # and the one whose turn ends first draws what waits there
 # (`docs/checks/the-stamp.md` *The stamp*).
 
-VALUES_DIR = "iadd-stamp"
+VALUES_DIR = "agentic-stamp"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
@@ -1135,7 +1135,7 @@ def cleared_before(chain, top, path, common=None, ident=None):
 # the fact, so nothing asks ancestry at read time: an ancestry check at read
 # time has regressed in each of four review rounds.
 
-REFUSED_DIR = "iadd-stamp-refused"
+REFUSED_DIR = "agentic-stamp-refused"
 # The shortest SHA two spellings are matched on (`_same_commit`); shorter
 # spellings match none.
 SHORTEST_SHA = 7
@@ -1160,7 +1160,7 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `cleared` over
     `target` and drew nothing for it: an empty file
-    `<common>/iadd-stamp-refused/<ident>-<target>`, written by
+    `<common>/agentic-stamp-refused/<ident>-<target>`, written by
     `queue_for_written_inspection` at its branch refusal. Beside `VALUES_DIR`
     and not in it, so neither `pending`, `already_queued` nor `--stop` lists
     it. Per clone, because the refused row stands in this clone alone. A record

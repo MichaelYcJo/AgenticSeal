@@ -26,7 +26,9 @@ RULE = "rule-proofer-one-finding"
 
 # The two ways an inspector case's scaffold leaves a file: a heredoc writes it,
 # and a `sed` fills a placeholder of a file already written.
-WRITTEN = re.compile(r"^cat > '([^']+)' <<'IADD_EOF'\n(.*?)\nIADD_EOF$", re.M | re.S)
+WRITTEN = re.compile(
+    r"^cat > '([^']+)' <<'AGENTIC_EOF'\n(.*?)\nAGENTIC_EOF$", re.M | re.S
+)
 FILLED = re.compile(
     r"^sed \"([^\"]+)\" '([^']+)' > record\.tmp && mv record\.tmp '\2'$", re.M
 )

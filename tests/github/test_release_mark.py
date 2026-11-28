@@ -52,7 +52,7 @@ ROWS = [
 
 
 def release_mark():
-    return load(SCRIPT, "iadd_release_mark_for_tests")
+    return load(SCRIPT, "agentic_release_mark_for_tests")
 
 
 def png_bytes(width, height):

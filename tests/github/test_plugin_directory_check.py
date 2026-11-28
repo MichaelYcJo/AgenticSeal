@@ -59,7 +59,7 @@ NAME = "examplekit"
 
 def checker():
     spec = importlib.util.spec_from_file_location(
-        "iadd_plugin_directory_check_for_tests", SCRIPT
+        "agentic_plugin_directory_check_for_tests", SCRIPT
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

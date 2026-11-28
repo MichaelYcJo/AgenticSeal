@@ -16,7 +16,7 @@ from conftest import iadd_block as block
 
 TARGET = "lib/fields.py"
 
-fields = load_lib_module("fields.py", "iadd_fields_under_test")
+fields = load_lib_module("fields.py", "agentic_fields_under_test")
 # The inspection template, which the unfilled-template case reads and
 # `tests/behaviour/test_the_inspector_inspects.py` imports from here.
 TEMPLATE = pathlib.Path(conftest.ROOT, "templates", "records", "sdd-inspection.md")

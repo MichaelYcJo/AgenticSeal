@@ -1345,7 +1345,7 @@ def _root_names():
     if not _names_read:
         here = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(here, *ROOT_NAME_HOME.split("/"))
-        spec = importlib.util.spec_from_file_location("iadd_optin_for_census", path)
+        spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)
         _names_read.append(optin.HOME)

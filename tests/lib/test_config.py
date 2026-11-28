@@ -81,7 +81,7 @@ chain = load_module(
 
 @pytest.fixture
 def agentic():
-    spec = importlib.util.spec_from_file_location("iadd_command", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_command", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -865,7 +865,7 @@ class Test_module:
         """`lib/config.py#policy_root`, which reads through
         `declared_policy_root` as `agentic fold` does: an empty value and one
         that leaves the repository read as `docs`."""
-        config = load_lib_module("config.py", "iadd_config_for_policy_root")
+        config = load_lib_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.json").write_text(
             table(("Policy root", value)), encoding="utf-8"
         )
