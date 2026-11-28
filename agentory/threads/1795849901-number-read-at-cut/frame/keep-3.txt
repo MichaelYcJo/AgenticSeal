@@ -61,6 +61,7 @@ evals/behaviour/proofer/seeded-7a8899d5/scaffold.sh:git update-ref refs/remotes/
 evals/behaviour/proofer/seeded-7a8899d5/scaffold.sh:git update-ref refs/remotes/origin/release/v0.27.0 15a5ce66a01cf4b45ae34b89ac7c35acca12fc02
 evals/behaviour/proofer/seeded-ea73e94f/scaffold.sh:git update-ref refs/remotes/origin/release/v0.27.0 5560c742e2c40f11855869021e343533e50ca960
 evals/behaviour/proofer/seeded-ea73e94f/scaffold.sh:git update-ref refs/remotes/origin/release/v0.27.0 5560c742e2c40f11855869021e343533e50ca960
+skills/commit-pr-convention/SKILL.md:  with no number, such as `release/next`, or `release/vX.Y.Z` where the
 skills/implement/orchestration.md:cuts the release branch, as a branch named `release/vX.Y.Z` does, the
 skills/verify/scripts/broad_gate.py:    `release/vX.Y.Z` and a short SHA are accepted. The SHA being accepted is
 tests/behaviour/test_release_hygiene.py:    branch `release/v0.3.0` shipped as 0.2.0*, and a rule that cannot state
@@ -72,6 +73,7 @@ tests/behaviour/test_the_contributor_has_a_procedure.py:        "skills/x/SKILL.
 tests/behaviour/test_the_contributor_has_a_procedure.py:    "docs/releasing/issues-and-milestones.md": "the branch `release/v0.3.0` shipped as 0.2.0",
 tests/behaviour/test_the_contributor_has_a_procedure.py:# gives *the branch `release/v0.3.0` shipped as 0.2.0*.
 tests/behaviour/test_the_contributor_has_a_procedure.py:RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")
+tests/behaviour/test_the_pull_request_language_is_the_repositorys.py:    "A release branch takes the repository's own name: an integration branch with no number, such as `release/next`, or `release/vX.Y.Z` where the repository names the version when it cuts the branch.",
 tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py:`release/v0.16.0` and `renderer(L)` the oracle's:
 tests/github/test_label_merged_on_release_branch.py:        "branch", ["release/v1.2.3", "release/next-1", "release/Next", "main", ""]
 tests/github/test_publish_release_note.py:        f"Merge pull request #500 from owner/release/v{version}\n\n"

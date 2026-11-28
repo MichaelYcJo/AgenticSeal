@@ -53,13 +53,13 @@ def test_the_skill_names_the_file_and_the_row():
 
 
 # The four branch shapes, `<prefix>/<issue number>-<slug>`,
-# `feat/110-117-<slug>`, `<prefix>/<slug>` and `release/vX.Y.Z`, which a
-# session copies when it cuts a branch.
+# `feat/110-117-<slug>`, `<prefix>/<slug>` and the release branch's own name,
+# which a session copies when it cuts a branch.
 BRANCH_SHAPES = (
     "A branch cut from an issue is `<prefix>/<issue number>-<slug>`.",
     "A branch for two issues joins their numbers with a hyphen: `feat/110-117-<slug>`.",
     "A change with no issue has the slug alone: `<prefix>/<slug>`.",
-    "A release branch is `release/vX.Y.Z`.",
+    "A release branch takes the repository's own name: an integration branch with no number, such as `release/next`, or `release/vX.Y.Z` where the repository names the version when it cuts the branch.",
 )
 
 

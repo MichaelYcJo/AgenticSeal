@@ -12,13 +12,13 @@ other half, the procedure itself.
 **The pin is deliberately minimal.** A case per sentence goes red for a
 reword, which teaches people to write less prose, and prose is what this
 section is. What is pinned is that the section exists, that it is the first
-thing in the file, that it names the branch by convention rather than by
-version number, and that the exemption list still names each thing a
-contributor does not write. Anything finer is a reader's job.
+thing in the file, that it names the integration branch `release/next` and
+no numbered release branch, and that the exemption list still names each
+thing a contributor does not write. Anything finer is a reader's job.
 
 **`test_no_contributor_facing_surface_names_a_concrete_release_branch`
 reaches past `CONTRIBUTING.md`.** Round 1's 🟡 5
-found the branch-by-convention rule pinned on one surface and written on four,
+found the base-branch rule pinned on one surface and written on four,
 so that one case reads `README.md`, `README.ko.md` and the pull request
 template as well. It stays here rather than in a module of its own because it
 is the same rule this file already pins, one surface wider.
@@ -60,21 +60,22 @@ def test_the_procedure_is_the_first_section_of_the_guide():
     )
 
 
-def test_the_section_names_the_branch_by_convention_not_by_number():
+def test_the_section_names_the_integration_branch_and_no_numbered_one():
     """Q1. A version number in a contribution guide is a fact that goes stale
-    on a schedule, in the one document a newcomer trusts."""
+    on a schedule, in the one document a newcomer trusts. Work collects on
+    `release/next`, which carries no number (#1671)."""
     body = section(read(GUIDE), HEADING)
-    # The branch name `release/vX.Y.Z`, which a contributor fills in and
-    # bases the pull request on.
-    assert "release/vX.Y.Z" in body, (
-        "the section does not name the release-branch convention, so a "
-        "contributor has no rule to apply after the next release"
+    # The integration branch `release/next`, which a contributor bases the
+    # pull request on.
+    assert "release/next" in body, (
+        "the section does not name the branch a contribution is based on, so "
+        "a contributor has no branch to pick"
     )
-    stale = re.findall(r"release/v\d+\.\d+\.\d+", body)
+    stale = RELEASE_BRANCH.findall(body)
     assert not stale, (
         f"the section names {sorted(set(stale))} — a concrete release branch "
         "is deleted after its release, so this sentence becomes false on a "
-        "schedule. Name the convention instead"
+        "schedule. Name `release/next` instead"
     )
 
 
@@ -145,38 +146,38 @@ CONVENTION_SURFACES = [
 
 @pytest.mark.parametrize("surface", CONVENTION_SURFACES, ids=posix_id)
 def test_no_contributor_facing_surface_names_a_concrete_release_branch(surface):
-    """Q1 holds wherever the convention is written, not only where it was
+    """Q1 holds wherever the base branch is written, not only where it was
     first written.
 
-    Four surfaces carry the release-branch convention after this work item and
-    two of them were pinned — `CONTRIBUTING.md` above, and the refusal text in
+    Four surfaces name the branch a contribution is based on, and two of them
+    were pinned — `CONTRIBUTING.md` above, and the refusal text in
     `tests/behaviour/test_the_release_check_watches_what_ships.py`. This branch put the
     same sentence on three more and guarded none, which is the defect being
     the coordinate rather than the class.
 
     The template is the most exposed of the three: it is pre-filled into every
     pull request, a maintainer reads it weekly, and "helpfully" replacing
-    `release/vX.Y.Z` with today's branch is the single edit Q1 exists to stop.
-    A concrete branch is deleted after its release, so the sentence becomes
-    false on a schedule wherever it stands.
+    `release/next` with a numbered branch that shipped is the single edit Q1
+    exists to stop. A concrete branch is deleted after its release, so the
+    sentence becomes false on a schedule wherever it stands.
     """
     text = read(os.path.join(ROOT, surface))
-    # The branch name `release/vX.Y.Z`, which a contributor reading the
-    # surface fills in and bases the pull request on.
-    assert "release/vX.Y.Z" in text, (
-        f"{surface} no longer names the release-branch convention at all, so "
-        "a contributor reading it has no rule to apply after the next release"
+    # The integration branch `release/next`, which a contributor reading the
+    # surface bases the pull request on.
+    assert "release/next" in text, (
+        f"{surface} no longer names the branch a contribution is based on, so "
+        "a contributor reading it has no branch to pick"
     )
-    stale = re.findall(r"release/v\d+\.\d+\.\d+", text)
+    stale = RELEASE_BRANCH.findall(text)
     assert not stale, (
         f"{surface} names {sorted(set(stale))} — a concrete release branch is "
-        "deleted after its release. Name the convention instead"
+        "deleted after its release. Name `release/next` instead"
     )
 
 
 # --- the same rule, one population wider (#466) -----------------------------
 
-# The four surfaces above were the population the convention was WRITTEN on.
+# The four surfaces above were the population the base branch was WRITTEN on.
 # A concrete branch name goes stale wherever a reader meets it, so the rule
 # reaches every file the hygiene timer rule already reads — the tuple
 # `tests/behaviour/test_release_hygiene.py#LOADED` names, through that module's own
@@ -220,8 +221,8 @@ def test_no_loaded_file_names_a_concrete_release_branch():
     # history sentence is refused.
     assert not found, (
         "a concrete release branch is deleted after its release, so a file "
-        "that ships naming one is false on a schedule. Name the convention "
-        "(`release/vX.Y.Z`) instead, or, where the name is history, add the "
+        "that ships naming one is false on a schedule. Name the integration "
+        "branch (`release/next`) instead, or, where the name is history, add the "
         "sentence that carries it to RELEASE_BRANCH_HISTORY: "
         + "; ".join(f"{rel}: {', '.join(n)}" for rel, n in sorted(found.items()))
     )

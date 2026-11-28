@@ -179,9 +179,9 @@ def test_the_refusal_names_the_branch_a_contribution_goes_to():
     base branch, so the refusal names the branch a contribution's base
     belongs to."""
     text = refusal()
-    # The branch a contributor bases the pull request on, with the version
-    # they fill in.
-    assert "release/vX.Y.Z" in text, (
+    # The integration branch `release/next`, which a contributor bases the
+    # pull request on.
+    assert "release/next" in text, (
         "the refusal does not say where a contribution's base belongs. A "
         "message that diagnoses without naming the fix leaves the reader "
         f"exactly where they were:\n{text}"

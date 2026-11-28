@@ -222,9 +222,9 @@ def shipped_tags(root=ROOT):
     """Every version `root` has a `v*` tag for, bare.
 
     A tag exists only once the release reached `main`, which is what makes it
-    the one truthful source for *shipped* — the release's first pull request
-    bumps the running version before the release ships, and the version being
-    cut is the timer the rule exists to catch. A tag that is not version-shaped is
+    the one truthful source for *shipped* — the last pull request into
+    `release/next` bumps the running version before the release ships, and
+    the version being cut is the timer the rule exists to catch. A tag that is not version-shaped is
     not a release and is dropped.
     """
     return {
@@ -246,9 +246,10 @@ def timers_in(rel, text, running, shipped=frozenset()):
     shipped (#179's second candidate).
 
     A tagged version is history by the same argument, one number higher
-    (#363): `plugin.json` is bumped in a release's first pull request, so from
-    that release's merge until the next release's first pull request the
-    running version is one that has already shipped, and the documents
+    (#363): `plugin.json` is bumped in the last pull request into
+    `release/next` before a release is cut, so from that release's merge
+    until the next release's bump the running version is one that has
+    already shipped, and the documents
     shipping with it could not name it. `shipped`
     is the set of tagged versions of the root being swept — never derived
     from anything the bump's own commit writes.
@@ -314,9 +315,9 @@ def refusal(running, offenders):
     return (
         f"a loaded file names a version at or above the running {running}. "
         "Such a line is right for exactly one release and a timer before it: "
-        "it goes red in the commit that moves the version to it, the first "
-        "pull request of that version's release, whose own change did not "
-        "write the line.\n  "
+        "it goes red in the commit that moves the version to it, the last "
+        "pull request into `release/next` before that version's release is "
+        "cut, whose own change did not write the line.\n  "
         + "\n  ".join(offenders)
         + "\n\n"
         + what_to_write_instead()
@@ -480,8 +481,8 @@ def test_the_refusal_prints_every_piece_it_builds():
         "is the half that stops the next author writing another one"
     )
     assert (
-        " the first pull request of that version's release, whose own change "
-        "did not write the line." in text
+        " the last pull request into `release/next` before that version's "
+        "release is cut, whose own change did not write the line." in text
     ), (
         "the timer's cost went — it fires in a pull request that did not "
         "write the line, and that is what makes this worth a check rather "
@@ -618,9 +619,10 @@ def test_a_version_below_the_running_one_is_history_and_is_kept():
 
 
 def test_a_tagged_version_is_history_and_is_kept():
-    """#363. A release's first pull request bumps `plugin.json`, so from that
-    release's merge until the next release's first pull request the running
-    version is one that has ALREADY shipped — tagged, merged to `main`,
+    """#363. The last pull request into `release/next` before a release is
+    cut bumps `plugin.json`, so from that release's merge until the next
+    release's bump the running version is one that has ALREADY shipped —
+    tagged, merged to `main`,
     published in its release note — and the documents
     that ship with it could not name it. `timers_in`'s own docstring argues
     the ceiling from *below `running` is history*; a shipped version is

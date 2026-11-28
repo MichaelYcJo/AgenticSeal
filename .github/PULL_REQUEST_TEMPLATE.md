@@ -1,8 +1,7 @@
 <!-- BASE BRANCH — the one thing to check before anything below.
 
-Base this on the open `release/vX.Y.Z` branch, not on `main`. It is the only
-branch beginning `release/` in the dropdown to the left of this box, and
-`main` is what GitHub offers by default.
+Base this on `release/next`, not on `main`. Pick it in the dropdown to the
+left of this box; `main` is what GitHub offers by default.
 
 A pull request into `main` is a release here. If yours touches what the plugin
 ships, CI refuses it for leaving `.claude-plugin/plugin.json` alone; if it does

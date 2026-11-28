@@ -471,8 +471,8 @@ after `!` in a session, or ask the session to run it.
 
 ## Contributing
 
-**Base your pull request on the open `release/vX.Y.Z` branch, not on `main`.**
-Work collects on one release branch, and `main` moves once per release.
+**Base your pull request on `release/next`, not on `main`.**
+Work collects on that one release branch, and `main` moves once per release.
 A contribution aimed at `main` that touches what the plugin ships is refused
 by CI for leaving the version alone.
 

@@ -291,7 +291,9 @@ here: a branch name is typed into a shell and pasted into a URL.
 - A branch for two issues joins their numbers with a hyphen:
   `feat/110-117-<slug>`.
 - A change with no issue has the slug alone: `<prefix>/<slug>`.
-- A release branch is `release/vX.Y.Z`.
+- A release branch takes the repository's own name: an integration branch
+  with no number, such as `release/next`, or `release/vX.Y.Z` where the
+  repository names the version when it cuts the branch.
 
 ```
 fix/940-on-demand-files-state-the-current-rule

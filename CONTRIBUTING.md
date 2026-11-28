@@ -2,23 +2,16 @@
 
 ## Opening a pull request
 
-**A contributor bases the branch on the open release branch, not on
-`main`.** GitHub offers `main` by default, and for everything except a
-release that default is the wrong one here. Work collects on one release
-branch and `main` moves once per release; `docs/releasing/branch-and-release.md` *Work
+**A contributor bases the branch on `release/next`, not on `main`.**
+GitHub offers `main` by default, and for everything except a release that
+default is the wrong one here. Work collects on `release/next`, the one
+release branch, which carries no version number, and `main` moves once per
+release; `docs/releasing/branch-and-release.md` *Work
 accumulates on a release branch* holds the reasoning, and this section is the
 part a contributor needs.
 
-**How to find it.** Exactly one branch named `release/vX.Y.Z` is open at a
-time. On GitHub it is the only entry beginning `release/` in the branch
-dropdown on the code page. In a clone:
-
-```bash
-git branch -r --list 'origin/release/*'   # the one to base on, and nothing else
-```
-
-The contributor sets it as the base when opening the pull request: the base
-is the left-hand dropdown on the compare page. For a pull request already
+The contributor sets `release/next` as the base when opening the pull
+request: the base is the left-hand dropdown on the compare page. For a pull request already
 open against `main`, the **Edit** button beside its title changes the base
 without closing anything.
 
@@ -29,7 +22,7 @@ contribution is not a release and must not touch that file. Changing the base
 instead takes the refusal with it.
 
 **The contributor opens the pull request when the work is done, and opens it
-ready.** Every push to an open pull request into the release branch runs the
+ready.** Every push to an open pull request into `release/next` runs the
 suite on Linux and Windows, and a branch with no pull request runs nothing.
 macOS and Python 3.14 run on the release pull request into `main`. So the
 branch is pushed as often as the contributor likes, and the pull request
@@ -39,7 +32,7 @@ a maintainer's run follows.
 
 ### What a contribution is asked for
 
-- A branch cut from the open release branch, and a pull request based on it.
+- A branch cut from `release/next`, and a pull request based on it.
 - `bin/test tests/<file> -q` on each module the change touched, and
   `bin/test tests/text tests/behaviour -q`, which hold the tree-wide files
   *The test layout* names. CI runs the rest on Linux and Windows, and macOS
@@ -57,8 +50,8 @@ a maintainer's run follows.
 
 This repository runs the IADD process on itself: work items under
 `agentory/threads/`, review rounds, a version that moves once per release. **A
-contribution is asked for none of it.** The version and milestone steps
-belong to a release and exit early on any base but `main`. The others run on
+contribution is asked for none of it.** The version step and the release
+check belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
 of a branch that declared nothing. Those are the review-chain check and the
 issue-claim report. The suite reads one fact

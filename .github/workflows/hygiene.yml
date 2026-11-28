@@ -71,10 +71,11 @@ jobs:
       - name: a change to what ships must move the version
         shell: bash
         run: |
-          # Work accumulates on a release branch; the version moves once, in
-          # the release's first pull request into that branch, and reaches
-          # `main` when the branch merges. Asking every feature PR to bump it
-          # is what made one commit one release.
+          # Work accumulates on `release/next`; the version moves once, in
+          # the last pull request into it before the release pull request
+          # opens, and reaches `main` when the release pull request merges.
+          # Asking every feature PR to bump it is what made one commit one
+          # release.
           if [ "${{ github.base_ref }}" != "main" ]; then
             echo "base is ${{ github.base_ref }}, not a release PR — the version is checked when the release branch merges to main"; exit 0
           fi
@@ -109,7 +110,7 @@ jobs:
             # first-time contributor's, and the message named `plugin.json` —
             # the one file a contribution must not touch. Pinned in
             # `tests/behaviour/test_the_release_check_watches_what_ships.py`.
-            echo "::error::this PR changes what ships and leaves plugin.json at $old. If this is the release pull request, move the version — an update keyed to it reaches nobody. If this is a contribution, the base branch is the cause and not the version: a pull request into main is a release here, and contributions go to the open release/vX.Y.Z branch instead. Change the base rather than plugin.json — see CONTRIBUTING.md, 'Opening a pull request'."
+            echo "::error::this PR changes what ships and leaves plugin.json at $old. If this is the release pull request, move the version in a pull request into release/next — an update keyed to it reaches nobody. If this is a contribution, the base branch is the cause and not the version: a pull request into main is a release here, and contributions go to release/next instead. Change the base rather than plugin.json — see CONTRIBUTING.md, 'Opening a pull request'."
             exit 1
           fi
 
