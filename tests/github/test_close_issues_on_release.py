@@ -749,13 +749,19 @@ class Test_main:
         assert MERGED not in tracker.issues[7], "merged: next survived"
         assert f"removed {MERGED!r} from #7" in capsys.readouterr().out
 
-    def test_a_dry_run_names_merged_next_and_writes_nothing(self, monkeypatch, capsys):
-        tracker = Tracker(issues={7: [MERGED]}, pulls={100: "Closes #7"})
+    def test_a_dry_run_names_each_spent_label_and_writes_nothing(
+        self, monkeypatch, capsys
+    ):
+        """S8 of #1671 under `DRY_RUN`: a preview names each label the close
+        would take off, the second as well as the first."""
+        tracker = Tracker(issues={7: [LABEL, MERGED]}, pulls={100: "Closes #7"})
         mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
         monkeypatch.setenv("DRY_RUN", "1")
         mod.main()
-        assert MERGED in tracker.issues[7]
-        assert f"would remove {MERGED!r} from #7" in capsys.readouterr().out
+        assert tracker.issues[7] == [LABEL, MERGED], "a dry run wrote to the tracker"
+        out = capsys.readouterr().out
+        assert f"would remove {LABEL!r} from #7" in out, out
+        assert f"would remove {MERGED!r} from #7" in out, out
 
     # The already-closed issue, which no case reached (round 1, finding 1).
     # Every A11 case above puts the issue in the `open` state, so all of them
