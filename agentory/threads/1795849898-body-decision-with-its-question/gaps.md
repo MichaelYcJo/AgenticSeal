@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The broad gate over the branch's commits, phase 1's and round 1's fix pass's: the full suite, the repository-wide lint and the format check of `agentory/config.json`'s `Broad gate` key. The crafter ran the phase-boundary set `trail/phases/phase-1.md` names, ran the same set again after round 1's fixes, and linted and formatted the two Python files it changed | the orchestrator, at the broad run |
+| The broad gate at the branch's HEAD once the review rounds settle: the full suite, the repository-wide lint and the format check of `agentory/config.json`'s `Broad gate` key. The crafter ran the phase-boundary set `trail/phases/phase-1.md` names, ran the same set again after round 1's fixes and after round 2's, and linted and formatted the two Python files it changed | the orchestrator, at the broad run |
 | Whether an orchestrator writes `pr.md`'s pairs of quotes and the `Judgment` cell's form as `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* and `templates/records/sdd-plan.md` now state them, `frame/design.md` S1 and S8. No case holds what an orchestrator writes | the proofer's rounds and the inspector, at this work item's own `pr.md` |
 
 ## Not done
