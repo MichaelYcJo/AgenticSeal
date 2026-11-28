@@ -84,6 +84,11 @@ job at the tag is not.
     request's body, which one `gh release edit` repairs.
 ```
 
+```iadd
+verdict: fixed 137b9523
+answer: The finding holds. 137b9523 rewrites in place, in `.github/scripts/publish_release_note.py`, the module docstring's paragraphs *The fragments are also a page of reasoning per change* (now "keeps the fragments beneath, folded, or for a range of settles alone the release pull request's body" and "every line is ... a fragment, or a line of the release pull request's body") and **The summary adds no way to fail**, the `merged_pulls` docstring, and its two printed lines, in the paste-ready fix's words for the two lines. `tests/github/test_publish_release_note.py#test_the_list_is_read_from_the_release_branch` pins the failed line's new words, and now also pins the not-JSON line whole, which no case held before; its docstring names the release pull request's body too. Each assertion was seen red against the old line it pins: with the test edited and the code not, `-k "read_from_the_release_branch or gave_no_answer_is_read"` printed `1 failed, 1 passed` on `assert "the note is the theme line and the fragments or the release pull request's body alone" in 'gh pr list failed, so the note is the theme line and the fragments alone: HTTP 502\n'`; with the failed line fixed and the not-JSON line not, the same command failed on `assert 'gh pr list p...ments alone\n' == "gh pr list p... body alone\n"`. `gaps.md`'s first *Not done* paragraph is removed. The checklist sentence is rule change 5's (a150b892) and is not touched here. After the fix, `git grep -n -F "fragments alone" -- .github docs skills tests` prints `.github/scripts/publish_release_note.py:97` and `:611`, the rewritten sentences, which name the release pull request's body beside the fragments; `docs/releasing/release-checklist.md:293`, which rule change 5 rewrites at the settle; and `tests/github/test_publish_release_note.py:22`, the A5 line of a release with fragments (#572), which stands as the finding says. `git grep -n -F "or a fragment" -- .github docs skills tests` prints nothing. The changelog fragment states nothing of the log line, so it does not change.
+```
+
 ### 2. The settle skill's new sentence names the plugin's release workflow as "this repository's", which an installed copy reads as the user's repository
 
 ```iadd
@@ -99,6 +104,11 @@ So a settle writes no changelog fragment. In the plugin's own repository,
 where a release carries settles alone, its release workflow,
 `.github/scripts/publish_release_note.py`, builds the note from the body of
 the release pull request where any other note carries the fragments.
+```
+
+```iadd
+verdict: fixed 22bc1b71
+answer: The finding holds. 22bc1b71 applies the paste-ready fix as written at `skills/settle/SKILL.md:470-473`, which now reads the same for an installed copy as lines 368-372 do. `frame/design.md` *Scope* item 6 keeps "this repository's", a record of this repository, as the finding says. After the fix, `git grep -n "this repository's" -- 'skills/*/SKILL.md'` prints only `skills/parity-setup/SKILL.md:56`, an origin remote URL, a different fact. The narrow set after both fix commits, executed: `uv run --no-project tests/run_tests.py -q tests/github/test_publish_release_note.py tests/github/test_release_mark.py tests/skills/test_settle.py tests/lib/test_console.py tests/text tests/behaviour` printed `1236 passed, 10 skipped`; `uvx ruff check` and `uvx ruff format` on the two changed Python files printed `All checks passed!` and `2 files left unchanged`. The read of the range, at HEAD `22bc1b71`: `bin/agentic range agentory/threads/1795841828-settle-only-release-note --from 07f6f49a --out <scratch>/fix-1/range.txt` printed `agentic range: 07f6f49a9381330b298b37da0a8ff25959bd49ac..22bc1b710cd37531823ff514ff929e10754d38ee` and `wrote: <scratch>/fix-1/range.txt, 1138 lines`, and was read to its last line. It made no correction, so no correction's hunk is quoted. Statements it leaves standing: `frame/design.md` *Scope* item 6's "this repository's", for the reason above; the second *Not done* paragraph of `gaps.md`, on `chain_check.py#settled`'s docstring, unchanged by this pass. The sample is the two findings' own `git grep` commands above. It reaches only the words they search, and a statement of the same fact in other words, in `docs/` or in a skill, stands outside it.
 ```
 
 ## Confirmations
