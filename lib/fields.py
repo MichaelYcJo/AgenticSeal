@@ -1,11 +1,11 @@
-"""The one reader and the one spelling of the `seal` blocks a work item's
+"""The one reader and the one spelling of the `iadd` blocks a work item's
 records hold their fields in.
 
-A field a script reads in a round record, in `guarantee.md` or in
-`trail/gate.md` stands inside a `seal` block and nowhere else. A block is a
+A field a script reads in a round record, in `inspection.md` or in
+`trail/gate.md` stands inside an `iadd` block and nowhere else. A block is a
 fenced code block, by `lib/blocks.py#walk`, outside every other fence
 and every HTML comment block, whose opener is a line of three backticks then
-`seal`, with nothing before it and nothing after it. It closes where
+`iadd`, with nothing before it and nothing after it. It closes where
 CommonMark closes it. Each line inside it is `<key>: <value>`, or `<key>:`
 where the value's shape takes nothing, with the key spelt as `Kind` below
 spells it; the first line's key names the block's kind among the kinds the
@@ -27,7 +27,7 @@ notice, each refusal and notice at its 1-based line:
             above it opens an HTML block or a fence stands in a list item, a
             block quote or an indent, so no block from there on is read
   named     a fence outside every fence whose info string's first word,
-            case folded, is `seal`, and whose line is not exactly the
+            case folded, is `iadd`, and whose line is not exactly the
             opener: no block, and its lines are no fields. A notice changes
             no exit code
 
@@ -42,8 +42,8 @@ this module does not read.
 
 Standard library only; it imports `blocks` beside it. `chain_check.py`
 and `broad_gate.py` load it through `lib/sibling.py`, as they load
-`lib/routing.py`; `lib/gaps.py` imports it beside it; `seal_stamp.py`, which
-`seal stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
+`lib/routing.py`; `lib/gaps.py` imports it beside it; `stamp.py`, which
+`agentic stamp` runs, and `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections
@@ -65,8 +65,7 @@ except ImportError as missing:
     ) from missing
 
 # The info string, and the one line that opens a block.
-# exempt from root_name: a fenced block's info string, which names no directory
-INFO = "seal"
+INFO = "iadd"
 FENCE = "`" * 3
 OPENER = FENCE + INFO
 
@@ -83,11 +82,11 @@ REOPENS = "reopens:"
 VERDICT = "verdict:"
 ANSWER = "answer:"
 CONFIRMS = "confirms:"
-SEALER_VERDICT = "Verdict:"
+INSPECTOR_VERDICT = "Verdict:"
 RUN = "run:"
 
-# The sealer's three verdict words.
-SEALED = "sealed"
+# The inspector's three verdict words.
+CLEARED = "cleared"
 WITHHELD = "withheld"
 UNDECIDED = "undecided"
 
@@ -123,7 +122,7 @@ class Kind:
 # The kinds. `verdict:` takes no `open`: a finding with no close block is
 # open. A finding's `severity:` and `evidence:` and a close's `answer:` take
 # any text, and the last two may be left out: no script decides on their
-# values, and `seal pr-body` copies each block whole.
+# values, and `agentic pr-body` copies each block whole.
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,
@@ -201,11 +200,11 @@ VERDICT_BLOCK = Kind(
             "it names the audited commit as `<sha> against <base>`, each one word",
         ),
         ORIGINAL: ORIGINAL_SPEC,
-        SEALER_VERDICT: Spec(
-            rf"{SEALED}|{WITHHELD} reason: \S.*|{UNDECIDED} question: \S.*",
+        INSPECTOR_VERDICT: Spec(
+            rf"{CLEARED}|{WITHHELD} reason: \S.*|{UNDECIDED} question: \S.*",
             ONE,
-            f"the verdict reads `{SEALER_VERDICT} {SEALED}`, `{SEALER_VERDICT} "
-            f"{WITHHELD} reason: <reason>` or `{SEALER_VERDICT} {UNDECIDED} "
+            f"the verdict reads `{INSPECTOR_VERDICT} {CLEARED}`, `{INSPECTOR_VERDICT} "
+            f"{WITHHELD} reason: <reason>` or `{INSPECTOR_VERDICT} {UNDECIDED} "
             "question: <question>`, written exactly so",
         ),
     },
@@ -223,7 +222,7 @@ RUN_BLOCK = Kind(
 
 # The kinds each record holds; within one record, a first key names one kind.
 ROUND_RECORD = (ROUND_BLOCK, FINDING_BLOCK, CLOSE_BLOCK, CONFIRMATION_BLOCK)
-GUARANTEE = (VERDICT_BLOCK,)
+INSPECTION = (VERDICT_BLOCK,)
 GATE = (RUN_BLOCK,)
 
 # What each refusal and notice says.
@@ -239,16 +238,16 @@ COMMENT_LINE = (
 UNSURE = (
     "the walk cannot place this fence line: a line above it opens an HTML "
     "block, or a fence stands in a list item, a block quote or an indent, so "
-    "no `seal` block from there on is read; write each fence at the start of "
+    "no `iadd` block from there on is read; write each fence at the start of "
     "its line"
 )
-EMPTY = "an empty `seal` block: its first line opens with {openers}"
+EMPTY = "an empty `iadd` block: its first line opens with {openers}"
 NO_KIND = (
-    "`{line}` opens no `seal` block this record holds: a block's first line "
+    "`{line}` opens no `iadd` block this record holds: a block's first line "
     "opens with {openers}"
 )
 BLANK = (
-    "a blank line inside a `seal` block: its lines are fields, one after "
+    "a blank line inside an `iadd` block: its lines are fields, one after "
     "another, and the block is not read past it"
 )
 NOT_A_FIELD = (
@@ -260,9 +259,9 @@ ONE_OF = "`{key}` beside `{other}`: a {kind} block holds one of the two"
 SHAPE = "`{line}` does not read whole as `{key} <value>`: {says}"
 MISSING = "the {kind} block holds no `{key}` line, and it holds one"
 NEAR = (
-    "not read: `{line}` opens a fence like a `seal` block and is not one, so "
-    "its lines are no fields; a `seal` block opens with three backticks and "
-    "`seal` alone on the line"
+    "not read: `{line}` opens a fence like an `iadd` block and is not one, so "
+    "its lines are no fields; an `iadd` block opens with three backticks and "
+    "`iadd` alone on the line"
 )
 
 Field = collections.namedtuple("Field", "value line match")
@@ -375,7 +374,7 @@ def assemble(pairs, kinds):
 
 
 def verdict_word(block):
-    """`sealed`, `withheld` or `undecided` for a verdict block, the first
+    """`cleared`, `withheld` or `undecided` for a verdict block, the first
     word of its `Verdict:` value; None for a block of another kind."""
-    said = block.fields.get(SEALER_VERDICT)
+    said = block.fields.get(INSPECTOR_VERDICT)
     return said.value.split(" ", 1)[0] if said else None

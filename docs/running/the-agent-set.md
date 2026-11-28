@@ -31,10 +31,10 @@ retired numbers are 8, 16 and 20. A new rule takes the number after the
 highest one used, retired or not.
 check: tests/text/test_every_agent_reads_the_contract.py tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
-**The agents are the framer, the crafter, the proofer, the sealer and the
+**The agents are the framer, the crafter, the proofer, the inspector and the
 tracer, and each name says its part of one order.** The framer designs the
-work, the crafter builds it, the proofer finds its defects, the sealer gives
-the final guarantee and seals it, and the tracer, outside that order, traces
+work, the crafter builds it, the proofer finds its defects, the inspector inspects
+the work and gives the final verdict, and the tracer, outside that order, traces
 what an original codebase does for a migration. The crafter is named for the
 Software Craftsmanship movement, and the proofer for the proof impression a
 seal maker strikes to find a defect before the seal is used. An agent's name
@@ -131,10 +131,10 @@ check: tests/text/test_the_rules_have_one_owner.py
 
 **A review round is one file the proofer writes, the fix pass writes two lines
 of each finding it answers, the orchestrator's broad run writes
-`trail/gate.md`, and the sealer's verdict is `guarantee.md` at the thread's
+`trail/gate.md`, and the inspector's verdict is `inspection.md` at the thread's
 top.**
 `docs/forms/the-round-record.md`, `docs/checks/the-pull-request-check.md`
-and `docs/forms/the-guarantee.md` hold what each of those files carries.
+and `docs/forms/the-inspection.md` hold what each of those files carries.
 check: tests/skills/test_chain_check.py
 
 No case runs the tracer. That a spawn opens `legacy-parity` first, returns
@@ -142,13 +142,13 @@ facts and no verdict, and returns `original not found` where the original
 does not resolve is read from `agents/tracer.md`, not observed.
 
 **The last party audits the others, and is independent of them.** The
-sealer's reference is the issue body and the tree, so the orchestrator's
+inspector's reference is the issue body and the tree, so the orchestrator's
 part of a pull request body, a phase record or a review verdict that says
 what the tree does not is caught by a party that wrote none of them. It
 re-judges neither the frame nor the code's quality, which stay the framer's
 and the proofer's, and it runs on Opus, the level of the agents it audits.
-`docs/forms/the-guarantee.md` *The guarantee* holds the rule.
-check: tests/behaviour/test_the_sealer_guarantees.py
+`docs/forms/the-inspection.md` *The inspection* holds the rule.
+check: tests/behaviour/test_the_inspector_inspects.py
 
 **A build phase leaves a record, the way a review round does.** What a phase discovers
 reaches the next phase only if somebody retypes it into the next spawn prompt. So a
@@ -175,7 +175,7 @@ serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
 also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
-beside it, and the orchestrator's `seal gate` log carries the work item id.
+beside it, and the orchestrator's `agentic gate` log carries the work item id.
 The rule stands in contract rule 17, which every agent receives, and each
 definition names its own directory under it. No agent removes its directory
 or a file in it. The name already keeps two agents' files apart, the one
@@ -193,9 +193,9 @@ stands on, and the orchestrator's go to `frame/plan.md` *Judgments of the run*.*
 framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternatives
 considered*; the crafter's in the phase record's *What this phase found*, each decision
 with its grounds and the document; the proofer's as a finding's grounds and `evidence:`
-line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no record of
-its own, and a judgment it makes in the run, to go on or stop, to route a regression, to
-file a leftover, to fold a decision into the frame, would reach the next session only
+line; the inspector's in `inspection.md` *The parties*. The orchestrator has no record
+of its own, and a judgment it makes in the run, to go on or stop, to route a regression,
+to file a leftover, to fold a decision into the frame, would reach the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
 
@@ -212,18 +212,18 @@ check: tests/text/test_the_rules_have_one_owner.py
 
 **A round compares the work item's records with the code, with each
 other, with the other work items' frames and with their own figures,
-and the sealer reads a fix pass that touched the records alone over its
+and the inspector reads a fix pass that touched the records alone over its
 diff, in place of a round.** In releases 0.0.2 to 0.0.4 of a repository
 that runs the chain, 8 of the 17 findings a first round missed compared
 a record with a fact or with another record, and 43 of the 72 defects a
 commit after round 1 made stood in records (#1615). The rows are
-`skills/code-review/SKILL.md` *Comparison axes*'s, and the sealer's read
-is `agents/sealer.md` step 4's. Whether a pass is the sealer's is the
+`skills/code-review/SKILL.md` *Comparison axes*'s, and the inspector's read
+is `agents/inspector.md` step 4's. Whether a pass is the inspector's is the
 row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is
 not licence to skip a party*, which the orchestrator reads through the
 chain check's `--worktree` run, as `skills/code-review/orchestration.md`
 *Orchestrator: the run ends with a verifying round* states.
-check: tests/behaviour/test_the_sealer_guarantees.py
+check: tests/behaviour/test_the_inspector_inspects.py
 
 ## What a spawn costs
 

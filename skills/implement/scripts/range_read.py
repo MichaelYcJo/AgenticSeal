@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""seal range: the read a builder makes of its range and of the work item's
+"""agentic range: the read a builder makes of its range and of the work item's
 records before it closes a phase or a fix pass, printed into one file.
 
-  seal range <item> --from <commit> --out <file>
+  agentic range <item> --from <commit> --out <file>
 
 `<item>` is the work item's directory, `--from` the commit the range starts
 after, and `--out` the file the command writes, replacing what it held.
@@ -148,7 +148,7 @@ ABSENT = "==> {path}: not at HEAD <=="
 ON_DISK = "==> {path}: whole on disk, since the root is local <=="
 ABSENT_ON_DISK = "==> {path}: not on disk, since the root is local <=="
 
-SUMMARY = "seal range: {start}..{head}"
+SUMMARY = "agentic range: {start}..{head}"
 WROTE = "wrote: {out}, {lines} lines"
 NOT_PRINTED = "not printed: {path}, {why}"
 NOT_READ = "not read: {path} has an uncommitted change, which the file does not hold"
@@ -461,7 +461,7 @@ def _read(item, start, cwd):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="seal range",
+        prog="agentic range",
         description="Print into one file every hunk of a range with the "
         "paragraph or unit around it, then the work item's records that "
         "state the present, whole.",
@@ -481,16 +481,18 @@ def main(argv=None):
     try:
         text, summary = _read(args.item, args.start, os.getcwd())
     except Refused as refused:
-        print(f"seal range: {refused}", file=sys.stderr)
+        print(f"agentic range: {refused}", file=sys.stderr)
         return 2
     except gitcmd.Failed as failed:
-        print(f"seal range: {failed.line}", file=sys.stderr)
+        print(f"agentic range: {failed.line}", file=sys.stderr)
         return 2
     try:
         with open(args.out, "w", encoding="utf-8", newline="") as handle:
             handle.write(text)
     except OSError as exc:
-        print(f"seal range: {args.out} could not be written ({exc})", file=sys.stderr)
+        print(
+            f"agentic range: {args.out} could not be written ({exc})", file=sys.stderr
+        )
         return 2
     print(summary[0])
     print(WROTE.format(out=args.out, lines=text.count("\n")))

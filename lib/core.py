@@ -1,14 +1,14 @@
 """What the core hook prints into a session.
 
 **This module is the one definition of the core hook's output.** The core is
-`skills/core/SKILL.md`. A session in a repository that holds a `seal/` root
+`skills/core/SKILL.md`. A session in a repository that holds an `agentory/` root
 receives it from the plugin's `SessionStart` hook, `hooks/core-start.py`,
 which prints `output`: the file's text below its frontmatter, under one
 first line naming the file printed and the running plugin's version, and
 above one closing line, `closing`, naming where work starts by two paths
 relative to the plugin's root. The frontmatter stays out because its
 `description:` already reaches every session in the harness's skill
-listing. `seal payload` counts `rendered`'s bytes, so the hook and the meter
+listing. `agentic payload` counts `rendered`'s bytes, so the hook and the meter
 cannot disagree about what a session received.
 
 **Where the core is printed, the plugin's root stands once in the
@@ -20,8 +20,8 @@ line names the core's file for the session to open, above the closing line
 naming the running plugin's root whichever core it is, because past the
 cap the harness keeps only a preview and the closing line would be lost.
 
-**A session in a repository with no `seal/` root receives nothing**: the
-root is what says the repository runs the AgenticSeal process
+**A session in a repository with no `agentory/` root receives nothing**: the
+root is what says the repository runs the IADD process
 (`optin.opted_in`), and a session doing other work pays for no core.
 
 **Where the session's repository is a clone of the running plugin, the file
@@ -60,13 +60,13 @@ CAP = 10_000
 # than this receives `TOO_LONG` once the output reaches `CAP`.
 ROOT_ROOM = 100
 
-HEADER = "AgenticSeal core from {path}, plugin {version}."
-MISSING = "AgenticSeal core: {path} is not a file, so no core was printed."
+HEADER = "IADD core from {path}, plugin {version}."
+MISSING = "IADD core: {path} is not a file, so no core was printed."
 # What the hook prints in place of a core whose whole output would reach
 # `CAP`. It opens as `MISSING` does and not as `HEADER` does, so a session
 # reads it as no core printed.
 TOO_LONG = (
-    "AgenticSeal core: printing {path} here would pass the harness's cap of "
+    "IADD core: printing {path} here would pass the harness's cap of "
     "{cap:,} characters on a hook's output, so no core was printed. Open that "
     "file whole before anything else."
 )
@@ -177,7 +177,7 @@ def rendered(path, plugin_root):
 
 def output(cwd, plugin_root):
     """What the hook prints for a session in CWD: `rendered` for the core
-    `origin` names, where CWD's repository holds a `seal/` root, and ""
+    `origin` names, where CWD's repository holds an `agentory/` root, and ""
     where it holds none."""
     if not optin.opted_in(cwd):
         return ""

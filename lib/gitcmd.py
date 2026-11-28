@@ -20,7 +20,7 @@ in a traceback.
 answers a command the run already asked from the first answer. A command
 enters it for a run in which nothing the command writes changes what git
 answers it, so an answer given again is the answer git would give.
-`chain-check` writes nothing. `seal settle` writes the working tree under
+`chain-check` writes nothing. `agentic settle` writes the working tree under
 `--apply`, and the policy root under `--draft`. The only git read after
 those writes asks where the common git directory is
 (`lib/optin.py#git_common_dir`, from a linked worktree), and neither write
@@ -91,7 +91,7 @@ git printed as `git` reads its text, and `batch_texts` reads what `git
 cat-file --batch` printed by the size each header gives.
 
 Standard library only, and Python 3.9 syntax: the `Stop` hook's
-`seal_stamp.py`, and every hook that reads `lib/optin.py`, reach it on
+`stamp.py`, and every hook that reads `lib/optin.py`, reach it on
 whatever `python3` starts them.
 """
 
@@ -112,7 +112,7 @@ KEYS = (
 # The seconds one git or `gh` command may take before it is no answer. It
 # guards against a git that hangs and is no budget of a read: measured over
 # this repository's 675 commits, the heaviest read the scripts make took
-# 0.02 s and `seal settle`'s whole dry run 1.42 s. 60 was the largest of the
+# 0.02 s and `agentic settle`'s whole dry run 1.42 s. 60 was the largest of the
 # bounds the scripts held one per call before this one (#1573).
 TIMEOUT = 60
 

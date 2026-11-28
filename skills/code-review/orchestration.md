@@ -14,8 +14,8 @@ records and the findings format. The orchestrator reads both. The proofer
 opens that one at its first step and never opens this one.
 
 A session orchestrating a review run holds the core once, from the plugin's
-`SessionStart` hook where its repository holds a `seal/` root, and opens
-`skills/core/SKILL.md` once where no output opening `AgenticSeal core from`
+`SessionStart` hook where its repository holds an `agentory/` root, and opens
+`skills/core/SKILL.md` once where no output opening `IADD core from`
 stands in its context.
 
 Every `##` heading here opens with `Orchestrator:`.
@@ -43,7 +43,7 @@ otherwise.** The implementer is the orchestrator where `routing.md` answers
 that made the work item's last build phase or fix pass, also where a fix
 the orchestrator wrote after the last round came later. Before the fix
 pass, the orchestrator runs
-`seal cost --segments <the implementer's agent-*.jsonl>` on the
+`agentic cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the
 orchestrator resumes the implementer, whose context already holds the files
@@ -75,9 +75,9 @@ block to the crafter.** A close the
 orchestrator doubts goes into the verifying round's spawn prompt, since that
 round weighs every close. Where the row *No fix that no round reads* of
 `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives the
-pass to the sealer and no round follows it, the doubt goes into the
-sealer's spawn prompt, since the sealer reads that close at step 4 of
-`agents/sealer.md`. The orchestrator does not rewrite the block.
+pass to the inspector and no round follows it, the doubt goes into the
+inspector's spawn prompt, since the inspector reads that close at step 4 of
+`agents/inspector.md`. The orchestrator does not rewrite the block.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -86,7 +86,7 @@ way the crafter's fix pass does.
 `docs/layout/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule. A fix written after the last round makes the
 reading `skills/implement/fix-pass.md` *The narrow set, then the read of the
-range* binds, before the round or the sealer that reads the fix.
+range* binds, before the round or the inspector that reads the fix.
 
 **The fix pass then finds what the fixes left standing.** A fix repairs the
 coordinate a finding named, and the fact the finding was about is usually
@@ -135,14 +135,14 @@ round but the last has a reader for those fixes: the round that follows, which
 answers each of its verdicts. The last round's fixes have none unless a round
 is spawned for them, except a fix pass that the row *No fix that no round
 reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party*
-gives to the sealer: no round follows that pass, and the check passes its
+gives to the inspector: no round follows that pass, and the check passes its
 `fixed <commit>` in the last record.
 
 So a run ends with a **verifying round**, and three things define it.
 
 | Property | What |
 |---|---|
-| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; no round follows a fix pass that the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to the sealer |
+| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; no round follows a fix pass that the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence to skip a party* gives to the inspector |
 | Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `agents/proofer.md` *Rules* states the bound, in the rule opening **A verifying round answers the closed findings**, and the read of the work item's records that stands beside the bound, in the rule opening **Every round reads the work item's records that state the present** |
 | Job | the answers, not new findings. The round answers each finding the previous round closed `fixed <commit>` or `rejected`, as `skills/code-review/SKILL.md` *Earlier rounds* states |
 
@@ -184,7 +184,7 @@ The verifying round a regression's fix pass is owed whatever the count, and
 the row of `frame/plan.md` *Judgments of the run* that each decision to go
 on or to stop takes, are *The run*'s too. That round is not owed where the
 row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment is not
-licence to skip a party* gives the pass to the sealer. When you stop, every
+licence to skip a party* gives the pass to the inspector. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
@@ -192,13 +192,13 @@ and commit the close blocks of that step together.
 **A row that judges the run excessive binds every row after it.** Its
 grounds name what the next round could catch and what it would cost. From
 that row on, a `must` gets its fix pass, and its verifying round unless the
-core's row gives that pass to the sealer. Every
+core's row gives that pass to the inspector. Every
 other finding takes a home that costs no round: rung 2, 3 or 4 of the homes
 *The run* gives, where you append its close block reading
 `deferred <home>` and spawn no fix pass for it, or a fix that the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
-to skip a party* gives to the sealer. Rung 3 is such a home as a new issue,
-and as a `seal/follow-up.md` row only where a round is still to come after
+to skip a party* gives to the inspector. Rung 3 is such a home as a new issue,
+and as an `agentory/follow-up.md` row only where a round is still to come after
 the row's commit, because its commit after the last round costs a round
 (`skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records*). A later row spends no round on
@@ -213,9 +213,9 @@ regression takes a home that costs no round, as every other finding does,
 never a fix pass and never the framer, whose redesign would end the stop.
 Only a design change ends the stop, and the count starts again at the
 first finding round that reviews the new design. A repair that the
-sealer's withheld verdict asks for is no finding and takes no row, so the
+inspector's withheld verdict asks for is no finding and takes no row, so the
 stop does not reach it. A round reads that repair unless the core's row
-gives it to the sealer.
+gives it to the inspector.
 
 **Where the signal is one mechanism whose edges each fix pass chased, the next
 fix pass decides what the mechanism reads, and takes no further edge.** That is
@@ -248,13 +248,13 @@ party* gives to a round, so one more verifying round
 reads that answer alone, and answers it as `skills/code-review/SKILL.md`
 *Earlier rounds* states. A finding of that round that carries a `reopens:`
 line gets its fix pass, and one more verifying round unless the core's row
-gives that pass to the sealer; a round carrying a
+gives that pass to the inspector; a round carrying a
 `regression:` line is routed as the section below says, and where the work
 item returns to its framer the run goes on with the redesign. The run ends
 only on a round whose record holds no finding without a close block, no
 `rejected` one, and no `fixed` one the core's row gives to a round, and
 whose `target:` commit is HEAD, or is followed only by commits the core's
-row gives to the sealer (a verifying round, or the round you stopped at,
+row gives to the inspector (a verifying round, or the round you stopped at,
 whose open findings took their homes), since the check refuses a ready pull
 request whose last record fails either. A fix committed after that round
 that the core's row gives to a round, a leftover whose home is the diff
@@ -289,9 +289,9 @@ The framer's route:
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds the `Reframed` line under the `Framed` line, spelt as `docs/running/the-run.md` *The run* spells it. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
-## Orchestrator: the pull request opens once the sealer seals
+## Orchestrator: the pull request opens once the work item is cleared
 
-**The pull request opens ready, once the sealer has sealed, and CI runs
+**The pull request opens ready, once the work item is cleared, and CI runs
 then.** Where `Destination` reads `open the pull request`, push the branch as
 often as you like while the work is built and reviewed: a branch with no
 pull request runs nothing. Under `stop before the pull request` nothing is
@@ -309,28 +309,28 @@ changes conflict with this one has landed on the base. Where a work item's
 work item, the orchestrator merges the base into this branch once that item
 has landed, before this branch's next round, or before its broad run where
 its rounds have ended. So a round already owed reads the resolution, and
-the broad run and the sealer read the merged tree once. Where the merge
+the broad run and the inspector read the merged tree once. Where the merge
 resolved a conflict in a file outside the work item's records, the
 orchestrator spawns a verifying round on that resolution, because the chain
 check lists the branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
-past `trail/gate.md` and `guarantee.md`, so after the merge, and after that
+past `trail/gate.md` and `inspection.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator
-runs the broad gate again, commits its record, runs `seal pr-body` on the
-body file again and spawns the sealer again.
+runs the broad gate again, commits its record, runs `agentic pr-body` on the
+body file again and spawns the inspector again.
 
 **A commit after the newest broad run that changes only files under
-`seal/threads/<work-item-id>/` owes no broad run.** Where such a commit
-changes a record other than `trail/gate.md` and `guarantee.md` after the
-sealer has written its verdict, it owes `seal pr-body` on the body file
-again and the sealer again, and the sealer reads every record at HEAD.
-Those two files may follow the verdict's commit, as the guarantee arm
+`agentory/threads/<work-item-id>/` owes no broad run.** Where such a commit
+changes a record other than `trail/gate.md` and `inspection.md` after the
+inspector has written its verdict, it owes `agentic pr-body` on the body file
+again and the inspector again, and the inspector reads every record at HEAD.
+Those two files may follow the verdict's commit, as the inspection arm
 reads it (`skills/code-review/scripts/chain_check.py#CLOSING_RECORDS`), so
-their commits owe neither another broad run nor another sealer. A commit
+their commits owe neither another broad run nor another inspector. A commit
 that changes any other path owes the broad run again, after the round that
 the row *No fix that no round reads* of `skills/core/SKILL.md` *Judgment
 is not licence to skip a party* gives it.
-`agents/sealer.md` step 1 and the pull request check's broad gate arm read
+`agents/inspector.md` step 1 and the pull request check's broad gate arm read
 the same rule over the branch's own commits
 (`skills/code-review/scripts/chain_check.py#follows`), so neither reads a
 merge, which the paragraph above holds to its own rule. What a `Broad gate`
@@ -356,15 +356,15 @@ its `pr.<lang>.md` where the two language keys differ, as the paragraph on
 last phase has closed and commits it before it spawns the first round.**
 Where no round runs, the orchestrator writes it before the broad run.
 Every round reads `pr.md` at its target, so no sentence of the body
-reaches the sealer unread. `pr.md` holds the `Closes` and `Part of` lines,
+reaches the inspector unread. `pr.md` holds the `Closes` and `Part of` lines,
 quotes of the work item's records, and the attribution line. `pr.md` quotes
-no sentence of `changelog.md`, because `seal pr-body` writes the fragment
+no sentence of `changelog.md`, because `agentic pr-body` writes the fragment
 whole under the line `skills/code-review/scripts/pr_body.py#HEADING` holds,
 above the fold, so the reader meets it there and a fix to a changelog
 sentence touches no `pr.md`. A quote is one line in one spelling,
 ``- "<the sentence>" (`<path>` <coordinate>)``, where `<path>` is the
 record's path under the work item's directory and `<coordinate>` the
-heading, row, finding or line that holds the sentence, and `seal pr-body`
+heading, row, finding or line that holds the sentence, and `agentic pr-body`
 refuses a quote whose words, with runs of whitespace collapsed, do not
 stand in the file its path names
 (`skills/code-review/scripts/pr_body.py#first_part`). The orchestrator
@@ -396,7 +396,7 @@ language` under the line `skills/code-review/scripts/pr_body.py#HEADING`
 holds, above the fold. It holds no `Closes`, `Part of` or attribution line,
 which `pr.md` already holds in that language, and no sentence of the
 orchestrator's own. `<lang>` is the orchestrator's spelling for the file's
-own language, the commit language, such as `ko`. `seal pr-body` writes it
+own language, the commit language, such as `ko`. `agentic pr-body` writes it
 above `pr.md`, so the body opens in the team's language, and every round
 reads it whole beside `pr.md`. Where the two keys name one language, no
 `pr.<lang>.md` is written.
@@ -404,7 +404,7 @@ reads it whole beside `pr.md`. Where the two keys name one language, no
 **Where a fix pass or a fold changes a sentence that `pr.<lang>.md`
 renders, the orchestrator rewrites each rendering that stood on it, and
 commits them before it spawns the next round.** A quote of `pr.md` whose
-sentence changed is rewritten where `seal pr-body` refuses it, or earlier
+sentence changed is rewritten where `agentic pr-body` refuses it, or earlier
 where a hand-back names it or the plugin's `PostToolUse` hook,
 `hooks/edit-leaves-copies.py`, names it after the edit of its source. A
 round finding located in `pr.md` or `pr.<lang>.md` is the orchestrator's

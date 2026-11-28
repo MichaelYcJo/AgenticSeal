@@ -7,7 +7,7 @@ is a JSON string in the grammar this file gives its key.
 The root is the first of the places the opening paragraph of the plugin's
 `skills/core/SKILL.md` names that holds the marker: committed in shared
 mode, and under the common git directory, never committed, in local mode.
-The file goes wherever that root already is, and `seal mode` creates it.
+The file goes wherever that root already is, and `agentic mode` creates it.
 
 **An absent key is not an error, with four exceptions: the two language
 keys, `Mode` and `Broad gate`.** Every other item has a default, and the
@@ -19,12 +19,12 @@ otherwise, such as `Policy Root`, names no item, so the item reads as
 absent.
 
 **`Mode` has no default.** An absent one is filled in from where the folder
-is, by `seal mode` (*Mode* below). Nothing else reads the key, so an absent
+is, by `agentic mode` (*Mode* below). Nothing else reads the key, so an absent
 one stops nothing: every script finds the root by where the folder is,
-`seal mode --check` reports the key as not declared and exits 0, and the
-next bare `seal mode` writes it.
+`agentic mode --check` reports the key as not declared and exits 0, and the
+next bare `agentic mode` writes it.
 
-**An absent `Broad gate` is a refusal, not a prompt:** `seal gate` names the
+**An absent `Broad gate` is a refusal, not a prompt:** `agentic gate` names the
 key and exits 2 with nothing run, because a run over a command nobody chose
 proves nothing (*Broad gate* below).
 
@@ -34,7 +34,7 @@ an empty value, and a file that cannot be read or does not parse as one
 JSON object, a key written twice or holding no string among them. The
 fourth way is the refusal the next paragraph gives, and for these two keys
 it counts as absent wherever this file or a skill speaks of an absent key.
-In each, `seal pr-body` refuses with nothing written, naming the key, or printing
+In each, `agentic pr-body` refuses with nothing written, naming the key, or printing
 the refusal the next paragraph gives where the file or the key will not
 read. A commit or a record is written in English, because a config nobody
 can read must not stop the work. Who asks for the two keys is *Commit and
@@ -50,11 +50,11 @@ key is read. A file that is there and cannot be read as UTF-8 text, does
 not parse as JSON (a trailing comma, a quote left open), or whose top level
 is not one object is refused for every key, naming its path and the
 parser's message; a file that is absent still declares nothing, and a byte
-order mark an editor wrote reads. `seal fold`, `seal gate`, `seal mode` and
-`seal pact` print the refusal and exit 2 with nothing judged, as they do
-for a value they cannot parse; `seal pr-body` prints it and exits 1 with
-nothing written. `seal rules`,
-`seal settle` and `seal unverified` read the `Policy root` and
+order mark an editor wrote reads. `agentic fold`, `agentic gate`, `agentic mode` and
+`agentic pact` print the refusal and exit 2 with nothing judged, as they do
+for a value they cannot parse; `agentic pr-body` prints it and exits 1 with
+nothing written. `agentic rules`,
+`agentic settle` and `agentic unverified` read the `Policy root` and
 `Reference specs` defaults instead, as they do for a key written twice.
 Whoever writes the file repairs it by deleting the extra key or by
 correcting the JSON.
@@ -87,7 +87,7 @@ governs the lines of the work item's `pr.md` that quote no record: its
 first part, above the line `skills/code-review/scripts/pr_body.py#HEADING`
 holds. A quote in
 `pr.md` is its record's sentence as it stands, and the part below that line
-is the records' own text, copied by `seal pr-body`, so both are in
+is the records' own text, copied by `agentic pr-body`, so both are in
 `Record language`. Where this key and `Record language` name different
 languages, the key also governs the mirror that opens the body (*What no
 key governs* below).
@@ -119,7 +119,7 @@ people rather than about the file, which is why it is a key and not a rule.
 **The review splits across the two keys on purpose.** The report posted to a
 pull request is prose for whoever opens it, and follows the key above.
 `trail/rounds/round-N.md` is half structure (`chain_check.py` reads its
-headings and its `seal` blocks literally), and its prose follows this one.
+headings and its `iadd` blocks literally), and its prose follows this one.
 
 ## What no key governs
 
@@ -133,29 +133,29 @@ every repository, whatever either key says:
   *Branch names* states: a branch name is typed into a shell and pasted into
   a URL.
 - **The field names, section headings and vocabulary a checker reads
-  literally**: the info string `seal` that opens each block of a round
-  record, a `guarantee.md` and a `trail/gate.md`, and every key of those
+  literally**: the info string `iadd` that opens each block of a round
+  record, an `inspection.md` and a `trail/gate.md`, and every key of those
   blocks and every fixed word of their values, whose one spelling is
   `lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`
   reads; a `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
   `why:`, and its `## Not done` heading; a `frame/plan.md`'s `## Phases`
-  heading, which `seal pr-body` copies a section under, as it does those
+  heading, which `agentic pr-body` copies a section under, as it does those
   two of `gaps.md`; a `frame/design.md`'s `## Rule changes` heading, the
   items `add`, `change`, `remove` and `nothing` and the fields `file:`,
   `section:`, `from:`, `to:` and `why:`, which
   `skills/settle/scripts/rule_changes.py` reads, and the label `check:` of
   a check line inside a `to`, which `skills/settle/scripts/rules.py` reads; a
   `frame/plan.md`'s `## Judgments of the run` heading with its `Date`,
-  `Judgment`, `Grounds` and `Judged against` columns, which `seal settle`
+  `Judgment`, `Grounds` and `Judged against` columns, which `agentic settle`
   groups the run's judgments by; and a `changelog.md`'s
   `### Process changes` heading, under which the release note lifts each
   fragment's rows into one table.
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** The word `closed` that opens a closed
   `## Not verified` row, the line `## From the records` that opens the
-  part of a pull request body `seal pr-body` copies from the records, and
+  part of a pull request body `agentic pr-body` copies from the records, and
   the anchor table's header cells `Pact`, `Clause` and `Hash`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
@@ -168,12 +168,12 @@ every repository, whatever either key says:
 
 Where the two language keys name different languages, the pull request body
 opens with a mirror: the work item's own folder holds `pr.<lang>.md` beside
-`pr.md`, written in `Commit and pull request language`, and `seal pr-body`
+`pr.md`, written in `Commit and pull request language`, and `agentic pr-body`
 writes it above `pr.md`. It is named for **its own** language, the commit
 key's: a repository whose records are English and whose commits are Korean
 keeps `pr.ko.md`. What `pr.md` and `pr.<lang>.md` hold is stated in
 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*. A record has no
+once the work item is cleared*. A record has no
 mirror: there is one file and a checker reads it, so its prose is whatever
 `Record language` says and nothing else.
 
@@ -191,24 +191,24 @@ order, and a gate that trusted this key instead would go looking in a place
 with no folder. The key can be
 edited by anyone with a text editor; the folder is where the files are.
 
-`seal mode` is the only thing that reads it:
+`agentic mode` is the only thing that reads it:
 
 ```bash
-seal mode            # the folder, the key, and whether they agree
-seal mode local      # switch to local mode, and write the key
-seal mode shared     # switch to shared mode, and write the key
-seal mode --apply    # switch to whatever this key says
+agentic mode            # the folder, the key, and whether they agree
+agentic mode local      # switch to local mode, and write the key
+agentic mode shared     # switch to shared mode, and write the key
+agentic mode --apply    # switch to whatever this key says
 ```
 
 A disagreement is the input the command consumes: a person edits the key,
-runs `seal mode --apply`, and the folder moves. `seal mode --check`, which
+runs `agentic mode --apply`, and the folder moves. `agentic mode --check`, which
 the pull-request checks run, exits non-zero for a disagreement left
 standing, so the key cannot quietly go false.
 
 **There is no default, and an absent key is filled in from the folder.**
 An item with a default falls back to what repositories got before the key
 existed; for the mode, what they got is *the folder decides*. So the first
-`seal mode` in a repository with no such key writes one from where the
+`agentic mode` in a repository with no such key writes one from where the
 folder actually is, an observation rather than an assumption, and says
 that it did. Where there is no file at all, it writes `{"Mode": "<the
 folder's mode>"}` and nothing else. A fixed default of `shared` would write
@@ -222,18 +222,18 @@ key that is wrong from the moment it lands.
 
 The repository's own broad command (the full suite, the repository-wide
 lint, the typecheck) as **one shell command line**, run from the repository
-root by `seal gate` once the review rounds settle. The plugin's own checks
+root by `agentic gate` once the review rounds settle. The plugin's own checks
 follow it and are not part of the key; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
-`seal gate --preflight` runs those checks alone, reading the key and not
+`agentic gate --preflight` runs those checks alone, reading the key and not
 running its command, and writes nothing; the orchestrator runs it before
-the sealer is spawned.
+the inspector is spawned.
 
 ```json
 "Broad gate": "uvx ruff check . && uvx ruff format --check . && bin/test -q"
 ```
 
-**An absent key is a refusal, not a default.** `seal gate` names this key
+**An absent key is a refusal, not a default.** `agentic gate` names this key
 and exits 2 with nothing run. It is a refusal rather than a prompt because
 the orchestrator runs the command unattended, with nothing else running, and
 asks nobody anything: a refusal that names whose the key is and where it is
@@ -242,9 +242,9 @@ a session that may have nobody at the keyboard. It does **not** name a
 command to write, because the party reading it is the one party that may not
 choose one.
 
-**There is no default, and the reason is the Seal Test.** `verify` names the
-counterfeit: a check that cannot fail. A default of `pytest` seals a
-repository that runs `npm test`; a default of `true` seals everything. The
+**There is no default, and the reason is the Inspection Test.** `verify` names the
+counterfeit: a check that cannot fail. A default of `pytest` passes a
+repository that runs `npm test`; a default of `true` passes everything. The
 orchestrator that runs the gate does not pick a command either: a key is a
 thing a person wrote, and what the broad run covers is exactly that. What the
 command does is the repository's own claim: a command that exits 0
@@ -330,9 +330,9 @@ one more piece of a model of `cmd.exe`, and the gate carries none.
 
 **A commit after the run that changes only the work item's records does not
 run the command again** (`skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*). So a part of
+*Orchestrator: the pull request opens once the work item is cleared*). So a part of
 the command that reads those records, such as a Markdown lint over every
-`.md` file or a suite case over `seal/threads/`, reads them as they stood at
+`.md` file or a suite case over `agentory/threads/`, reads them as they stood at
 the run. Where the repository runs the same command in its pull request's
 CI, that run reads the later records. Where it runs the command nowhere
 else, the repository answers for what the command would have found in
@@ -341,7 +341,7 @@ them.
 ### What is refused, and what stays allowed
 
 **A value that would not run as the command it reads as is refused, not
-repaired.** `seal gate` looks at the key's command before it hands it to a
+repaired.** `agentic gate` looks at the key's command before it hands it to a
 shell, and each form in the table below comes back exit 2 with nothing run,
 the same shape an absent key gets. The criterion is one sentence with two
 halves, and a form is refused only for breaking one of them:
@@ -405,14 +405,14 @@ reference root.
 |---|---|
 | one or more repository-relative directories, separated by commas, each with or without a trailing `/` | those directories and everything under them |
 | `none` | no reference root |
-| absent or empty, or no `seal/` root at either place | every directory named `specs` outside the plugin's root, at any depth |
+| absent or empty, or no `agentory/` root at either place | every directory named `specs` outside the plugin's root, at any depth |
 
 **What it governs.** The checks that would read a record leave a reference
-root out: `seal unverified` prunes it from a directory walk while still
+root out: `agentic unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this key says; `seal settle --apply` removes only under `seal/threads/`.
-`seal settle --from` reads a reference root only where a person names it at
+this key says; `agentic settle --apply` removes only under `agentory/threads/`.
+`agentic settle --from` reads a reference root only where a person names it at
 the settle, whatever this key says, and writes nothing there. One reader
 answers the key, `lib/config.py#reference_roots`, and one predicate the
 path question, `lib/config.py#under_reference_root`.
@@ -427,10 +427,10 @@ so the next reader can open the same file.
 Two keys, each written in one repository of a pact
 (`docs/layout/the-pact.md`). A work item that commits in more than one
 repository, where those repositories keep a contract together, keeps the one
-copy of that contract in `seal/pact.md` in one of them, the pact's
+copy of that contract in `agentory/pact.md` in one of them, the pact's
 repository. Every repository of the work item is a signer. Every one except
 the pact's repository names the pact in a `Pact` key. The pact's repository
-needs no `Pact` key, because it is identified by holding `seal/pact.md`, and
+needs no `Pact` key, because it is identified by holding `agentory/pact.md`, and
 lists every other signer in a `Pact signers` key.
 
 - **`Pact`**: the origin remote URL of the pact's repository, such as
@@ -441,7 +441,7 @@ lists every other signer in a `Pact signers` key.
   every other signer, separated by `;`, such as
   `https://example.com/org/orders-web; git@example.com:org/orders-mobile.git`.
   The pact's repository does not list itself: it cites its own clauses as
-  it cites any other heading of its own. Absent or empty: `seal pact`
+  it cites any other heading of its own. Absent or empty: `agentic pact`
   refuses the pact at exit 2, because a pact nobody signs is not a pact.
 
 **The URL is compared normalised**, so `git@example.com:org/orders-api.git`
@@ -450,24 +450,24 @@ names the pact by the same URL, in the `Pact` cell of a
 `| Pact | Clause | Hash |` row of a work item's `frame/design.md`.
 
 **A key that will not parse is refused in a sentence**, never read as
-absent. `seal pact`, run at the pact's repository, reads its `Pact signers`
+absent. `agentic pact`, run at the pact's repository, reads its `Pact signers`
 through `lib/config.py#signer_declaration` and each signer's `Pact` through
 `lib/config.py#pact_declaration`, and exits 2 on either; a signer's CI reads
 nothing of the pact. A signer whose config holds no `Pact` key naming the
-pact is read as naming no pact, and `seal pact` exits 2 on a relationship
+pact is read as naming no pact, and `agentic pact` exits 2 on a relationship
 recorded on one side only.
 
-## The seal mark
+## The inspection mark
 
-A key per surface the seal mark is shown on beside the terminal stamp. Each
+A key per surface the inspection mark is shown on beside the terminal stamp. Each
 is off unless its key turns it on, and no key stops anything by itself. The
-pull request's check reads the body against what `seal pr-body` composes, so
+pull request's check reads the body against what `agentic pr-body` composes, so
 there a body whose mark line differs from the composition fails a ready pull
 request, as any other differing line does.
 
 ```json
-"Pull request seal mark": "yes",
-"Release note seal mark": "yes"
+"Pull request inspection mark": "yes",
+"Release note inspection mark": "yes"
 ```
 
 | Value | Means |
@@ -476,23 +476,23 @@ request, as any other differing line does.
 | absent or empty | no mark, and nothing is said |
 | any other value, such as `Yes`, `on` or `true` | no mark, and the command that writes the surface names the key and its value as not read |
 
-**`Pull request seal mark`** is read by `seal pr-body`
-(`skills/code-review/scripts/pr_body.py#seal_mark`). Under `yes` it writes
+**`Pull request inspection mark`** is read by `agentic pr-body`
+(`skills/code-review/scripts/pr_body.py#inspection_mark`). Under `yes` it writes
 one line, the plugin's icon at the default branch of the plugin's
 repository, between the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
-where the newest verdict block of the work item's `guarantee.md` reads
-`sealed` at a commit that only the closing records, `trail/gate.md` and
-`guarantee.md`, follow. A work item not sealed at HEAD gets no mark, and the
-sealer and the pull request's check name why. The mark's address is the
+where the newest verdict block of the work item's `inspection.md` reads
+`cleared` at a commit that only the closing records, `trail/gate.md` and
+`inspection.md`, follow. A work item not cleared at HEAD gets no mark, and the
+inspector and the pull request's check name why. The mark's address is the
 plugin's repository and names no version, so the installed plugin and the
 copy the pull request's check runs compose one line whatever release each
 is. A body carrying it shows the image while that repository stays public
 and the icon stays at its path on the default branch.
 
-**`Release note seal mark`** is read by the `seal` job of this plugin's own
+**`Release note inspection mark`** is read by the `mark` job of this plugin's own
 release workflow, at the release's tag. Under `yes` the job attaches the
-plugin's icon to the release as `seal.png` and the note's header shows it
+plugin's icon to the release as `mark.png` and the note's header shows it
 beside the results the stamp states; under any other value it attaches
 nothing and the header holds the results alone. The plugin ships no release
 workflow, so in any other repository nothing reads this key.
@@ -503,7 +503,7 @@ would be without the key.
 
 ## The fold's values
 
-Two keys, read by `seal fold` and `settle` (`skills/settle/SKILL.md`). The
+Two keys, read by `agentic fold` and `settle` (`skills/settle/SKILL.md`). The
 plugin sets no value; these keys are where a repository states its own.
 
 ```json
@@ -526,7 +526,7 @@ trimmed*.
 refusing.** A `Policy root` value that is empty, absolute or climbs out with
 `..` reads as `docs`. The cost is stated rather than hidden: a key deleted
 while tidying this file turns its check off, and the only trace is the one
-line `seal fold` prints about it.
+line `agentic fold` prints about it.
 
 **A value that will not parse is refused.** A ceiling that is not a positive
 whole number exits 2 naming the key, and nothing is checked. The `--ceiling`

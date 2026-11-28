@@ -16,7 +16,7 @@ has been seen to go wrong:
 
 So this is the loop as one command:
 
-    seal mutate <file> --replace OLD NEW --tests "<command>" [--timeout S]
+    agentic mutate <file> --replace OLD NEW --tests "<command>" [--timeout S]
 
 It refuses a replacement that does not land exactly once, before anything is
 run. For a file whose name ends in `.py` it then compiles the mutant with the
@@ -49,14 +49,14 @@ own output. The bound applies to each of the two runs.
                             from the commit made before the run
   interrupted      exit 2   Ctrl-C; the run was ended and the file restored
 
-Exit 2 is everything that measured nothing, so `seal mutate ... &&
-seal mutate ...` stops at the first unit nothing watches or the first run
+Exit 2 is everything that measured nothing, so `agentic mutate ... &&
+agentic mutate ...` stops at the first unit nothing watches or the first run
 that could not say.
 
 **Several mutants in one call.** `--replace OLD NEW` given more than once is
 a batch, the instrument for a module's sample of mutants:
 
-    seal mutate <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
+    agentic mutate <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
 
 Every pair is checked against the file as it is before anything runs, and
 one that does not land exactly once, or a `.py` mutant that does not
@@ -108,7 +108,7 @@ virtualenv reads 3.13.
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
 the write and the restore leaves the mutation on disk.
 `skills/implement/SKILL.md` *Commit before you mutate, and restore from
-`seal mutate`'s copy* is what bounds that loss.
+`agentic mutate`'s copy* is what bounds that loss.
 
 Nothing is read from or written to git.
 """
@@ -641,7 +641,7 @@ def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
 def main(argv=None) -> int:
     """Run one mutation from the command line and print its verdict."""
     parser = argparse.ArgumentParser(
-        prog="seal mutate",
+        prog="agentic mutate",
         description=(
             "Run one mutation of one unit, or one per --replace pair: write "
             "it, run the cases, restore the file from held bytes, and say "
@@ -789,7 +789,7 @@ def _report_batch(results, started: float) -> int:
             print(output.rstrip("\n"), flush=True)
     red, survived = verdicts.count(RED), verdicts.count(SURVIVED)
     print(
-        f"seal mutate: {len(verdicts)} mutants, {red} red, {survived} "
+        f"agentic mutate: {len(verdicts)} mutants, {red} red, {survived} "
         f"SURVIVED, {len(verdicts) - red - survived} with no verdict "
         f"({time.monotonic() - started:.1f}s)",
         flush=True,

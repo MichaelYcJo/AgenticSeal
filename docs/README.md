@@ -9,6 +9,17 @@ subject is the policy root itself; which kind of work item edits a document
 directly and which states the correction is in `skills/implement/SKILL.md`
 *Document layout — two roots, three lifetimes*.
 
+## docs/method/
+
+A person who wants to know what IADD is opens this, and so does the owner
+when this plugin's definition is set beside another tool's. No agent acts
+on it: each principle it states names its source, and an agent reads the
+source.
+
+| File | The question it answers |
+|---|---|
+| `docs/method/iadd.md` | what IADD is, the principles it stands on and the source of each, the names of its three layers and of its parts, and which document owns the form of each record of a work item |
+
 ## docs/forms/
 
 Two parties that exchange a record open these: the one that writes it and the
@@ -17,7 +28,7 @@ one that reads it.
 | File | The question it answers |
 |---|---|
 | `docs/forms/the-round-record.md` | what a review round leaves in the tree: the proofer writes it, the crafter closes its findings, and `chain_check.py` reads it at the pull request |
-| `docs/forms/the-guarantee.md` | what the sealer's verdict holds: the sealer writes it, and the orchestrator and the pull request check read it |
+| `docs/forms/the-inspection.md` | what the inspector's verdict holds: the inspector writes it, and the orchestrator and the pull request check read it |
 
 ## docs/running/
 
@@ -53,8 +64,8 @@ and the citation gives the reason.
 | File | The question it answers |
 |---|---|
 | `docs/checks/the-pull-request-check.md` | what `chain_check.py` reads at a pull request, for a person who changes it |
-| `docs/checks/the-stamp.md` | what `seal_stamp.py` queues and draws, and the `Stop` hook that draws it |
-| `docs/checks/the-fold.md` | what `seal settle` and `seal fold` read to tell a settle from a deletion |
+| `docs/checks/the-stamp.md` | what `stamp.py` queues and draws, and the `Stop` hook that draws it |
+| `docs/checks/the-fold.md` | what `agentic settle` and `agentic fold` read to tell a settle from a deletion |
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the states in which it reads no row |
 | `docs/checks/the-routing-check.md` | where a session's routing is checked, at the pull request alone, and the session it does not catch |
 

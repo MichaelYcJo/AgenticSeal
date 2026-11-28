@@ -1,11 +1,11 @@
-# What AgenticSeal maintains in seal/
+# What IADD keeps in agentory/
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
-each work item whole under `seal/threads/<work-item-id>/`, where it stays until
+each work item whole under `agentory/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released designs' `## Rule changes` name, as their latest decision, and
-`seal settle --apply` removes each released directory whole whose record holds no
+`agentic settle --apply` removes each released directory whole whose record holds no
 open row, whether or not it wrote a `frame/design.md`, and keeps one whose
 version's published note, built from the fragments, does not carry its entry. A settle is not a work item and
 opens no directory here.
@@ -16,7 +16,7 @@ where to read: nothing that must survive is allowed to live only there.
 
 It lives at one of the places the opening paragraph of the plugin's
 `skills/core/SKILL.md` names, and its presence there, with this file's first
-line as it stands, is what opts the repository into the AgenticSeal
+line as it stands, is what opts the repository into the IADD
 process. There is no config key. **Shared mode** keeps it in the tree and
 commits it (gitignored files don't follow worktrees or other machines), so
 every clone reads it and CI can check pull requests against it. **Local
@@ -26,30 +26,26 @@ candidate, and no `.gitignore` line is needed. What local mode
 gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 
-**`seal mode local` and `seal mode shared` switch between the two.** Each
+**`agentic mode local` and `agentic mode shared` switch between the two.** Each
 moves the root, stages the change and records the mode in `config.json`
 beside this file, and leaves `.github/` alone; whoever ran the command
 commits the change. Whether CI checks pull requests is a second answer:
-`seal pr-checks install` writes `.github/workflows/hygiene.yml` where this
-root is in the tree, `seal pr-checks remove` takes it out, and
-`seal pr-checks` says which is the case. `seal mode` alone says where the root is and what that key claims,
-and `seal mode --check`, which the pull-request checks run, exits non-zero
+`agentic pr-checks install` writes `.github/workflows/hygiene.yml` where this
+root is in the tree, `agentic pr-checks remove` takes it out, and
+`agentic pr-checks` says which is the case. `agentic mode` alone says where the root is and what that key claims,
+and `agentic mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the key at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
-the commands land the same from a subdirectory. Beside a project's own
-`seal/`, the shared root has the second name the plugin's `README.md` gives
-in *Shared or local*, and each `--show-toplevel` path below ends in that
-name in place of `seal`; run as written there, the commands would move the
-project's own directory. From local to shared:
-`mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/seal"`,
-`git add "$(git rev-parse --show-toplevel)/seal"` and a commit. From shared
-to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/seal"`,
-`mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"`
+the commands land the same from a subdirectory. From local to shared:
+`mv "$(git rev-parse --git-common-dir)/agentory" "$(git rev-parse --show-toplevel)/agentory"`,
+`git add "$(git rev-parse --show-toplevel)/agentory"` and a commit. From shared
+to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/agentory"`,
+`mv "$(git rev-parse --show-toplevel)/agentory" "$(git rev-parse --git-common-dir)/agentory"`
 and a commit of the removal.
 
-**`seal export` and `seal import` are the way across between machines**, and
+**`agentic export` and `agentic import` are the way across between machines**, and
 the only one there is: local mode's records reach no other clone by
-themselves. `seal export` zips this root alone; `seal import` merges a zip
+themselves. `agentic export` zips this root alone; `agentic import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
@@ -58,24 +54,22 @@ the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
 **The first line of this file is the marker.** `lib/optin.py#MARKER` holds
-the same line, and every gate passes over a `seal/` whose `README.md` does not
-open with it: such a directory is the project's own, as a package named `seal`
-has one. First setup that meets such a directory leaves it alone. A shared
-root then sits at the second name `skills/core/SKILL.md` defines, carrying
-this file, and where the project keeps a directory of its own at that name
-too, the root goes under the git directory. The line is compared whole, with
-only its line end taken off, so a space after it, a byte order mark before it
-or a blank line above it makes it another line. The gates then read the root
-at the second name, and then under the git directory, where its `README.md`
-opens with the marker, and read the repository as one that never opted in
-where none does. Leave the line as it is.
+the same line, and every gate passes over an `agentory/` whose `README.md` does not
+open with it: such a directory is the project's own, as a package named `agentory`
+has one. First setup that meets such a directory leaves it alone, and the
+root goes under the git directory. The line is compared whole, with only its
+line end taken off, so a space after it, a byte order mark before it or a
+blank line above it makes it another line. The gates then read the root
+under the git directory, where its `README.md` opens with the marker, and
+read the repository as one that never opted in where none does. Leave the
+line as it is.
 
 **The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that
 never opted in and says nothing. It is for a repository built to be thrown
 away, such as a fixture made by hand to reproduce a gate decision. It lives
 under the git directory because a marker committed in the tree would turn
-the AgenticSeal process off in every clone.
+the IADD process off in every clone.
 
 ## Export rules
 
@@ -86,7 +80,7 @@ work item's directory out of it, when, and where each one goes.
 ## Layout
 
 ```
-seal/
+agentory/
 ├── README.md            this file
 ├── config.json          what this repository says about itself, one key per
 │                        item. `templates/setup/config.md` in the plugin
@@ -107,7 +101,7 @@ seal/
     │                      read by every round
     ├── pr.<lang>.md       the first part's opening in the commit language,
     │                      where the two language keys differ
-    └── guarantee.md       the sealer's verdict on the work, at a SHA
+    └── inspection.md      the inspector's verdict on the work, at a SHA
 ```
 
 There is no task list here and no directory for one. `plan.md`'s Phases table

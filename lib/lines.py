@@ -17,7 +17,7 @@ file, kept apart from `live_lines` on purpose: a row the walk's readers read
 is safe at its base reading where the walk is unsure.
 
 Standard library only, and Python 3.9 syntax: `chain_check.py` and the
-`Stop` hook's `seal_stamp.py` reach it on whatever `python3` starts them.
+`Stop` hook's `stamp.py` reach it on whatever `python3` starts them.
 """
 
 import os
