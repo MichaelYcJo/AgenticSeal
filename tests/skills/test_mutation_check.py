@@ -1963,8 +1963,7 @@ class Test_module:
             ("true\nfalse", False, ["\n"]),
             # Blank space at either end separates nothing: `command_words`
             # drops it, and a YAML block leaves a line ending in a newline.
-            ("true\n", False, []),
-            ("\n true -q \r\n", False, []),
+            (" \t\ntrue -q\n\r ", False, []),
             ('x "a\nb"', False, []),
         ],
     )
