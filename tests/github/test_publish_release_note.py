@@ -1016,13 +1016,13 @@ class Test_module:
     ):
         """S9 of #1671, on a real history. The set is the pull requests
         whose `(#N)` ends a subject of the range, the last where a title
-        ends with its issue, each once, in number order: no branch is
-        named, so a pull request squashed before the range's lower tag is
-        not in it. Each is asked of `gh pr view` once, for the fields the
-        note and the mark read (#718: the mark reads the capped label and
-        the head branch from the same set). A failed call, and an answer
-        that is not JSON, make the set None, with the log saying what the
-        note is instead (#1053, #1655)."""
+        ends with its issue, each once, in number order. The range bounds
+        it, so a pull request squashed before the range's lower tag is not
+        in it, and no branch is named. Each is asked of `gh pr view` once,
+        for the fields the note and the mark read (#718: the mark reads the
+        capped label and the head branch from the same set). A failed call,
+        and an answer that is not JSON, make the set None, with the log
+        saying what the note is instead (#1053, #1655)."""
         repo = git_repo(tmp_path / "repo")
         write(repo, "a.txt", "a\n")
         commit_everything(repo, "fix: before the range (#10)")

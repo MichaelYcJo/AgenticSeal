@@ -56,9 +56,9 @@ the fragments beneath, folded, or for a range of settles alone the release
 pull request's body. **The release's pull requests are the ones whose
 squash commits the tag's range holds**, each named by the `(#N)` its
 subject ends with, so the summary and the fragments read one range and no
-branch is named. Nothing here composes prose: every line is a sentence of
-the release pull request's body, a pull request title, a number, a handle,
-a fragment, or a line of that body.
+branch is named. Nothing here composes prose: every line is the first
+sentence of the release pull request's body, a pull request title, a
+number, a handle, a fragment, or a line of that body.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`

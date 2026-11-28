@@ -13,11 +13,11 @@ the same job, which publishes for it.
 version.** The version moves once per release, in the last pull request
 into `release/next` before the release pull request opens, to the number
 the release's commit subjects read, so on `main` it moves only at the
-release's merge. The version is read at the push's `before` and its `after` commit;
-where they differ and no `v<after>` tag exists, `v<after>` is created on the
-pushed commit through the GitHub API, a lightweight tag like every tag this
-repository holds, and then in the job's checkout so the note step finds it
-without a fetch.
+release's merge. The version is read at the push's `before` and its
+`after` commit; where they differ and no `v<after>` tag exists, `v<after>`
+is created on the pushed commit through the GitHub API, a lightweight tag
+like every tag this repository holds, and then in the job's checkout so
+the note step finds it without a fetch.
 
 **A re-run passes the tag on.** Where `v<after>` already names the pushed
 commit, the tag was created by an earlier run whose note step failed: it is
