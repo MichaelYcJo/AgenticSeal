@@ -24,7 +24,7 @@ The tree as read at `9d7a8fe2`, which is `596c79a6` and this work item's
 | G14 `skills/settle/scripts/rules.py` lines 42 to 52 (read) | `agentic rules --check` excuses a refused check line inside a section that a pending `remove` with no `from` takes out, and nothing else. So the tests of `a-release-is-judged-under-its-two-names` can go in this change, and a marker that a pending `change` leaves its check line naming stays carried by a test until the settle |
 | G15 `templates/setup/hygiene.yml` line 75 (read) | A connected repository clones the plugin with `--branch v<version>`, a tag. Nothing there reads a release branch |
 | G16 The three searches of `frame/plan.md`'s *Verified by* cells, each run from the top level at `9d7a8fe2` as `git grep --no-color --no-line-number -P '<pattern>' -- . ':!agentory/threads/1795849901-number-read-at-cut' \| LC_ALL=C sort \| diff - <keep file>` (executed) | Phase 1's prints 29 lines opening `<` and none opening `>`, phase 2's 20 and none, phase 3's 56 and none: each line opening `<` is one a *Scope* item changes or removes, and every other line the search prints is in the keep file. So each search fails on the tree before the build, and passes only where the build has changed every line it names |
-| G17 `skills/settle/scripts/rule_changes.py#parse` and `#apply_op`, run by `test_tmp_rule_changes.py` in a `git clone --no-local` under the scratch directory, against this file (executed) | The section parses into 46 operations with no error and no unread line, and each is placed in its document in order, each `from` found once in its section |
+| G17 `skills/settle/scripts/rule_changes.py#parse` and `#apply_op`, run by `test_tmp_rule_changes.py` in a `git clone --no-local` under the scratch directory, against this file as folded on 2026-11-28 after phase 3, in a clone at `d18253a2` (executed) | The section parses with no error and no unread line, and each operation is placed in its document in order, each `from` found once in its section |
 
 ### Readers of the number
 
@@ -127,6 +127,23 @@ Each reader G11 found, and what this work does with it.
     its release under the rule its branch was cut with, as `routing.md`
     states: the last phase moves `.claude-plugin/plugin.json` in the commit
     that adds `changelog.md`.
+11. **The step's test file is named for what it holds.**
+    `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py` moves to
+    `tests/text/test_the_release_check_runs_from_its_step.py`. Its cases
+    read the release check's step in `hygiene.yml`: that it runs only for a
+    pull request into `main`, that the step hands the script every input it
+    reads, and that the job's token can read issues. Since phase 1 no case
+    of it reads a milestone, so the name states a fact this work removed,
+    and `skills/core/SKILL.md` *The rule a mechanism is kept against* has a
+    change remove what stood on the old fact in the same change. The move
+    rewrites the citations of the old path that `git grep` finds, in
+    `.github/scripts/release_completeness_check.py`'s docstring,
+    `tests/github/test_release_completeness_check.py` and
+    `tests/behaviour/test_the_release_check_watches_what_ships.py`, and
+    keeps every case as it stands, so no case is rebuilt. No `check:` line and no line of `docs/` names the file,
+    so no rule change follows it, which is why `frame/plan.md` A10's ground
+    for keeping the script's name does not reach it. Every phase had closed
+    when this item was framed, so the fix pass of round 1 builds it.
 
 **Out of scope.**
 
@@ -195,7 +212,7 @@ later phase changes: the `milestone_titles` line of
 | a fixture or an eval scaffold naming a `release/v…` branch | the name is an example branch or a past release's ref, and nothing reads a number from it (*Readers of the number*) |
 | a history sentence naming a past release branch, such as *the branch `release/v0.3.0` shipped as 0.2.0* | it states a past release, which `tests/behaviour/test_release_hygiene.py` and `tests/behaviour/test_the_contributor_has_a_procedure.py` keep as history |
 | a line of a test that reads a numbered name to refuse it, such as `RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")` in `tests/behaviour/test_the_contributor_has_a_procedure.py` | the refusal of a concrete numbered branch in a loaded file stands |
-| `skills/verify/scripts/broad_gate.py:505`, `skills/implement/orchestration.md:410`, and the convention line *Scope* item 8 writes | each names `release/vX.Y.Z` as one shape a repository may use |
+| `skills/verify/scripts/broad_gate.py:505`, `skills/implement/orchestration.md:410`, the convention line *Scope* item 8 writes, and the `BRANCH_SHAPES` entry of `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py` that pins that sentence whole | each names `release/vX.Y.Z` as one shape a repository may use, and the pin changes only with the sentence it pins |
 
 ## Rule changes
 
@@ -473,9 +490,20 @@ later phase changes: the `milestone_titles` line of
 - change
   file: docs/releasing/release-checklist.md
   section: The release pull request
+  from: since `main` stays where the release branch was cut unless a hotfix moves it.
+  to: since `main` stays where `release/next` last merged into it, and
+    nothing else moves it.
+- change
+  file: docs/releasing/release-checklist.md
+  section: The release pull request
   from: runs `tests` once, on the tree the release ships, and what no pull request into `release/vX.Y.Z` runs answers once:
   to: runs `tests` once, on the tree the release ships, and what no pull
     request into `release/next` runs answers once:
+- change
+  file: docs/releasing/release-checklist.md
+  section: The release pull request
+  from: and the `hygiene` workflow's version and milestone steps.
+  to: and the `hygiene` workflow's version step and release check.
 - change
   file: docs/releasing/release-checklist.md
   section: The release pull request

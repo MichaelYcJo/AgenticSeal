@@ -144,4 +144,5 @@ not change that paragraph.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-28 | Which prefix the pull request's title takes: `feat:`. | A contributor now bases every pull request on `release/next` instead of a numbered branch, and the release check reads the number instead of refusing one, so whoever works on a later change meets a new branch and a new check. | `skills/commit-pr-convention/SKILL.md`, its prefix table |
+| 2026-11-28 | Which route the statements phase 3 named outside the frame's rule changes take: the framer folds them into `## Rule changes` and the frame before round 1. | `docs/releasing/release-checklist.md:150` and `:156` contradict Q2's answer and phase 1's check, and no operation of `## Rule changes` reaches them, so the settle would leave them standing. | `skills/implement/orchestration.md` *A decision made after the frame is committed is folded* |
