@@ -37,7 +37,7 @@ reads the pull request's state alone, waits on nothing, and exits 0, 4 or
 
 | Exit | When | What the orchestrator does |
 |---|---|---|
-| 0 | every check on HEAD passed or was skipped; under `--once`, the pull request is open | treats the pull request as checked at HEAD; under `--once`, pushes |
+| 0 | every check on HEAD passed or was skipped; under `--once`, the pull request is open | treats the pull request as checked at HEAD, except after a merge whose broad run the pull request's checks stood in for, where it first takes the conditions `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives that stand-in; under `--once`, pushes |
 | 1 | a check on HEAD failed or was cancelled, and the output names each such check | reads the named checks' logs and repairs the work |
 | 2 | the command could not ask `gh` or `git`, or could not read the answer, and the output names the command and what it printed | reads the output, and takes nothing about the pull request as known |
 | 3 | within the limit on the start, the pull request's head never became HEAD, GitHub never said whether the pull request is mergeable, or no check of a `pull_request` run was listed on HEAD; or, after the start, the head left HEAD. The output names the one cause that held and the commits it concerns | says in its report the cause the output names about those commits, waits no longer, and does not treat the pull request as checked |

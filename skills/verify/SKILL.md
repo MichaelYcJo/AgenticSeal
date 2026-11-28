@@ -265,7 +265,7 @@ command from:
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
 | Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the frame's commands for the old spelling printing nothing, the commands of *An absence claim is only as good as the search behind it* where the design keeps a line, each command named in the phase record. It owes no case written new and no `agentic mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
-| A merge, or a dependency bump | The broad gate. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. |
+| A merge, or a dependency bump | The broad gate's checks over the merged tree. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. For a merge of the base into a work item's branch, `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* says which run takes those checks: the broad run again, or the pull request's checks at HEAD in its place. |
 
 check: evals/behaviour/crafter/rule-crafter-rename/
 
