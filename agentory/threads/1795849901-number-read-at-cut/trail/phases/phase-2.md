@@ -198,3 +198,16 @@ branch, beside the `::error::` line *Scope* item 7 rewrites. The docstrings
 of `tests/behaviour/test_release_hygiene.py` at lines 225, 249 and 621, and
 the message at line 483, say the same; `frame/design.md` *Readers of the
 number* gives them to *Scope* item 9.
+
+**The read of the phase's range made the corrections below, in
+`8ad177a7`.** The module docstring of `publish_release_note.py` named the
+release pull request's body twice among the lines the note reads, and now
+names its first sentence and its lines once each. The docstring of
+`tag_release.py` and that of
+`test_the_list_is_the_pull_requests_the_range_names` were rewrapped where
+this phase's edits had left a long line, and the second now says that the
+range, not the absence of a branch name, keeps an older pull request out.
+This record named the A1 case of `main` as red on its range; it was red on
+the milestone read, and the range's red line is the mark's. It said both
+shapes were read for #1667 and #1668, and now names the command that read
+each.
