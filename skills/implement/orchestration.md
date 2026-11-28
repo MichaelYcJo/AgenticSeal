@@ -211,7 +211,7 @@ load. Each
 reading goes to the framer in one message, as a proposal with its grounds
 and coordinates and never as an instruction. The framer answers each with
 agree, agree with a change, or reject with grounds, folds what it agreed
-into its three files, and writes each rejected proposal as one row of
+into the frame's files, and writes each rejected proposal as one row of
 `plan.md`'s *Alternatives considered*; the orchestrator edits no frame file.
 One exchange is the bound: a disagreement left after it stands as the
 framer's judgment, which the orchestrator quotes in the work item's

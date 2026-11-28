@@ -60,6 +60,61 @@ present.** A pattern that finds nothing there was broken, not the tree empty.
 Report the command and the scope it ran over, so the next session re-runs it
 instead of re-inventing it.
 
+**A search that is to print lines the design keeps compares them with a
+keep file.** A content search a phase's *Verified by* cell in
+`frame/plan.md`, or a *Verifiable how* cell in `frame/design.md`, names
+for phase `<N>`, where the search is to print lines the design keeps at
+that phase's close, has the keep file `frame/keep-<N>.txt`. It holds each
+line the search is to print at that close, written as `git grep` prints it
+with no line number, `path:content`, and sorted under `LC_ALL=C sort`.
+Those lines are the lines the design keeps and the lines a later phase
+changes. A phase's own lines are the lines its keep file lacks and the
+earlier phase's keep file holds. Where the old spelling stands in a path,
+`frame/keep-<N>-paths.txt` holds, the same way, each path the path search
+is to print. A search that is to print no line has no keep file. A keep
+file names each line it keeps, so a second line in a file that holds a
+kept line is printed. A file named in the cell, a pathspec that excludes
+the file, or a pattern narrowed past the kept line would hide that second
+line. `frame/design.md` gives the reason for each kind of kept line, as a
+table of kinds where many lines share one, and names the lines a later
+phase changes by that phase's *Scope* items. It does not copy the lines.
+
+Both commands run from the repository's top level, because `git grep` run
+from a subdirectory searches that subdirectory alone and prints paths
+relative to it. `--no-color --no-line-number` keep a person's git
+configuration from adding colour and line numbers to what `diff` compares.
+`<dir>` is the work item's directory from the top level,
+`agentory/threads/<work-item-id>`, which the commands exclude because the
+frame quotes the search's pattern. `<pathspec>` states what the search is
+about, `.` for a rename.
+
+```
+git grep --no-color --no-line-number -P '<pattern>' -- <pathspec> ':!<dir>' | LC_ALL=C sort | diff - <dir>/frame/keep-<N>.txt
+git ls-files -- '<pathspec of the old spelling>' ':!<dir>' | LC_ALL=C sort | diff - <dir>/frame/keep-<N>-paths.txt
+```
+
+Each command prints nothing and exits 0 when the phase is done, and its
+exit code is `diff`'s. A line that opens with `<` is a line the tree holds
+and the keep file does not: a leftover, or a line the phase wrote that
+holds a kept kind. A line that opens with `>` is a line the keep file
+holds and the tree does not: a kept line the phase changed or removed.
+Where the records root is local, the work item's directory stands outside
+the tree, the exclusion is dropped, and `<dir>` in the `diff` operand is
+the directory's path under that root.
+
+**The framer writes each keep file before the build, and the builder keeps
+it in step with the kinds the design keeps.** The framer writes it from
+the commands' output at the commit `frame/design.md` `## Grounding`
+names. Where a phase rewrites a kept line, as a rewrap does, or writes a
+line that holds a kept kind, the builder writes the line into that phase's
+keep file and into every later phase's keep file, in the same commit. A
+kept line the tree no longer holds leaves those keep files the same way.
+A line of no kept kind goes into no keep file. A new kind is a departure
+from the frame: the builder names it in the phase record, and the framer
+folds it. The phase record names each line the phase added, changed or
+removed in a keep file, with its kind, and the round reads each against
+the reasons `frame/design.md` gives.
+
 An absence that cannot be demonstrated that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
@@ -194,7 +249,7 @@ command from:
 | Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no proof to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
-| Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the search for the old spelling and its empty result in the phase record. It owes no case written new and no `agentic mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
+| Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the frame's commands for the old spelling printing nothing, the commands of *An absence claim is only as good as the search behind it* where the design keeps a line, each command named in the phase record. It owes no case written new and no `agentic mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
 | A merge, or a dependency bump | The broad gate. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. |
 
 check: evals/behaviour/crafter/rule-crafter-rename/

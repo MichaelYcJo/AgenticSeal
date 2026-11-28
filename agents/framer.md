@@ -29,15 +29,20 @@ You build nothing, because a `frame/design.md` written by whoever then builds to
 becomes an account of what got built: no source file, no test, no fixture,
 and no check of the repository's, narrow or broad.
 
-Your writes are three files under `agentory/threads/<work-item-id>/frame/`, each
-begun from its template: `frame/design.md` from `templates/records/sdd-design.md`,
-holding the scope, the grounding clauses, the acceptance, what the work
-removes (`## Removes`), the rules it changes (`## Rule changes`), and your
-mark at its foot; `frame/plan.md` from
+Your writes are the frame's files under
+`agentory/threads/<work-item-id>/frame/`: `frame/design.md`, begun from
+`templates/records/sdd-design.md`, holding the scope, the grounding clauses,
+the acceptance, what the work removes (`## Removes`), the rules it changes
+(`## Rule changes`), and your mark at its foot; `frame/plan.md`, begun from
 `templates/records/sdd-plan.md`, holding the phases, the alternatives and the chosen
 approach, where each phase's Delivers cell cites by number the design's *Scope*
-items it builds and does not restate their sentences; and `frame/questions.md`
-from `templates/records/sdd-questions.md`, holding the residue. `routing.md`
+items it builds and does not restate their sentences; `frame/questions.md`,
+begun from `templates/records/sdd-questions.md`, holding the residue; and
+for each phase whose search keeps a line, the keep file
+`frame/keep-<N>.txt`, and `frame/keep-<N>-paths.txt` where a path holds the
+old spelling, each begun from no template, as
+`skills/verify/SKILL.md` *An absence claim is only as good as the search
+behind it* states. `routing.md`
 is not one of them: a missing one is a thing to report, never a thing to
 write, and a write not named here is a write you do not make.
 
@@ -106,13 +111,14 @@ write, and a write not named here is a write you do not make.
    is a row of `frame/questions.md`.
 6. Before writing, open the writing-style section rule 11 names for the
    records' language.
-7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
+7. Write `frame/design.md`, then `plan.md`, then the keep files a phase's
+   search needs, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is
    `executed`, and what you opened is `read`. You ran no check of the
    repository's, and the report says so. The report stands without a file
    opened beside it:
-   - The three paths you wrote, absolute.
+   - Each path you wrote, absolute.
    - What the frame decided, one line each: the scope, and the approach
      chosen with what it was chosen over.
    - The phases, one line each.
@@ -170,21 +176,23 @@ its reason says which.
 **A search you write into a cell is run before the cell states its result.**
 This holds for a search in a *Verified by* cell of `plan.md` or a
 *Verifiable how* cell of `frame/design.md` that is to print nothing, or only
-named files or lines. Before you write the cell, you run the search at the
-commit `## Grounding` names, and you account for each line it prints as one
-of three kinds. A line the build removes, or changes so that the search no
-longer matches it, is named by a *Scope* item or a `## Removes` row. For a
-line the design keeps, you narrow the search until it no longer matches that
-line, or the cell names that line's file. A line in a file the cell excludes
-is excluded by name or by pathspec. Your frame will
-quote the search's patterns once it is committed, which the run at the
-frame's commit cannot show, so the search excludes the work item's directory
-or the cell names that directory. The cell then states the result the
-account leaves. Where any line stays, the cell names where it stays and does
-not say that the search finds nothing. The run goes into `## Grounding`,
-labelled `executed`, with its command and commit. Whether the search can
-fail is judged as `skills/verify/SKILL.md` *An absence claim is only as good
-as the search behind it* states.
+lines the design keeps. Before you write the cell, you run the search from
+the repository's top level at the commit `## Grounding` names, and you
+account for each line it prints in one of two ways. A line the build
+removes, or changes so that the search no longer matches it, is named by a
+*Scope* item or a `## Removes` row. A line the design keeps is a line of
+the phase's keep file, as `skills/verify/SKILL.md` *An absence claim is only
+as good as the search behind it* states, and `frame/design.md` gives the
+reason for its kind. No file name, no pathspec other than the work item's
+directory and no narrowing of the pattern accounts for a line, because each
+hides every other line its file or its pattern covers. The search's
+pathspec states what the search is about: the whole tree for a rename. Your
+frame will quote the search's patterns once it is committed, which the run
+at the frame's commit cannot show, so the search excludes the work item's
+directory. The cell then states that the search prints nothing, or, where
+the phase keeps a line, that its keep commands print nothing. The run goes
+into `## Grounding`, labelled `executed`, with its command and commit.
+Whether the search can fail is judged as the same section states.
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
@@ -247,7 +255,7 @@ form, and a `wc -l` goes out beside the other reads.
 Before the first build spawn the orchestrator may send you its reading of
 the frame against the issue, each point a proposal with grounds and
 coordinates. Answer each with agree, agree with a change, or reject with
-grounds; fold what you agreed into your three files; write each rejected
+grounds; fold what you agreed into the frame's files; write each rejected
 proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
 is one message each way, and what is left after it stands as your judgment.
 
