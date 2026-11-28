@@ -382,6 +382,25 @@ def skill_groups():
     return preloaded, user_invoked, on_demand
 
 
+def test_no_preloaded_skill_carries_the_flag_that_blocks_its_preload():
+    """#1650 *Scope* item 4. `docs/running/the-agent-set.md` *One contract
+    every agent receives, and one definition each* has every agent receive
+    the core and the contract through its `skills:` list. On Claude Code
+    2.1.332 `disable-model-invocation: true` stops that preload
+    (`docs/experiments/2026-11-28-disable-model-invocation-blocks-preload.md`),
+    and an agent that does not receive a skill says nothing of it. So no
+    skill that a definition under `agents/` lists in its `skills:` carries
+    the flag. The set is read from the definitions, so a skill a later
+    definition preloads is held with no edit here."""
+    preloaded, user_invoked, _ = skill_groups()
+    blocked = sorted(preloaded & user_invoked)
+    assert not blocked, (
+        "these skills are listed in an agent's `skills:` and carry "
+        "`disable-model-invocation: true`, which stops them reaching the "
+        f"agent: {blocked}"
+    )
+
+
 def skill_row(edition):
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         rows = [ln for ln in f if ln.startswith(SKILL_ROW[edition])]
@@ -549,27 +568,6 @@ def test_the_writing_style_handoff_names_a_skill_that_ships():
     assert os.path.exists(
         os.path.join(ROOT, "skills", "commit-pr-convention", "SKILL.md")
     ), "the frontmatter names a skill that does not ship"
-
-
-def test_auto_firing_skills_declare_when_not_to_fire():
-    # Model-invoked skills load into context when their description matches.
-    # Keyword-shaped triggers ("auto-triggers on implement/create/build") fire
-    # on nearly every request, which is the redundant-context cost the README
-    # cites a paper about. Each one states where it does NOT belong.
-    import glob
-
-    offenders = []
-    for path in sorted(glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md"))):
-        head = open(path, encoding="utf-8").read().split("\n---\n", 1)[0]
-        if "disable-model-invocation: true" in head:
-            continue  # user-invoked; never fires on its own
-        name = os.path.basename(os.path.dirname(path))
-        if "NOT for" not in head:
-            offenders.append(name)
-    assert not offenders, (
-        "model-invoked skills with no NOT-for boundary — each will fire on "
-        f"matches it should leave to another skill: {offenders}"
-    )
 
 
 def test_the_run_names_its_default_round_count_and_the_follow_up_file():

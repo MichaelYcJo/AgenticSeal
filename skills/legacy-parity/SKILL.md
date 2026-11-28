@@ -6,7 +6,6 @@ description: |
   behavior preserved by default.
   Use when: a project declares a migration config (agentory/parity.json), porting or
   reviewing ported behavior, judging divergence from a legacy original.
-  NOT for: greenfield work, which implement and code-review cover alone.
 ---
 
 # legacy-parity, the original is the fallback authority
