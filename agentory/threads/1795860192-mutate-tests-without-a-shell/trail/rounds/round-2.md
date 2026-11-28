@@ -62,6 +62,11 @@ or `>`, or a newline between two words, outside quotes, and on POSIX not
 after a backslash, is
 ```
 
+```iadd
+verdict: fixed 84191b5e
+answer: `shell_operators` leaves out blank space at either end of the line before it scans, as `command_words` drops it, so `"true\n"` and `"\n true -q \r\n"` read no operator. Both are new cases. The mutant that drops the strip reads `red` (executed, `<scratchpad>/1795860192-mutate-tests-without-a-shell/fix-2/mutate.txt`, mutant 1). `skills/verify/agentic-mutate.md`, `frame/design.md` G1 and *Scope* item 1, and `changelog.md:3` say the ends are not read. The backslash-newline row of *Not judged* stays outside this fix: `command_words` is unchanged here, and the scanner already reads a newline after a backslash as no operator.
+```
+
 ### 2. No case holds how the refusal names a newline, so its rendering on one line is unpinned
 
 ```iadd
@@ -100,6 +105,11 @@ The fix set beside the frame: Scope item 1 says the message names each operator,
         assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 ```
 
+```iadd
+verdict: fixed 84191b5e
+answer: The `Test_main` case is parametrized over `true && false` and `true\nfalse`. It asserts the operator named in each, `` `&&` `` and `` `\n` ``, and that the output is one line. The mutant that drops `.replace("\n", "\\n")` reads `red` (executed, `fix-2/mutate.txt`, mutant 2).
+```
+
 ### 3. The Scope, the Removes row and the routing say the diff changes one paragraph of `agentic-mutate.md`, and the fix also changed its verdict list
 
 ```iadd
@@ -123,6 +133,11 @@ The fix set beside the frame: round 1 finding 2 asked for the verdict list's cla
 
 ```markdown
 - **Implementation, the session:** the diff is one reader in `skills/verify/scripts/mutation_check.py`, its cases, and one paragraph and a clause of the verdict list of `skills/verify/agentic-mutate.md`.
+```
+
+```iadd
+verdict: fixed 84191b5e
+answer: `frame/design.md` *Scope* item 2 names the verdict list's `refused` entry beside the paragraph. The *Removes* row says the change adds a refusal, one paragraph and a clause of the verdict list. `routing.md` *Why this way* names the text of `agentic-mutate.md` that states the refusal, not one paragraph.
 ```
 
 ## Confirmations
