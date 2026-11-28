@@ -17,7 +17,7 @@ The tree as read at `4a63fef1`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | The flag in the three commands, the cases pinning each, the changelog fragment and the version move | the cases red against `4a63fef1` and green after; `uv run --no-project tests/run_tests.py -q tests/behaviour/test_the_inspector_inspects.py` and the proofer's module | |
+| 1 | The flag in the three commands, the cases pinning each, the changelog fragment and the version move | the cases red against `4a63fef1` and green after; `uv run --no-project tests/run_tests.py -q tests/behaviour/test_the_inspector_inspects.py` and the proofer's module | 8de791d6 |
 
 ## Overlap with the release
 
