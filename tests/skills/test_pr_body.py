@@ -292,6 +292,15 @@ def item_of(tmp_path, records, own=OWN, rows=LANGUAGES, translations=None):
     return item
 
 
+# S9 of #1593: the refusal of a copied line that opens a fence its record
+# never closes, as a person reads it.
+UNCLOSED = (
+    "opens a fence that no line of the record closes, and GitHub shows every "
+    "line after it as code, the fold's end `</details>` among them; close the "
+    "fence"
+)
+
+
 def unsourced(text, texts):
     """The lines of TEXT that are no line of a record in TEXTS, no finding
     heading of one demoted a level, and no line `FIXED` gives with NAME or a
@@ -695,6 +704,14 @@ class Test_compose:
                 3,
                 "begins with a `<!--` that no `-->` closes on the line",
             ),
+            (
+                "frame/questions.md",
+                QUESTIONS
+                + "\n```\n| Q3 | Which file? | a person | (a) | (a) | open |\n",
+                10,
+                UNCLOSED,
+            ),
+            ("changelog.md", CHANGELOG + "```\nan example\n", 3, UNCLOSED),
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
@@ -720,7 +737,11 @@ class Test_compose:
         `frame/questions.md` outside its table is a copied line too, and is
         refused the same way (S6 of #1593, seen red against `_questions` as
         0.41.0 shipped it, which did not copy the line and refused
-        nothing)."""
+        nothing). A copied line that opens a fence no line of its record
+        closes is refused, in `frame/questions.md` and in `changelog.md`
+        alike: GitHub shows every line after it as code, the fold's end
+        among them (S9 of #1593, each row seen red with the refusal of
+        `_unfolded` removed, where nothing was refused)."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]

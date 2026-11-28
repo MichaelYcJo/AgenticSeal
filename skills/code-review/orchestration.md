@@ -373,8 +373,8 @@ the orchestrator's own account: no sentence frames a quote or joins two,
 and no heading or bold lead-in of the orchestrator's stands in it. What
 the owner must see before the fold is quoted from the record that holds
 it, and a decision quoted from a table row is quoted with the cell of the
-same row that names what was decided: two quote lines, the naming cell's
-first and the decision's on the next line, with no sentence joining them.
+same row that names what was decided: two quote lines from that row, the
+naming cell's first, with no sentence joining them.
 A default taken where `routing.md` reads `Automation` `yes` is quoted from
 its `frame/questions.md` row as the `Question` cell, then the `Default
 until answered` cell, or the `Status` cell once the row is answered. The
@@ -382,7 +382,8 @@ framer's judgment left after the exchange is quoted from its
 `frame/plan.md` *Alternatives considered* row as the `Approach` cell, then
 the `Verdict` cell. Why the title takes its prefix is quoted from the
 orchestrator's row of `frame/plan.md` *Judgments of the run*, which it
-writes before `pr.md`, as the `Judgment` cell, then the `Grounds` cell.
+writes before `pr.md`, as the `Judgment` cell, which names the question
+and its answer, then the `Grounds` cell.
 The orchestrator writes each row of *Judgments of the run* with a
 `Judgment` cell that names the question the judgment answers, then its
 answer, as `templates/records/sdd-plan.md` asks. The broad run's

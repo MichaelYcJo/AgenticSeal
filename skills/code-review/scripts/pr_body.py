@@ -81,7 +81,9 @@ hides what it holds, and a `<!--` with no `-->` after it on the line is
 text where other text stands before it. A copied line that begins with
 such a `<!--`, after nothing but spaces, tabs and block markers, is refused
 at its line whatever follows it, since GitHub hides the lines after it, the
-fold's end among them.
+fold's end among them. A copied line that opens a fence no line of its
+record closes is refused at its line too, since GitHub shows every line
+after it as code, the fold's end among them.
 
 Where the whole body, the first part, `HEADING` and the part below it,
 would pass `LIMIT`, GitHub's limit, counted in UTF-16 code units, the
@@ -994,7 +996,10 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
     Refused at the record's line, over every section whether or not a fold
     later removes it, so a line passes or not whatever the other records'
     length: where a copied line is equal to `HEADING`, which would stand in
-    the copy as a second boundary line, or begins with a `<!--` that no
+    the copy as a second boundary line, or opens a fence that no line of
+    its record closes, as `READER.fence_spans` reads the record, since
+    GitHub would show every line after it as code and the fold's end among
+    them, or begins with a `<!--` that no
     `-->` closes on the line, as `CLOSER.COMMENT`'s second arm matches it at
     the line's start, since GitHub would hide the lines after it and the
     fold's end among them, or holds a `TAG` outside a fence, a comment and a
@@ -1015,6 +1020,18 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
     top += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
     copied = top + [pair for _heading, whole, _folded in sections for pair in whole]
     seen = {rel: READER.readable(text) for rel, text in texts.items()}
+    # The opener of each fence no line of the record closes. `fence_spans`
+    # reads `gfm_lines(text)`, the split every copied line's source counts
+    # from, so `line - 1` indexes it, and it is the walk `blank_fences`
+    # reads, so a line refused here is one `readable` blanked to the end.
+    unclosed = {
+        rel: {
+            first
+            for first, last in READER.fence_spans(BLOCKS.gfm_lines(text))
+            if last is None
+        }
+        for rel, text in texts.items()
+    }
     causes = []
     for said, (rel, line) in (pair for pair in copied if pair[1]):
         if said == HEADING:
@@ -1023,6 +1040,16 @@ def _unfolded(name, texts, mark=None, home=OPTIN.HOME):
                     rel,
                     line,
                     f"reads `{HEADING}`, the line the body's two parts split at",
+                )
+            )
+        elif line - 1 in unclosed[rel]:
+            causes.append(
+                (
+                    rel,
+                    line,
+                    "opens a fence that no line of the record closes, and GitHub "
+                    "shows every line after it as code, the fold's end "
+                    f"`{FOLD_END}` among them; close the fence",
                 )
             )
         elif (opened := CLOSER.COMMENT.match(seen[rel][line - 1])) and (
