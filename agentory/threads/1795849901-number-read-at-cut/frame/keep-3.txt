@@ -73,6 +73,7 @@ tests/behaviour/test_the_contributor_has_a_procedure.py:    "docs/releasing/issu
 tests/behaviour/test_the_contributor_has_a_procedure.py:# gives *the branch `release/v0.3.0` shipped as 0.2.0*.
 tests/behaviour/test_the_contributor_has_a_procedure.py:RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")
 tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py:`release/v0.16.0` and `renderer(L)` the oracle's:
+tests/github/test_label_merged_on_release_branch.py:        "branch", ["release/v1.2.3", "release/next-1", "release/Next", "main", ""]
 tests/github/test_publish_release_note.py:        f"Merge pull request #500 from owner/release/v{version}\n\n"
 tests/github/test_publish_release_note.py:        message = "Merge pull request #500 from owner/release/v1.2.3\n"
 tests/github/test_publish_release_note.py:        message = f"Merge pull request #500 from owner/release/v{VERSION}\n\n{filled}\n"
