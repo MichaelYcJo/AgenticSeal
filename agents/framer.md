@@ -194,6 +194,16 @@ the phase keeps a line, that its keep commands print nothing. The run goes
 into `## Grounding`, labelled `executed`, with its command and commit.
 Whether the search can fail is judged as the same section states.
 
+**Each phase's *Verified by* cell names the command of every suite its set
+falls in.** A suite is what `skills/verify/SKILL.md` *Scope: cheap and
+often, broad and once* calls one. The cell names the command of every
+suite that owns a test file the phase changes, a built-app or end-to-end
+suite among them, and of every suite the rest of the phase's *Phase
+boundary* set falls in. You find the suites in the repository's
+contribution guide, its CI workflows and its runners' configuration. A
+suite the cell leaves out has the crafter run its files under another
+suite's command, which can come back green over files it did not run.
+
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as

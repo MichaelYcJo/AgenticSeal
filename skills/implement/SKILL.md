@@ -200,9 +200,10 @@ drive-by refactor and no TODO stub in a core path.
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call.
-The builder types the one command the *Phase boundary* row or the *Review
-rounds 1..n* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad
-and once* names, never the whole suite (`docs/running/the-run.md` *The
+The builder types the commands the *Phase boundary* row of
+`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* states,
+over the set that row or the *Review rounds 1..n* row names, never the
+whole suite (`docs/running/the-run.md` *The
 handoff*). Asking whether the suite catches something is a coverage probe,
 a different act: the builder runs it over the module that should catch it
 and reports it as a probe.
@@ -275,7 +276,8 @@ after, HEAD as the phase began or the commit
 names for a pass, and `<file>` stands under the builder's scratch directory
 (contract rule 17). The builder reads that file to its last line. It holds
 every hunk of the range with the paragraph or unit around it, a case's
-name, docstring and comments among them, and then each file of
+name, docstring and comments among them, a keep file's hunk alone at its
+own lines, and then each file of
 `agentory/threads/<work-item-id>/` that states the present, whole: `routing.md`,
 `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md` and
 `changelog.md`. A coordinate or a

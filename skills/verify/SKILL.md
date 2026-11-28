@@ -113,7 +113,8 @@ A line of no kept kind goes into no keep file. A new kind is a departure
 from the frame: the builder names it in the phase record, and the framer
 folds it. The phase record names each line the phase added, changed or
 removed in a keep file, with its kind, and the round reads each against
-the reasons `frame/design.md` gives.
+the reasons `frame/design.md` gives. The builder's range file prints the
+lines a range changes in a keep file, and no more.
 
 An absence that cannot be demonstrated that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
@@ -196,7 +197,7 @@ them measures a tree that is going to change.
 | When | What runs | Label |
 |---|---|---|
 | Each slice | the tests for what the slice just wrote | `executed`, narrow |
-| Phase boundary | in one command, the cases the phase's plan row names, each test file the phase changed, each test file that reads a path the phase changed, and the repository's tree-wide test files | `executed`, scoped |
+| Phase boundary | the cases the phase's plan row names, each test file the phase changed, each test file that reads a path the phase changed, and the repository's tree-wide test files, with one command for each suite that owns a file of the set: the commands the phase's *Verified by* cell names | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | the *Phase boundary* set, drawn over the paths the fix changed | `executed`, scoped |
 | **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |
@@ -218,6 +219,14 @@ names as reading its whole tree**, so a rule the tree is held to runs at
 every phase boundary and every fix pass, whatever path the change touched.
 Where the guide names none, they are the test files that glob the
 directory holding a changed path.
+
+**A suite is a command the repository runs test files with**: a unit
+runner, a built-app or end-to-end runner, an eval harness. A test file
+belongs to the suite whose command runs it. A file named to a runner it
+does not belong to is not run as its suite runs it: the runner can collect
+nothing from it, or skip it, and still come back green. So the *Phase
+boundary* set runs under each suite that owns one of its files, and
+`frame/plan.md`'s *Verified by* cell for the phase names those commands.
 
 Narrowing is not permission to go quiet. A suite the party making the claim did
 not run is `unverified` with who answers it, never omitted: condition 4 is what makes
