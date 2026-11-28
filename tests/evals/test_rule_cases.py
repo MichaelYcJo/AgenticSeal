@@ -88,7 +88,7 @@ class Test_main:
     ):
         """Guards #1044 S14 and #1148 S6: each inspector case's pull request
         body, its placeholders filled as its scaffold fills its records, is
-        what `iadd pr-body --check` accepts over the records that scaffold
+        what `agentic pr-body --check` accepts over the records that scaffold
         writes, its `pr.md` among them, in a repository holding the
         scaffold's `agentory/` root, whose `config.json` gives the language keys
         the first part is composed from (#1453); the part above `HEADING`

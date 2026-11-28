@@ -8,7 +8,7 @@ the root in code (`lib/optin.py#home_at`) and are pinned by
 `tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the workflow template
-`iadd pr-checks install` writes and the commands its header names, and the
+`agentic pr-checks install` writes and the commands its header names, and the
 switch the READMEs give. The places a session finds the root at are stated
 once, in the opening paragraph of `skills/core/SKILL.md` (#1578), and
 `tests/text/test_the_rules_have_one_owner.py` holds them there with each
@@ -77,9 +77,9 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     # The path `<repo>/agentory/`, where the orchestrator creates the shared
     # root and where `lib/optin.py` looks for it first.
     assert "creates `<repo>/agentory/`" in records
-    # The command `iadd pr-checks install`, which the orchestrator runs
+    # The command `agentic pr-checks install`, which the orchestrator runs
     # under this option.
-    assert "`iadd pr-checks install`" in checks, checks
+    assert "`agentic pr-checks install`" in checks, checks
     # The path of the local root, which the orchestrator creates and
     # `lib/optin.py` looks for second.
     assert f"creates `{COMMON_DIR}`" in local
@@ -112,10 +112,10 @@ LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
 
 
 def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them():
-    """#1453. `iadd pr-body` refuses a repository without either language
+    """#1453. `agentic pr-body` refuses a repository without either language
     key, so first setup asks for both in the call that already stops the
     session, with the recent pull request titles shown beside the question,
-    and writes the answers into the file `iadd mode` wrote. What each option
+    and writes the answers into the file `agentic mode` wrote. What each option
     says its key governs is the proofer's to read."""
     boot = flattened(bootstrap())
     # The two keys of `config.json` first setup asks for, which
@@ -129,7 +129,7 @@ def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them
     )
     # The paragraph that writes the answered keys into the file.
     assert "**Then the two language keys.**" in boot, (
-        "nothing writes the answered keys into the file `iadd mode` wrote"
+        "nothing writes the answered keys into the file `agentic mode` wrote"
     )
 
 
@@ -246,7 +246,7 @@ def test_a_projects_own_agentory_names_the_marker_template_and_the_git_dir_root(
     assert f"`{COMMON_DIR}`" in own, own
 
 
-# --- S5 and S7: what `iadd pr-checks install` writes, and local mode --------
+# --- S5 and S7: what `agentic pr-checks install` writes, and local mode --------
 
 
 def template():
@@ -257,10 +257,10 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     t = template()
     # The two scripts the workflow's steps run, from the plugin's clone.
     assert "skills/code-review/scripts/chain_check.py" in t
-    assert "skills/implement/scripts/iadd.py" in t
+    assert "skills/implement/scripts/agentic.py" in t
     # The flag a step passes the script it runs.
     assert "--baseline" in t
-    # The tag placeholder `iadd pr-checks install` fills, and the repository
+    # The tag placeholder `agentic pr-checks install` fills, and the repository
     # the step clones at that tag.
     assert "v<version>" in t, "the plugin is not pinned to its tag"
     assert "MichaelYcJo/AgenticSeal" in t
@@ -279,11 +279,11 @@ def test_the_template_header_names_the_commands_that_write_and_remove_it():
             if line.startswith("#")
         )
     )
-    # The command `iadd pr-checks install`, which a person reading the
+    # The command `agentic pr-checks install`, which a person reading the
     # workflow file runs to write it; the code span is the fact.
-    assert "`iadd pr-checks install` writes" in header, header
+    assert "`agentic pr-checks install` writes" in header, header
     # The command a person runs to take the workflow out.
-    assert "`iadd pr-checks remove`" in header, header
+    assert "`agentic pr-checks remove`" in header, header
 
 
 def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
@@ -296,9 +296,9 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     # resolves to tell whether the command wrote the file or left one alone.
     assert "templates/setup/hygiene.yml" in boot
     assert ".github/workflows/hygiene.yml" in boot
-    # The command `iadd pr-checks install`, which the orchestrator runs
-    # after `iadd mode`; the code span is the fact.
-    assert "`iadd pr-checks install`" in boot, boot
+    # The command `agentic pr-checks install`, which the orchestrator runs
+    # after `agentic mode`; the code span is the fact.
+    assert "`agentic pr-checks install`" in boot, boot
 
 
 # --- S8 and S1: the READMEs -----------------------------------------------
@@ -329,7 +329,7 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     assert text.index(subsection) > text.index(first_run)
     body = section(text, subsection)
     # The two commands a person runs to install and remove the checks.
-    assert "iadd pr-checks install" in body and "iadd pr-checks remove" in body, (
+    assert "agentic pr-checks install" in body and "agentic pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
     # #1055 S6: the citation of the skill section that holds the way back
@@ -340,7 +340,7 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     assert LEFT_BEHIND[readme] in flattened(body), LEFT_BEHIND[readme]
     # The pair of commands a person runs to carry the records between two
     # machines.
-    assert "iadd export" in body and "iadd import" in body, (
+    assert "agentic export" in body and "agentic import" in body, (
         "the move is only available where both folders are on one machine, so "
         "this section has to point at the pair that works between two (#81). "
         "It named the issue number while the pair was later work"
@@ -385,7 +385,7 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
     for said in (
         # The two commands a person runs to walk the switch back.
         "`git reset -- :/agentory`",
-        "`iadd mode local`",
+        "`agentic mode local`",
         # The citation of the rule, which a reader resolves: the path and the
         # heading in italics.
         "`docs/layout/one-root-by-lifetime.md` *Shared or local*",
@@ -404,7 +404,7 @@ def switch_block():
     joined with `&&`. The template is every root's own `agentory/README.md`, and
     the README links it for the moves rather than restating them (#1102). A
     paragraph that stopped carrying two spans after each lead fails here,
-    which is the point: those lines are what `iadd mode`'s move has to keep
+    which is the point: those lines are what `agentic mode`'s move has to keep
     doing, and this is where they are run from a subdirectory.
     """
     text = read("templates", "setup", "agentory-README.md")
@@ -579,4 +579,4 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     asked."""
     boot = flattened(bootstrap())
     # The command the orchestrator runs to record the answer.
-    assert "iadd mode" in boot
+    assert "agentic mode" in boot

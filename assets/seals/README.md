@@ -48,7 +48,7 @@ page draws no vector drawing.
 The source of each entry is its tag, not a copy of the old code. The
 command under each entry draws it again from the tag. It loads that tag's
 `skills/verify/scripts/seal_stamp.py` and calls `stamp` over the module's
-`SAMPLE_ROWS` directly, because `iadd stamp` on a pipe prints the letter
+`SAMPLE_ROWS` directly, because `agentic stamp` on a pipe prints the letter
 twin rather than the colours. Each lily's command passes `DEFAULT_SCALE`
 as well. From 0.20.0 the module reads its mark from `seal-mark.txt` beside
 it, so the commands of the placeholder S and of both owls write the tag's

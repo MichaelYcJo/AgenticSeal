@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""iadd fold — hold the policy root's documents to one read and one index.
+"""agentic fold — hold the policy root's documents to one read and one index.
 
 `skills/settle/SKILL.md` gives a document one read, and
 `skills/settle/rule-changes.md` gives the policy root one index. This is the
 reader of both.
 
-  iadd fold                      every check, with the values agentory/config.json states
-  iadd fold --ceiling N          report documents past N estimated tokens, this run
-  iadd fold --root DIR           a repository other than this one
+  agentic fold                      every check, with the values agentory/config.json states
+  agentic fold --ceiling N          report documents past N estimated tokens, this run
+  agentic fold --root DIR           a repository other than this one
 
 The policy root is `agentory/config.json`'s `Policy root` key, `docs` when absent,
 read through `lib/config.py#declared_policy_root`. Every check reads its
@@ -47,8 +47,8 @@ one that names documents past the ceiling · 1 an index out of step, each
 problem on a line of its own · 2 the root, a value or a file it had to read
 was unusable, such as a document that is not UTF-8, and no result was
 printed, or a sibling script it loads is not beside it. An interpreter below
-the floor never reaches this file through `iadd fold`: `lib/launch.py`
-refuses `iadd` with 2 first.
+the floor never reaches this file through `agentic fold`: `lib/launch.py`
+refuses `agentic` with 2 first.
 """
 
 import argparse
@@ -323,28 +323,30 @@ def run(root, values, where, out):
     names = documents(root, policy)
     if ceiling is None:
         out.write(
-            f"iadd fold: `{CEILING_KEY}` is not declared in {where}, so no "
+            f"agentic fold: `{CEILING_KEY}` is not declared in {where}, so no "
             "document's length was checked\n"
         )
     else:
         past = past_ceiling(root, policy, ceiling)
         out.write(
-            f"iadd fold: held {console.plural(len(names), 'document')} under {policy}/ "
+            f"agentic fold: held {console.plural(len(names), 'document')} under {policy}/ "
             f"to {ceiling} estimated tokens, {len(past)} past it\n"
         )
         for line in past_ceiling_lines(past, ceiling):
-            out.write(f"iadd fold: {line}\n")
+            out.write(f"agentic fold: {line}\n")
     found = index_problems(root, policy)
     if found is None:
-        out.write(f"iadd fold: there is no {policy}/{INDEX}, so no index was checked\n")
+        out.write(
+            f"agentic fold: there is no {policy}/{INDEX}, so no index was checked\n"
+        )
     elif not found:
-        out.write(f"iadd fold: the index {policy}/{INDEX} names every document\n")
+        out.write(f"agentic fold: the index {policy}/{INDEX} names every document\n")
     return found or []
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="iadd fold",
+        prog="agentic fold",
         description="Hold the policy root's documents to one read and one "
         "index, with the values agentory/config.json states.",
     )
@@ -362,12 +364,12 @@ def main(argv=None):
     root = os.path.abspath(args.root or os.getcwd())
     if not os.path.isdir(root):
         sys.stderr.write(
-            f"iadd fold: {root} is not a directory — nothing was checked\n"
+            f"agentic fold: {root} is not a directory — nothing was checked\n"
         )
         return 2
     if args.root is None:
         # Typed anywhere inside a repository, the command reads that
-        # repository, the way `iadd.py` and `chain_check.py` resolve theirs.
+        # repository, the way `agentic.py` and `chain_check.py` resolve theirs.
         # Read from the directory it was typed in, a subdirectory has no
         # `agentory/` and no `docs/`, and the run would pass having checked
         # nothing.
@@ -376,20 +378,20 @@ def main(argv=None):
     try:
         ceiling, policy = declared(home)
     except Unusable as refused:
-        sys.stderr.write(f"iadd fold: in {where}, {refused} — nothing was checked\n")
+        sys.stderr.write(f"agentic fold: in {where}, {refused} — nothing was checked\n")
         return 2
     if args.ceiling is not None:
         ceiling = args.ceiling
     index = os.path.join(root, *policy.split("/"), INDEX)
     if ceiling is None and not os.path.isfile(index):
         sys.stdout.write(
-            f"iadd fold: `{CEILING_KEY}` is not declared in {where}, and there "
+            f"agentic fold: `{CEILING_KEY}` is not declared in {where}, and there "
             f"is no {policy}/{INDEX}, so nothing was checked\n"
         )
         return 0
     if not os.path.isdir(os.path.join(root, *policy.split("/"))):
         sys.stderr.write(
-            f"iadd fold: {root} has no {policy}/ directory — nothing was checked\n"
+            f"agentic fold: {root} has no {policy}/ directory — nothing was checked\n"
         )
         return 2
     # The run's lines are held until it has a result, so a file it cannot read
@@ -398,7 +400,7 @@ def main(argv=None):
     try:
         problems = run(root, (ceiling, policy), where, out)
     except Unusable as refused:
-        sys.stderr.write(f"iadd fold: {refused} — no result was printed\n")
+        sys.stderr.write(f"agentic fold: {refused} — no result was printed\n")
         return 2
     sys.stdout.write(out.getvalue())
     for problem in problems:

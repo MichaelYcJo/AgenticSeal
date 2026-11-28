@@ -341,12 +341,12 @@ def fold(summary, lines):
 PR_1293 = pull(
     1293,
     OWNER,
-    "fix: iadd pr-body refused only an exact <details> or </details> line, "
+    "fix: agentic pr-body refused only an exact <details> or </details> line, "
     "and GitHub ends the fold at one inside a sentence, indented or in "
     "capitals, and nests a second at <details open>",
 )
 TEXT_1293 = (
-    "Iadd pr-body refused only an exact <details> or </details> line, and "
+    "Agentic pr-body refused only an exact <details> or </details> line, and "
     "GitHub ends the fold at one inside a sentence, indented or in capitals, "
     "and nests a second at <details open> (#1293)"
 )

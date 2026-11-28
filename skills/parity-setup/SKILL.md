@@ -63,13 +63,13 @@ layout that predates the question, or an original that changes.
    grounds rather than preference. Say the consequence the user meets first,
    too, which depends on where the root is and on whether the pull-request
    checks are installed. Where the root is `<repo>/agentory/` and
-   `iadd pr-checks` reports the checks installed: from this file onward, a
+   `agentic pr-checks` reports the checks installed: from this file onward, a
    ready pull request that changes anything outside the document roots fails
    its check until the comparison with the original is recorded as an
    `original:` line, in each round record under `through the review chain`
    and in the inspector's `inspection.md` under `straight to the PR`
    (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
-   shared, records only, no workflow reads a round record, but `iadd gate`
+   shared, records only, no workflow reads a round record, but `agentic gate`
    runs the same check: say that the `original:` line is still written, that
    the gate's preflight and broad run refuse a round record without it
    whatever the pull request's state, and that no workflow refuses it at the

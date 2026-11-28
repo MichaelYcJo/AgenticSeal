@@ -9,20 +9,20 @@ takes.
 
 ## Orchestrator: from the preflight to the open pull request
 
-Once `inspection.md` reading `cleared` is committed, run `iadd pr-body` once
+Once `inspection.md` reading `cleared` is committed, run `agentic pr-body` once
 more on the body file the inspector read, and open the pull request with it,
 `gh pr create --body-file <that file>`. That run changes no copied line and
 writes the inspection mark where the repository turns it on
 (`docs/forms/the-inspection.md` *The inspection*). CI runs then, and again on
 every push to it. The pull request's check reads the body against what
-`iadd pr-body` composes at HEAD and refuses a ready pull request at each
+`agentic pr-body` composes at HEAD and refuses a ready pull request at each
 line where they differ (`skills/code-review/scripts/chain_check.py#body`).
-Such a refusal asks for `iadd pr-body` once more on the body file, and the
+Such a refusal asks for `agentic pr-body` once more on the body file, and the
 file sent to the open pull request with the `gh api -X PATCH` call below.
 No inspector runs for it, since the body is not a record.
 
-**The orchestrator runs `iadd pr-wait <N> --once` before each push to the
-pull request's branch, and `iadd pr-wait <N>` when the pull request opens
+**The orchestrator runs `agentic pr-wait <N> --once` before each push to the
+pull request's branch, and `agentic pr-wait <N>` when the pull request opens
 and after each push, and acts on the exit code as the table below gives
 it.** The wait reads pull request N's checks at the checkout's HEAD, which
 is the commit the orchestrator pushed last. It reads the checks of every
@@ -51,14 +51,14 @@ after the inspector.** Its fix is a commit outside the work item's records, so
 it takes the repair path below: a verifying round on its diff, the broad run
 again, and the inspector again. Nothing else is built for it. The pull request
 stays open through that repair. Once the repair's broad run is committed,
-the orchestrator runs `iadd pr-body` on the body file again and gives the
+the orchestrator runs `agentic pr-body` on the body file again and gives the
 file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
 `gh pr edit`: that command's GraphQL query has stopped on an error about
 Projects (classic), and the REST call sends the body alone. Whenever the
 inspector's next `cleared` verdict is committed while the pull request is open,
 after this repair, a merge from the base or any other repair, run
-`iadd pr-body` on the file once more and send it the same way. The body
+`agentic pr-body` on the file once more and send it the same way. The body
 sent before that verdict carries no inspection mark, since the inspection it stood
 on had lapsed, and only a run after the verdict can write the mark
 the `Pull request inspection mark` key asks for.
@@ -78,8 +78,8 @@ The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/layout/the-record-layout.md` *A change writes fragments, never a shared
 file*). The preflight and the broad run are yours, and no agent takes either.
-**Run `iadd gate --preflight --base <base>`; on its exit 0, with nothing else
-running, run `iadd gate --base <base> --record <item>`**, which takes the
+**Run `agentic gate --preflight --base <base>`; on its exit 0, with nothing else
+running, run `agentic gate --base <base> --record <item>`**, which takes the
 one broad pass now that the rounds have settled and, on a green run, writes
 `trail/gate.md`. `skills/verify/orchestration.md` *The broad gate* says what
 the run covers and what each word beside a failing file means. Send its
@@ -95,7 +95,7 @@ runs nothing broad, and a missing or stale record comes back
 
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
-`iadd pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
+`agentic pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
 `<item>` is the work item's directory. It writes `pr.<lang>.md` where the
 two language keys differ, then `pr.md`, then the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the changelog
@@ -106,7 +106,7 @@ and line, `pr.md` and `pr.<lang>.md` among the records, a language key
 `config.json` lacks, or the work item's directory with the files to repair
 named in the line: repair that record or file or write that key, commit it,
 and run the command again. Edit nothing in the file; the inspector's
-`iadd pr-body --check` withholds on a part above the line that is not
+`agentic pr-body --check` withholds on a part above the line that is not
 `pr.<lang>.md` and `pr.md` as the keys ask for them, and on a part below it
 that is not the records' text at HEAD, and the pull request's check refuses
 the body sent from it on the same lines.
@@ -143,7 +143,7 @@ request.** `withheld` names the claim and the coordinate. Where the row *No
 fix that no round reads* of `skills/core/SKILL.md` *Judgment is not licence
 to skip a party* gives the repair to the inspector, as it does a repair to a
 phase record, the changelog fragment or `pr.md`, make it, commit what it
-changed in the records, run `iadd pr-body` on the body file again, and spawn
+changed in the records, run `agentic pr-body` on the body file again, and spawn
 the inspector again at the new HEAD, giving a repaired body to a pull request
 already open as the stated limit above says. Whether the broad run is owed
 again for that commit is `skills/code-review/orchestration.md`
@@ -151,7 +151,7 @@ again for that commit is `skills/code-review/orchestration.md`
 Where the core's row gives it to a round it is a fix nobody reviewed: commit
 it, spawn
 a verifying round on its diff, and once that round's record is committed run
-the broad gate again, commit its record, run `iadd pr-body` on the body file
+the broad gate again, commit its record, run `agentic pr-body` on the body file
 again, and spawn the inspector. Your broad run
 asks the records arm after its suite, and that arm refuses a commit outside
 the work item after the last round's `target:` commit, so a run taken
@@ -167,7 +167,7 @@ resolves.
 Where the inspection's newest verdict block names a commit the branch does
 not hold, which the pull request's check refuses as stale, spawn the inspector
 again at HEAD and commit what it writes; never edit a block by hand. The
-inspector's `iadd stamp --inspection` recorded the refusal, so the new audit,
+inspector's `agentic stamp --inspection` recorded the refusal, so the new audit,
 whose block stands below the refused verdict's block, draws the work item's
 stamp (`docs/checks/the-stamp.md` *The stamp*).
 
@@ -208,20 +208,20 @@ which say whether the broad command passed and judge nothing. The stamp is
 drawn once per work item from the inspector's verdict
 (`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
 `inspection.md` reads `Verdict: cleared` and the block reader refuses none of
-its lines, the inspector's `iadd stamp --inspection` queues the stamp's values,
+its lines, the inspector's `agentic stamp --inspection` queues the stamp's values,
 under either root, and the plugin's `Stop` hook draws them after your text.
 The line naming them arrives in the inspector's hand-back.
 So put the result text first in that turn:
 what was cleared, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
-yourself, neither with `iadd stamp` nor by relaying a log: a relayed log
+yourself, neither with `agentic stamp` nor by relaying a log: a relayed log
 shows the person the stamp twice, the copy without its colour and cut. The
 `BROAD GATE PASSED` line names the branch and the tree the run measured and
 the ref and the commit it was compared against, the panel's rows follow it
 as text, and the report's last line says `trail/gate.md` is written and not
 committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
-FAILED` lines. Wherever a line you read names `iadd stamp --from`, quote
+FAILED` lines. Wherever a line you read names `agentic stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 inspector's hand-back carries that line; quote it in the turn's text. The line
 names the command because the plugin's `Stop` hook draws nothing where it

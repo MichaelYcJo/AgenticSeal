@@ -118,7 +118,7 @@ what closed each. A directory whose record still holds an open row, or one
 that cannot be read, is kept and named with its rows. A file the dry run
 names as not read is named again under its directory's line, and decides
 nothing: it goes or stays with the directory. It writes no policy
-document: the settling session has written them by then, and `iadd fold`'s
+document: the settling session has written them by then, and `agentic fold`'s
 lines over the policy root are printed after the removals.
 
 **Where the root is shared and the repository's notes are built from the
@@ -156,7 +156,7 @@ number and its merge commit, and each unreleased one with why: no
 `routing.md` that `lib/routing.py` reads as a declaration naming a branch,
 no merged pull request from its branch, or no listed merge commit
 `--released-at` reaches, a pull request listed with none among them. What `--apply` removes there no commit holds, and
-the dry run names `iadd export` for a copy. A `gh` that cannot be asked
+the dry run names `agentic export` for a copy. A `gh` that cannot be asked
 refuses the run, since every local work item would then read as unreleased.
 A repository that opted out with the scratch marker, an empty FILE read the
 way `lib/optin.py#home_at` reads it, is refused.
@@ -180,8 +180,8 @@ outside the repository, the `agentory/` root or a path under it, `--from`
 beside `--apply`, which removes only under `agentory/threads/`, `--draft`
 beside `--apply` or `--from`, and `--all-earlier` beside `--apply` or
 `--draft`, which print none of what it widens. An interpreter below
-the floor never reaches this file through `iadd settle`: `lib/launch.py`
-refuses `iadd` with 2 first.
+the floor never reaches this file through `agentic settle`: `lib/launch.py`
+refuses `agentic` with 2 first.
 """
 
 import argparse
@@ -638,12 +638,12 @@ NOT_BUILT = (
 NOT_CARRIED = (
     "kept {directory}/: the published note of {tag} does not carry its entry, a "
     "link to pull request #{number}; repair the note from `git show {at}:{path}` "
-    "and run `iadd settle --apply` again"
+    "and run `agentic settle --apply` again"
 )
 NO_RELEASE = (
     "kept {directory}/: {tag} has no published GitHub Release, so no note carries "
     "its entry, a link to pull request #{number}; publish one from "
-    "`git show {at}:{path}` and run `iadd settle --apply` again"
+    "`git show {at}:{path}` and run `agentic settle --apply` again"
 )
 
 
@@ -907,7 +907,7 @@ EARLIER_WINDOW = 2
 # of commits, never of rows.
 EARLIER_OLDER = (
     "{commits} removed plans this section did not read; "
-    "`iadd settle --all-earlier` reads them"
+    "`agentic settle --all-earlier` reads them"
 )
 NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
 NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
@@ -921,14 +921,14 @@ NO_ONE_LINE = (
     "names, so none of its rows were read"
 )
 REMOVES_HEADING = (
-    "what `iadd settle --apply` removes: each released directory whose record "
+    "what `agentic settle --apply` removes: each released directory whose record "
     "holds no open row,\nunless `--apply`, which alone reads the published "
     "notes, finds its entry missing\nfrom a note built from the fragments:"
 )
 REMOVES_HEADING_LOCAL = (
-    "what `iadd settle --apply` removes: each released directory whose record "
+    "what `agentic settle --apply` removes: each released directory whose record "
     "holds no open row.\nIn local mode no commit holds these directories; "
-    "`iadd export` takes a copy for\nwhoever wants one:"
+    "`agentic export` takes a copy for\nwhoever wants one:"
 )
 READERS_HEADING = (
     "checks that read `agentory/threads` — each owes an answer "
@@ -1832,7 +1832,7 @@ def report(found, ref, out):
             write(f"    {rel}\n")
     write(
         "\nNothing was written and nothing was removed. The settling session "
-        "writes the\nsections and closes the rows; `iadd settle --apply` removes.\n"
+        "writes the\nsections and closes the rows; `agentic settle --apply` removes.\n"
     )
     return 0
 
@@ -1882,7 +1882,7 @@ def draft(found, root, out):
 # --- the apply -------------------------------------------------------------
 
 AFTER_HEADING = (
-    "after the removals — the index and the one read, as `iadd fold` reads "
+    "after the removals — the index and the one read, as `agentic fold` reads "
     "them; neither\nrefuses anything here:"
 )
 
@@ -1955,7 +1955,7 @@ def apply(found, root, out):
             out.write(
                 f"kept {directory}/: its record holds "
                 f"{console.plural(len(rows), 'open row')}; close each (`closed` with what closed "
-                "it) and run `iadd settle --apply` again\n"
+                "it) and run `agentic settle --apply` again\n"
             )
             for name, item in rows:
                 out.write(f"    open in {name}: {item}\n")
@@ -1990,7 +1990,7 @@ def apply(found, root, out):
 def main(argv=None):
     """The dry run or the apply; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
-        prog="iadd settle",
+        prog="agentic settle",
         description="Show the released designs' rule changes by section, and "
         "remove released work item directories.",
     )

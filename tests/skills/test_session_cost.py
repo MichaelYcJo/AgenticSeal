@@ -3345,7 +3345,7 @@ class Test_main:
         assert "is BETWEEN the rows" not in out, out
         assert "-16.4m" not in out, out
         # The cut a row ends at, never a spawn's result: the head row's cut is
-        # the first spawn's START. The cause `iadd cost --spawns` prints for
+        # the first spawn's START. The cause `agentic cost --spawns` prints for
         # the orchestrator reading the report.
         assert "outlived the cut its row ends at" in out, out
         assert "outlived a spawn's result" not in out, out
@@ -3432,7 +3432,7 @@ class Test_main:
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         out = " ".join(run(["--spawns", str(path)]).stdout.split())
         assert "no between-the-rows figure" in out, out
-        # The cause `iadd cost --spawns` prints for the orchestrator reading
+        # The cause `agentic cost --spawns` prints for the orchestrator reading
         # the report: the cut, not a spawn's result.
         assert "outlived the cut its row ends at" in out, out
         # No call in this transcript ends after the spawn's result at 9s.
@@ -5168,7 +5168,7 @@ class Test_post:
         assert code == 1
         said = " ".join(capsys.readouterr().out.split())
         assert "nothing is open" in said
-        # The refusal `iadd cost --post` prints when the log is closed, which
+        # The refusal `agentic cost --post` prints when the log is closed, which
         # tells the session reading it to open nothing, and where to name it:
         # the run posts once, when it ends (#1479).
         assert "not a session's act" in said
@@ -6291,10 +6291,10 @@ class Test_family:
         ):
             assert module.family(command) != "test", command
 
-    def test_reads_the_runner_words_iadd_deferrals_holds(self):
+    def test_reads_the_runner_words_agentic_deferrals_holds(self):
         """#1572: `test` and `lint/type` are built from
         `deferral_check.py#RUNNERS`, the one list of runner words, so a
-        command only `iadd deferrals` named before is charged here too:
+        command only `agentic deferrals` named before is charged here too:
         `pylint` and `go vet` to `lint/type`, a `unittest` run and a Maven
         run with a goal before `test` to `test`."""
         module = load_script()

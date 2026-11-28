@@ -1,7 +1,7 @@
-"""`skills/implement/scripts/iadd.py`, one class per function.
+"""`skills/implement/scripts/agentic.py`, one class per function.
 
 Rebuilt by #942's phase 5 from `tests/text/test_the_records_can_be_carried_out_and_in.py`
-and `tests/text/test_the_mode_is_a_row_and_a_command.py`. `iadd` carries a clone's
+and `tests/text/test_the_mode_is_a_row_and_a_command.py`. `agentic` carries a clone's
 `agentory/` root to another clone (`export`, `import`), moves it between the
 two places it can live (`mode`), and writes or removes the pull-request
 checks (`pr-checks`).
@@ -24,7 +24,7 @@ repository with `at_top`, which answers `optin.toplevel` for the copy, so
 the world was built with, it answers `remote_url` too. What a refusal that
 runs no git writing the index leaves is read by `tree`, every file of the
 clone with `.git` among it. The git that stays real is the git whose answer
-is the case's fact: the staging of a switch and of `iadd pr-checks`, the
+is the case's fact: the staging of a switch and of `agentic pr-checks`, the
 index a refusal leaves, the HEAD a manifest records, the remote in the
 cases about the remote, and the runs from a subdirectory or from outside
 any repository, which reach their arm through `resolve`'s own git, as the
@@ -36,14 +36,14 @@ makes, and not what its guards read from the index, takes
 
 The cases that run the commands beside a project's own `agentory/` package,
 whose root is then the local one (#1651), build `tests/conftest.py`'s
-`package` repository where they need its history: `iadd export` and
-`iadd import` across a clone, and first setup. A case that needs no history
+`package` repository where they need its history: `agentic export` and
+`agentic import` across a clone, and first setup. A case that needs no history
 writes the package's files into a copy of a world (`beside_the_package`),
 since `optin.home_at` reads the disk.
 
 #942's phase 6 placed here the writer's cases of
 `tests/test_the_mode_question_is_asked_once.py`, and the two cases of
-`iadd.py`'s re-exports of the config reader, from that file and from
+`agentic.py`'s re-exports of the config reader, from that file and from
 `tests/behaviour/test_a_signer_declares_its_pact.py`. #1454 replaced the table
 writer with `write_mode`, which the serializer writes for. Its round 9 fix
 pass placed in `Test_module` the case that runs a copy of this script
@@ -85,9 +85,9 @@ from conftest import (
     write_config,
 )
 
-TARGET = "skills/implement/scripts/iadd.py"
+TARGET = "skills/implement/scripts/agentic.py"
 
-IADD = load_module(os.path.join(ROOT, *TARGET.split("/")), "iadd_under_test")
+AGENTIC = load_module(os.path.join(ROOT, *TARGET.split("/")), "iadd_under_test")
 
 ITEM = "1788000000-a-work-item"
 SSH = "git@example.com:org/thing.git"
@@ -196,7 +196,7 @@ def _worlds(tmp_path_factory):
     holding(roots(unborn)[1], {"follow-up.md": "# follow-up\n"})
     exporter = copied(base / "local", base / "exporter")
     (base / "zips").mkdir()
-    assert IADD.main(["export", "--output", str(base / "zips")], str(exporter)) == 0
+    assert AGENTIC.main(["export", "--output", str(base / "zips")], str(exporter)) == 0
     return base
 
 
@@ -232,9 +232,9 @@ def at_top(monkeypatch):
             assert same(root, top), f"{root} is not the top this case gave, {top}"
             return remote, ""
 
-        monkeypatch.setattr(IADD.optin, "toplevel", toplevel)
+        monkeypatch.setattr(AGENTIC.optin, "toplevel", toplevel)
         if remote is not None:
-            monkeypatch.setattr(IADD, "remote_url", remote_url)
+            monkeypatch.setattr(AGENTIC, "remote_url", remote_url)
         return repo
 
     return given
@@ -250,9 +250,9 @@ def guards_answered(monkeypatch):
     `Test_gitlinks_under_root`, `Test_other_worktrees` and `Test_refusals`
     hold each of them against git, and the other switches of `Test_switch`
     and `Test_mode` run them real."""
-    monkeypatch.setattr(IADD, "porcelain", lambda repo, *paths: [])
-    monkeypatch.setattr(IADD, "gitlinks_under_root", lambda repo, name: ([], ""))
-    monkeypatch.setattr(IADD, "other_worktrees", lambda repo: [])
+    monkeypatch.setattr(AGENTIC, "porcelain", lambda repo, *paths: [])
+    monkeypatch.setattr(AGENTIC, "gitlinks_under_root", lambda repo, name: ([], ""))
+    monkeypatch.setattr(AGENTIC, "other_worktrees", lambda repo: [])
 
 
 def beside_the_package(repo):
@@ -275,8 +275,8 @@ def exported(_worlds):
 
 
 def said(capsys, cwd, *argv):
-    """(exit code, stdout) of `iadd <argv>` run in CWD, in the process."""
-    code = IADD.main(list(argv), cwd=str(cwd))
+    """(exit code, stdout) of `agentic <argv>` run in CWD, in the process."""
+    code = AGENTIC.main(list(argv), cwd=str(cwd))
     return code, capsys.readouterr().out
 
 
@@ -284,13 +284,13 @@ def roots(repo):
     """(the shared root, the local root) of REPO, as `resolve` gives them
     from `optin.home_paths`. REPO's `.git` is a directory in every world
     here, so this asks git nothing."""
-    return IADD.optin.home_paths(str(repo))
+    return AGENTIC.optin.home_paths(str(repo))
 
 
 def home_of(repo):
     """The root in force at REPO, as `resolve` gives it from `optin.home_at`,
     asking git nothing."""
-    return IADD.optin.home_at(str(repo))
+    return AGENTIC.optin.home_at(str(repo))
 
 
 def listed(path):
@@ -343,8 +343,8 @@ def tree(path):
 
 
 def declared_in(repo):
-    """The `Mode` key of REPO's root in force, as `iadd` reads it."""
-    return IADD.declared(home_of(repo))
+    """The `Mode` key of REPO's root in force, as `agentic` reads it."""
+    return AGENTIC.declared(home_of(repo))
 
 
 def config_at(repo, text, name="config.json"):
@@ -403,7 +403,7 @@ def unanswered(monkeypatch, tail, outcome, after=0):
             raise outcome
         return subprocess.CompletedProcess(argv, *outcome)
 
-    monkeypatch.setattr(IADD.subprocess, "run", run)
+    monkeypatch.setattr(AGENTIC.subprocess, "run", run)
     return asks
 
 
@@ -412,7 +412,7 @@ def without_o_excl(monkeypatch):
     link at the name opened (run 33715420379)."""
     real = os.open
     monkeypatch.setattr(
-        IADD.os, "open", lambda path, flags, *a: real(path, flags & ~os.O_EXCL, *a)
+        AGENTIC.os, "open", lambda path, flags, *a: real(path, flags & ~os.O_EXCL, *a)
     )
 
 
@@ -456,10 +456,10 @@ def files_under(path):
 
 
 def tool(cwd, name, *args):
-    """(exit code, stdout, stderr) of the script `iadd <name>` hands over to,
+    """(exit code, stdout, stderr) of the script `agentic <name>` hands over to,
     run in CWD on this interpreter, as a person types it there."""
     done = subprocess.run(
-        [sys.executable, os.path.join(ROOT, IADD.TOOLS[name][0]), *args],
+        [sys.executable, os.path.join(ROOT, AGENTIC.TOOLS[name][0]), *args],
         cwd=str(cwd),
         capture_output=True,
         encoding="utf-8",
@@ -497,26 +497,26 @@ class Test_module:
         )
         assert done.returncode == 2, (done.returncode, done.stderr)
         lib = os.path.join(str(alone), "..", "..", "..", "lib", "sibling.py")
-        said = IADD.sibling.MISSING.format(path=os.path.normpath(lib))
+        said = AGENTIC.sibling.MISSING.format(path=os.path.normpath(lib))
         assert done.stderr == said + "\n", done.stderr
 
     def test_the_template_carries_the_marker_and_the_placeholder(self):
-        """The marker and the placeholder are literals in `iadd.py`, and a
+        """The marker and the placeholder are literals in `agentic.py`, and a
         template that stopped carrying either would silently change what the
         command does: a file nobody recognises as this plugin's is never
         removed, and a version that cannot be pinned is never written."""
         text = template_text()
-        assert IADD.PLUGIN_CLONE in text
-        assert IADD.PLACEHOLDER in text
+        assert AGENTIC.PLUGIN_CLONE in text
+        assert AGENTIC.PLACEHOLDER in text
 
     def test_both_wrappers_ship_and_point_at_this_script(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves a bare `iadd` to the `.cmd` twin through PATHEXT."""
-        with open(os.path.join(ROOT, "bin", "iadd"), encoding="utf-8") as handle:
-            assert "skills/implement/scripts/iadd.py" in handle.read()
-        with open(os.path.join(ROOT, "bin", "iadd.cmd"), encoding="utf-8") as handle:
+        cmd.exe resolves a bare `agentic` to the `.cmd` twin through PATHEXT."""
+        with open(os.path.join(ROOT, "bin", "agentic"), encoding="utf-8") as handle:
+            assert "skills/implement/scripts/agentic.py" in handle.read()
+        with open(os.path.join(ROOT, "bin", "agentic.cmd"), encoding="utf-8") as handle:
             text = handle.read()
-        assert "skills\\implement\\scripts\\iadd.py" in text
+        assert "skills\\implement\\scripts\\agentic.py" in text
         assert "py -3" in text and "python " in text
 
     def test_accepts_the_command_a_person_types(self, take):
@@ -538,7 +538,7 @@ class Test_module:
         )
         assert done.returncode == 0, done.stdout + done.stderr
         assert done.stdout == (
-            "1 work items here and no export yet — `iadd export` writes the "
+            "1 work items here and no export yet — `agentic export` writes the "
             "first copy.\n"
         )
 
@@ -560,10 +560,10 @@ class Test_module:
         ) == "LANDED"
 
     def test_the_command_and_the_gate_read_one_parser(self, config):
-        """`iadd mode` writes the key and the gate reads it. Two readers of one
-        file is how a file passes one and fails the other; `iadd.py` re-exports
+        """`agentic mode` writes the key and the gate reads it. Two readers of one
+        file is how a file passes one and fails the other; `agentic.py` re-exports
         this one rather than keeping a copy."""
-        path = os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py")
+        path = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
         spec = importlib.util.spec_from_file_location("iadd_command_one_parser", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -573,23 +573,26 @@ class Test_module:
         owner = os.path.join("lib", "config.py")
         for name in ("declared", "config_path"):
             where = getattr(module, name).__code__.co_filename
-            assert where.endswith(owner), f"iadd.{name} is compiled from {where}"
+            assert where.endswith(owner), f"agentic.{name} is compiled from {where}"
         assert config.declared_mode.__code__.co_filename.endswith(owner)
 
-    def test_iadd_keeps_one_normaliser(self):
-        """`iadd.py` re-exports the reader's normaliser rather than keeping a
+    def test_agentic_keeps_one_normaliser(self):
+        """`agentic.py` re-exports the reader's normaliser rather than keeping a
         second copy that could drift from the one the `Pact` row goes through."""
-        iadd = load_module(
-            os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py"),
+        agentic = load_module(
+            os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
             "iadd_for_the_pact",
         )
-        assert iadd.normalise_remote is iadd.repo_config.normalise_remote
+        assert agentic.normalise_remote is agentic.repo_config.normalise_remote
 
 
 class Test_git_asked:
     def test_accepts_an_exit_the_caller_counts_as_an_answer(self, _worlds):
-        assert IADD.git_asked(str(_worlds / "local"), *CONFIG_GET_REMOTE) == (SSH, "")
-        assert IADD.git_asked(
+        assert AGENTIC.git_asked(str(_worlds / "local"), *CONFIG_GET_REMOTE) == (
+            SSH,
+            "",
+        )
+        assert AGENTIC.git_asked(
             str(_worlds / "plain"), *CONFIG_GET_REMOTE, answered=(0, 1)
         ) == ("", "")
 
@@ -610,32 +613,32 @@ class Test_git_asked:
         self, monkeypatch, tmp_path, outcome, why
     ):
         unanswered(monkeypatch, REV_PARSE_HEAD, outcome)
-        text, said_why = IADD.git_asked(str(tmp_path), *REV_PARSE_HEAD)
+        text, said_why = AGENTIC.git_asked(str(tmp_path), *REV_PARSE_HEAD)
         assert text is None
         assert said_why.startswith(why), said_why
 
 
 class Test_git:
     def test_accepts_what_git_prints_stripped(self, _worlds):
-        assert IADD.git(
+        assert AGENTIC.git(
             str(_worlds / "local"), "rev-parse", "--abbrev-ref", "HEAD"
         ) == ("main")
 
     def test_refuses_a_failure_as_the_empty_string(self, tmp_path):
-        assert IADD.git(str(tmp_path), *REV_PARSE_HEAD) == ""
+        assert AGENTIC.git(str(tmp_path), *REV_PARSE_HEAD) == ""
 
 
 class Test_remote_url:
     def test_accepts_an_unset_origin_as_the_empty_answer(self, _worlds):
-        assert IADD.remote_url(str(_worlds / "local")) == (SSH, "")
-        assert IADD.remote_url(str(_worlds / "other")) == (HTTPS, "")
-        assert IADD.remote_url(str(_worlds / "plain")) == ("", "")
+        assert AGENTIC.remote_url(str(_worlds / "local")) == (SSH, "")
+        assert AGENTIC.remote_url(str(_worlds / "other")) == (HTTPS, "")
+        assert AGENTIC.remote_url(str(_worlds / "plain")) == ("", "")
 
     def test_refuses_a_config_git_cannot_parse(self, monkeypatch, _worlds):
         unanswered(
             monkeypatch, CONFIG_GET_REMOTE, (128, "", "fatal: bad config line 9\n")
         )
-        assert IADD.remote_url(str(_worlds / "local")) == (
+        assert AGENTIC.remote_url(str(_worlds / "local")) == (
             None,
             "fatal: bad config line 9",
         )
@@ -644,10 +647,10 @@ class Test_remote_url:
 class Test_head_sha:
     def test_accepts_a_commit_as_its_sha(self, _worlds):
         repo = _worlds / "local"
-        assert IADD.head_sha(str(repo)) == (git_out(repo, *REV_PARSE_HEAD), "")
+        assert AGENTIC.head_sha(str(repo)) == (git_out(repo, *REV_PARSE_HEAD), "")
 
     def test_refuses_a_branch_with_no_commit(self, _worlds):
-        sha, why = IADD.head_sha(str(_worlds / "unborn"))
+        sha, why = AGENTIC.head_sha(str(_worlds / "unborn"))
         assert sha is None and why
 
 
@@ -660,15 +663,15 @@ def same(a, b):
 class Test_resolve:
     @pytest.mark.parametrize("mode", ["local", "shared"])
     def test_accepts_a_root_in_force_and_names_its_mode(self, _worlds, mode):
-        repo, home, shared, local, found = IADD.resolve(str(_worlds / mode))
+        repo, home, shared, local, found = AGENTIC.resolve(str(_worlds / mode))
         assert same(repo, _worlds / mode)
         assert same(shared, _worlds / mode / "agentory")
         assert same(home, shared if mode == "shared" else local)
         assert found == mode
 
     def test_refuses_a_directory_with_no_root_or_no_repository(self, _worlds, tmp_path):
-        assert IADD.resolve(str(tmp_path)) == ("", "", "", "", "")
-        repo, home, shared, local, found = IADD.resolve(str(_worlds / "plain"))
+        assert AGENTIC.resolve(str(tmp_path)) == ("", "", "", "", "")
+        repo, home, shared, local, found = AGENTIC.resolve(str(_worlds / "plain"))
         assert same(repo, _worlds / "plain") and shared and local
         assert (home, found) == ("", "")
 
@@ -677,7 +680,7 @@ class Test_root_files:
     def test_accepts_a_tree_as_sorted_slash_joined_paths(self, tmp_path):
         for rel in ("b.md", "a/c.md", "a/b/d.md"):
             write(tmp_path, rel, rel)
-        files, links = IADD.root_files(str(tmp_path))
+        files, links = AGENTIC.root_files(str(tmp_path))
         assert files == [
             (rel, os.path.join(str(tmp_path), *rel.split("/")))
             for rel in ("a/b/d.md", "a/c.md", "b.md")
@@ -690,7 +693,7 @@ class Test_root_files:
         write(outside, "secret.md", "secret")
         symlink_or_skip(str(outside / "secret.md"), str(root / "leak.md"))
         symlink_or_skip(str(outside), str(root / "linked"))
-        files, links = IADD.root_files(str(root))
+        files, links = AGENTIC.root_files(str(root))
         assert [rel for rel, _disk in files] == ["a.md"]
         assert links == ["leak.md", "linked/"]
 
@@ -698,18 +701,18 @@ class Test_root_files:
 class Test_read_bytes:
     def test_accepts_a_file_as_its_bytes(self, tmp_path):
         (tmp_path / "a").write_bytes(b"one\r\ntwo")
-        assert IADD.read_bytes(str(tmp_path / "a")) == b"one\r\ntwo"
+        assert AGENTIC.read_bytes(str(tmp_path / "a")) == b"one\r\ntwo"
 
     def test_refuses_a_path_that_is_not_there(self, tmp_path):
         with pytest.raises(FileNotFoundError):
-            IADD.read_bytes(str(tmp_path / "absent"))
+            AGENTIC.read_bytes(str(tmp_path / "absent"))
 
 
 class Test_digest:
     def test_accepts_the_path_the_length_and_the_bytes(self, tmp_path):
         write(tmp_path, "a.md", "x")
 
-        assert IADD.digest([("a.md", str(tmp_path / "a.md"))]) == (
+        assert AGENTIC.digest([("a.md", str(tmp_path / "a.md"))]) == (
             hashlib.sha256(b"a.md\x001\x00x").hexdigest()
         )
 
@@ -717,9 +720,9 @@ class Test_digest:
         write(tmp_path, "x", "one")
         write(tmp_path, "y", "two")
         x, y = str(tmp_path / "x"), str(tmp_path / "y")
-        first = IADD.digest([("a.md", x), ("b.md", y)])
-        assert IADD.digest([("a.md", y), ("b.md", x)]) != first
-        assert IADD.digest([("c.md", x), ("b.md", y)]) != first
+        first = AGENTIC.digest([("a.md", x), ("b.md", y)])
+        assert AGENTIC.digest([("a.md", y), ("b.md", x)]) != first
+        assert AGENTIC.digest([("c.md", x), ("b.md", y)]) != first
 
 
 class Test_work_item_of:
@@ -731,23 +734,23 @@ class Test_work_item_of:
         ],
     )
     def test_accepts_a_path_under_a_work_items_directory(self, rel, item):
-        assert IADD.work_item_of(rel) == item
+        assert AGENTIC.work_item_of(rel) == item
 
     @pytest.mark.parametrize(
         "rel", ["follow-up.md", "threads/1788-x", "notes/1788-x/a.md"]
     )
     def test_refuses_a_path_in_no_work_item(self, rel):
-        assert IADD.work_item_of(rel) == ""
+        assert AGENTIC.work_item_of(rel) == ""
 
 
 class Test_work_item_digests:
     def test_accepts_each_item_as_the_digest_of_its_files(self, tmp_path):
         holding(tmp_path)
         write(tmp_path, "threads/1788000001-another/design.md", "# another\n")
-        files = IADD.root_files(str(tmp_path))[0]
-        found = IADD.work_item_digests(files)
+        files = AGENTIC.root_files(str(tmp_path))[0]
+        found = AGENTIC.work_item_digests(files)
         assert found == {
-            item: IADD.digest(
+            item: AGENTIC.digest(
                 sorted(e for e in files if e[0].startswith(f"threads/{item}/"))
             )
             for item in (ITEM, "1788000001-another")
@@ -756,20 +759,22 @@ class Test_work_item_digests:
     def test_refuses_a_file_that_belongs_to_no_item(self, tmp_path):
         write(tmp_path, "follow-up.md", "x")
         write(tmp_path, "threads/loose.md", "x")
-        assert IADD.work_item_digests(IADD.root_files(str(tmp_path))[0]) == {}
+        assert AGENTIC.work_item_digests(AGENTIC.root_files(str(tmp_path))[0]) == {}
 
 
 class Test_manifest_of:
     def test_accepts_what_git_answers_and_an_origin_that_is_not_set(self, _worlds):
         repo = _worlds / "local"
-        manifest, unread = IADD.manifest_of(str(repo), "local", [])
+        manifest, unread = AGENTIC.manifest_of(str(repo), "local", [])
         assert unread == {}
         assert manifest["format"] == 1 and manifest["mode"] == "local"
         assert manifest["remote"] == SSH
         assert manifest["head"] == git_out(repo, *REV_PARSE_HEAD)
         assert manifest["exported_at"].endswith("Z")
         assert manifest["items"] == {}
-        assert IADD.manifest_of(str(_worlds / "plain"), "local", [])[0]["remote"] == ""
+        assert (
+            AGENTIC.manifest_of(str(_worlds / "plain"), "local", [])[0]["remote"] == ""
+        )
 
     @pytest.mark.parametrize(
         "field, tail", [("remote", CONFIG_GET_REMOTE), ("head", REV_PARSE_HEAD)]
@@ -778,7 +783,7 @@ class Test_manifest_of:
         self, monkeypatch, _worlds, field, tail
     ):
         unanswered(monkeypatch, tail, TIMED_OUT)
-        manifest, unread = IADD.manifest_of(str(_worlds / "local"), "local", [])
+        manifest, unread = AGENTIC.manifest_of(str(_worlds / "local"), "local", [])
         assert field not in manifest
         assert list(unread) == [field]
         assert unread[field].startswith(
@@ -790,11 +795,11 @@ class Test_manifest_of:
 
 class Test_unused:
     def test_accepts_the_first_name_nothing_holds(self, tmp_path):
-        assert IADD.unused(str(tmp_path), "agentory-x", ".zip") == str(
+        assert AGENTIC.unused(str(tmp_path), "agentory-x", ".zip") == str(
             tmp_path / "agentory-x.zip"
         )
         write(tmp_path, "agentory-x.zip", "")
-        assert IADD.unused(str(tmp_path), "agentory-x", ".zip") == str(
+        assert AGENTIC.unused(str(tmp_path), "agentory-x", ".zip") == str(
             tmp_path / "agentory-x-2.zip"
         )
 
@@ -802,26 +807,28 @@ class Test_unused:
         self, tmp_path, monkeypatch
     ):
         symlink_or_skip(str(tmp_path / "nowhere"), str(tmp_path / "agentory-y.zip"))
-        assert IADD.unused(str(tmp_path), "agentory-y", ".zip") == str(
+        assert AGENTIC.unused(str(tmp_path), "agentory-y", ".zip") == str(
             tmp_path / "agentory-y-2.zip"
         )
         taken = types.SimpleNamespace(
             path=types.SimpleNamespace(join=os.path.join, lexists=lambda p: True)
         )
-        monkeypatch.setattr(IADD, "os", taken)
-        assert IADD.unused(str(tmp_path), "agentory-z", ".zip") == ""
+        monkeypatch.setattr(AGENTIC, "os", taken)
+        assert AGENTIC.unused(str(tmp_path), "agentory-z", ".zip") == ""
 
 
 class Test_zip_stem:
     def test_accepts_the_clones_name_and_the_date(self, tmp_path):
         repo = os.path.join(str(tmp_path), "repo")
-        assert IADD.zip_stem(repo, "2026-09-03") == "agentory-repo-2026-09-03"
-        assert IADD.zip_stem(repo + os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
+        assert AGENTIC.zip_stem(repo, "2026-09-03") == "agentory-repo-2026-09-03"
+        assert (
+            AGENTIC.zip_stem(repo + os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
+        )
 
     def test_refuses_a_character_a_name_should_not_carry(self, tmp_path):
         repo = os.path.join(str(tmp_path), "my repo!")
-        assert IADD.zip_stem(repo, "2026-09-03") == "agentory-my-repo--2026-09-03"
-        assert IADD.zip_stem(os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
+        assert AGENTIC.zip_stem(repo, "2026-09-03") == "agentory-my-repo--2026-09-03"
+        assert AGENTIC.zip_stem(os.sep, "2026-09-03") == "agentory-repo-2026-09-03"
 
 
 class Test_write_zip:
@@ -832,7 +839,7 @@ class Test_write_zip:
     def test_accepts_the_manifest_and_the_records_under_the_root(self, tmp_path):
         home, files = self.files(tmp_path)
         target = str(tmp_path / "out.zip")
-        IADD.write_zip(target, home, files, {"format": 1})
+        AGENTIC.write_zip(target, home, files, {"format": 1})
         with zipfile.ZipFile(target) as archive:
             assert archive.namelist() == ["manifest.json", "agentory/a.md"]
             assert json.loads(archive.read("manifest.json")) == {"format": 1}
@@ -856,7 +863,7 @@ class Test_write_zip:
         if shape.endswith("no O_EXCL"):
             without_o_excl(monkeypatch)
         with pytest.raises(FileExistsError):
-            IADD.write_zip(target, home, files, {"format": 1})
+            AGENTIC.write_zip(target, home, files, {"format": 1})
         assert os.path.lexists(partial)
         assert list(outside.iterdir()) == []
         assert not os.path.lexists(target)
@@ -867,7 +874,7 @@ class Test_write_zip:
         home, files = self.files(tmp_path)
         target = str(tmp_path / "out.zip")
         with pytest.raises(OSError):
-            IADD.write_zip(target, home, [*files, ("b.md", str(tmp_path / "b"))], {})
+            AGENTIC.write_zip(target, home, [*files, ("b.md", str(tmp_path / "b"))], {})
         assert not os.path.lexists(target + ".partial")
         assert not os.path.lexists(target)
 
@@ -902,9 +909,9 @@ class Test_export:
         assert (
             f"{os.path.basename(written)}\n  5 files from .git/agentory, 1 work item\n"
         ) in out
-        assert out.endswith(f"  iadd import {os.path.basename(written)}\n"), out
+        assert out.endswith(f"  agentic import {os.path.basename(written)}\n"), out
         assert "was left out" not in out
-        assert IADD.read_state(str(repo)) == manifest
+        assert AGENTIC.read_state(str(repo)) == manifest
 
     def test_accepts_session_state_beside_the_root_and_leaves_it_out(
         self, take, at_top, capsys, tmp_path
@@ -1005,7 +1012,7 @@ class Test_export:
     ):
         repo = at_top(take("local"), SSH)
         today = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
-        stem = IADD.zip_stem(str(repo), today)
+        stem = AGENTIC.zip_stem(str(repo), today)
         partial = tmp_path / f"{stem}.zip.partial"
         outside = tmp_path / "outside"
         outside.mkdir()
@@ -1045,7 +1052,7 @@ class Test_export:
         assert (
             out == f"{missing} is not a directory — pass --output somewhere that is\n"
         )
-        monkeypatch.setattr(IADD, "unused", lambda *a: "")
+        monkeypatch.setattr(AGENTIC, "unused", lambda *a: "")
         code, out = said(capsys, repo, "export")
         assert code == 1
         assert (
@@ -1057,14 +1064,14 @@ class Test_export:
 class Test_display:
     def test_accepts_a_path_inside_as_slash_joined_and_relative(self, tmp_path):
         assert (
-            IADD.display(str(tmp_path), str(tmp_path / ".git" / "agentory"))
+            AGENTIC.display(str(tmp_path), str(tmp_path / ".git" / "agentory"))
             == ".git/agentory"
         )
 
     def test_refuses_to_shorten_a_path_outside_or_nothing(self, tmp_path):
         outside = str(tmp_path.parent / "elsewhere")
-        assert IADD.display(str(tmp_path), outside) == outside
-        assert IADD.display(str(tmp_path), "") == ""
+        assert AGENTIC.display(str(tmp_path), outside) == outside
+        assert AGENTIC.display(str(tmp_path), "") == ""
 
 
 class Test_no_root:
@@ -1072,7 +1079,7 @@ class Test_no_root:
         self, _worlds, capsys
     ):
         shared, local = roots(_worlds / "plain")
-        assert IADD.no_root(str(_worlds / "plain"), shared, local) == 1
+        assert AGENTIC.no_root(str(_worlds / "plain"), shared, local) == 1
         out = capsys.readouterr().out
         assert f"  {shared}   (shared mode)\n  {local}   (local mode)\n" in out
         assert out.endswith(
@@ -1082,38 +1089,40 @@ class Test_no_root:
         assert "crafter" not in out
 
     def test_refuses_a_directory_outside_git_and_a_throwaway_clone(self, take, capsys):
-        assert IADD.no_root("", "", "") == 1
+        assert AGENTIC.no_root("", "", "") == 1
         assert capsys.readouterr().out == (
-            "not inside a git repository — iadd works on a clone\n"
+            "not inside a git repository — agentic works on a clone\n"
         )
         repo = take("plain")
         write(repo / ".git", "iadd-scratch", "")
-        assert IADD.no_root(str(repo), "", "") == 1
+        assert AGENTIC.no_root(str(repo), "", "") == 1
         assert "marked throwaway (iadd-scratch" in capsys.readouterr().out
 
 
 class Test_state_path:
     def test_accepts_a_clone_as_a_file_beside_the_root(self, _worlds):
         repo = _worlds / "local"
-        assert same(IADD.state_path(str(repo)), repo / ".git" / "iadd-last-export.json")
+        assert same(
+            AGENTIC.state_path(str(repo)), repo / ".git" / "iadd-last-export.json"
+        )
 
     def test_refuses_a_directory_outside_git(self, tmp_path):
-        assert IADD.state_path(str(tmp_path)) == ""
+        assert AGENTIC.state_path(str(tmp_path)) == ""
 
 
 class Test_write_state:
     def test_accepts_the_manifest_as_json(self, take):
         repo = take("local")
-        IADD.write_state(str(repo), {"format": 1, "items": {}})
-        with open(IADD.state_path(str(repo)), encoding="utf-8") as handle:
+        AGENTIC.write_state(str(repo), {"format": 1, "items": {}})
+        with open(AGENTIC.state_path(str(repo)), encoding="utf-8") as handle:
             assert json.load(handle) == {"format": 1, "items": {}}
 
     def test_refuses_to_fail_an_export_it_cannot_record(self, take, tmp_path):
         repo = take("local")
-        os.mkdir(IADD.state_path(str(repo)))
-        assert IADD.write_state(str(repo), {"format": 1}) is None
-        assert os.path.isdir(IADD.state_path(str(repo)))
-        assert IADD.write_state(str(tmp_path), {"format": 1}) is None
+        os.mkdir(AGENTIC.state_path(str(repo)))
+        assert AGENTIC.write_state(str(repo), {"format": 1}) is None
+        assert os.path.isdir(AGENTIC.state_path(str(repo)))
+        assert AGENTIC.write_state(str(tmp_path), {"format": 1}) is None
         assert os.listdir(tmp_path) == ["local"]
 
 
@@ -1121,7 +1130,7 @@ class Test_read_state:
     def test_accepts_what_the_last_export_wrote(self, take):
         repo = take("local")
         write(repo / ".git", "iadd-last-export.json", '{"items": {"a": "b"}}')
-        assert IADD.read_state(str(repo)) == {"items": {"a": "b"}}
+        assert AGENTIC.read_state(str(repo)) == {"items": {"a": "b"}}
 
     @pytest.mark.parametrize(
         "text", [None, "{", "\udcff"], ids=["none", "not json", "not utf-8"]
@@ -1132,7 +1141,7 @@ class Test_read_state:
             (repo / ".git" / "iadd-last-export.json").write_bytes(b"\xff{")
         elif text is not None:
             write(repo / ".git", "iadd-last-export.json", text)
-        assert IADD.read_state(str(repo)) is None
+        assert AGENTIC.read_state(str(repo)) is None
 
 
 def member(name, size=1, link=False):
@@ -1151,12 +1160,12 @@ class Test_unsafe:
             member("agentory/threads/x/design.md"),
             member("manifest.json"),
             member("manifest.json/"),
-            member("agentory/a.md", IADD.MEMBER_LIMIT),
+            member("agentory/a.md", AGENTIC.MEMBER_LIMIT),
         ],
         ids=["a record", "the manifest", "the manifest with a slash", "at the limit"],
     )
     def test_accepts_a_record_under_the_root_and_the_manifest(self, info):
-        assert IADD.unsafe(info) == ""
+        assert AGENTIC.unsafe(info) == ""
 
     @pytest.mark.parametrize(
         "info, why",
@@ -1175,7 +1184,7 @@ class Test_unsafe:
                 member("elsewhere/x.md"),
                 "is not under agentory/ and is not the manifest",
             ),
-            (member("agentory/a.md", IADD.MEMBER_LIMIT + 1), "one record may hold"),
+            (member("agentory/a.md", AGENTIC.MEMBER_LIMIT + 1), "one record may hold"),
         ],
         ids=[
             "no name",
@@ -1190,7 +1199,7 @@ class Test_unsafe:
         ],
     )
     def test_refuses_a_member_it_has_no_place_for(self, info, why):
-        assert why in IADD.unsafe(info)
+        assert why in AGENTIC.unsafe(info)
 
 
 def opened(path):
@@ -1210,7 +1219,7 @@ class Test_linked_path:
         into.mkdir()
         symlink_or_skip(str(tmp_path), str(into / "elsewhere"))
         with opened(self.archive(tmp_path)) as archive:
-            assert IADD.linked_path(str(into), archive) == ""
+            assert AGENTIC.linked_path(str(into), archive) == ""
 
     @pytest.mark.parametrize("name", ["threads", "follow-up.md"])
     def test_refuses_a_link_on_a_members_way_or_at_its_name(self, tmp_path, name):
@@ -1218,7 +1227,7 @@ class Test_linked_path:
         into.mkdir()
         symlink_or_skip(str(tmp_path / "nowhere"), str(into / name))
         with opened(self.archive(tmp_path)) as archive:
-            assert IADD.linked_path(str(into), archive) == name
+            assert AGENTIC.linked_path(str(into), archive) == name
 
 
 class Test_blocked_path:
@@ -1227,7 +1236,7 @@ class Test_blocked_path:
         (into / "a").mkdir(parents=True)
         z = zipped(tmp_path / "z.zip", {"format": 1}, [("agentory/a/b.md", "b")])
         with opened(z) as archive:
-            assert IADD.blocked_path(str(into), archive) == ""
+            assert AGENTIC.blocked_path(str(into), archive) == ""
 
     @pytest.mark.parametrize("held", ["in the zip", "a file here", "a pipe here"])
     def test_refuses_a_directory_name_a_file_holds(self, tmp_path, held):
@@ -1242,19 +1251,22 @@ class Test_blocked_path:
             fifo_or_skip(into / "a")
         z = zipped(tmp_path / "z.zip", {"format": 1}, members)
         with opened(z) as archive:
-            assert IADD.blocked_path(str(into), archive) == "a"
+            assert AGENTIC.blocked_path(str(into), archive) == "a"
 
 
 class Test_read_manifest:
     def test_accepts_an_object_of_this_format(self, tmp_path):
         z = zipped(tmp_path / "z.zip", {"format": 1, "remote": ""})
         with opened(z) as archive:
-            assert IADD.read_manifest(archive, "z") == ({"format": 1, "remote": ""}, "")
+            assert AGENTIC.read_manifest(archive, "z") == (
+                {"format": 1, "remote": ""},
+                "",
+            )
 
     @pytest.mark.parametrize(
         "manifest, why",
         [
-            (None, "z holds no manifest.json — it was not written by `iadd export`"),
+            (None, "z holds no manifest.json — it was not written by `agentic export`"),
             ("{", "z's manifest.json could not be read: "),
             ([1], "z's manifest.json is not an object"),
             ({"format": 2}, "z is format 2 and this build reads format 1."),
@@ -1267,7 +1279,7 @@ class Test_read_manifest:
     ):
         z = zipped(tmp_path / "z.zip", manifest, [("agentory/a.md", "a")])
         with opened(z) as archive:
-            found, said_why = IADD.read_manifest(archive, "z")
+            found, said_why = AGENTIC.read_manifest(archive, "z")
         assert found is None
         assert said_why.startswith(why), said_why
 
@@ -1275,7 +1287,7 @@ class Test_read_manifest:
 class Test_place:
     def test_accepts_a_free_name_as_added(self, tmp_path):
         dest = str(tmp_path / "plan.md")
-        assert IADD.place(dest, b"x") == (dest, IADD.ADDED)
+        assert AGENTIC.place(dest, b"x") == (dest, AGENTIC.ADDED)
 
     @pytest.mark.parametrize(
         "here, want",
@@ -1308,7 +1320,7 @@ class Test_place:
                 symlink_or_skip(str(tmp_path / "nowhere"), str(tmp_path / name))
             else:
                 write(tmp_path, name, text)
-        path, outcome = IADD.place(str(tmp_path / "plan.md"), b"x")
+        path, outcome = AGENTIC.place(str(tmp_path / "plan.md"), b"x")
         assert (path and os.path.basename(path), outcome) == want
         assert path is None or os.path.dirname(path) == str(tmp_path)
 
@@ -1327,7 +1339,7 @@ class Test_destination_root:
         copy lands in the local one."""
         shared, local = self.dirs(tmp_path, "local")
         write(tmp_path, "shared/README.md", "# agentory\n\nThis package's notes.\n")
-        assert IADD.destination_root("", local, shared, local, None) == (local, "")
+        assert AGENTIC.destination_root("", local, shared, local, None) == (local, "")
 
     @pytest.mark.parametrize("held", ["a package", "a file"])
     def test_refuses_a_projects_own_agentory_as_the_shared_root(self, tmp_path, held):
@@ -1339,7 +1351,7 @@ class Test_destination_root:
             write(tmp_path, "shared/README.md", "# agentory\n\nThis package's notes.\n")
         else:
             write(tmp_path, "shared", "a file\n")
-        assert IADD.destination_root("", "", shared, local, "shared") == (
+        assert AGENTIC.destination_root("", "", shared, local, "shared") == (
             "",
             f"{shared} is the project's own and not a root: it is no directory "
             "whose README.md opens with the marker, and nothing here writes "
@@ -1360,7 +1372,9 @@ class Test_destination_root:
     def test_accepts_the_root_in_force_then_local(self, tmp_path, home, into, want):
         shared, local = self.dirs(tmp_path)
         named = {"home": str(tmp_path / "home"), "shared": shared, "local": local}
-        assert IADD.destination_root("", named.get(home, ""), shared, local, into) == (
+        assert AGENTIC.destination_root(
+            "", named.get(home, ""), shared, local, into
+        ) == (
             named[want],
             "",
         )
@@ -1368,27 +1382,27 @@ class Test_destination_root:
     @pytest.mark.parametrize("into", [None, "shared", "local"])
     def test_refuses_two_roots_whatever_into_says(self, tmp_path, into):
         shared, local = self.dirs(tmp_path, "shared", "local")
-        root, why = IADD.destination_root("", shared, shared, local, into)
+        root, why = AGENTIC.destination_root("", shared, shared, local, into)
         assert root == ""
         assert why.startswith("both roots exist, and the gates read the first of them:")
         assert f"  {shared}   (shared mode — read first)\n" in why
         # #1102 round 1, finding 2: the message sent the person to the
-        # README's *Shared or local*, whose `iadd mode` refuses both roots
+        # README's *Shared or local*, whose `agentic mode` refuses both roots
         # too, and the by-hand moves it links would nest one root inside the
         # other.
-        # It says the step that ends the state, and that `iadd mode` refuses.
+        # It says the step that ends the state, and that `agentic mode` refuses.
         flat = " ".join(why.split())
         assert (
             "keep the root that holds the records you want, copy across by hand "
             "what only the other holds, and delete the other" in flat
         ), why
-        assert "`iadd mode` refuses while both exist, too." in flat, why
+        assert "`agentic mode` refuses while both exist, too." in flat, why
         assert "README" not in why, why
 
     @pytest.mark.parametrize("into", [None, "local"])
     def test_refuses_a_local_root_it_cannot_place(self, tmp_path, into):
         shared, _local = self.dirs(tmp_path)
-        assert IADD.destination_root("", "", shared, "", into) == (
+        assert AGENTIC.destination_root("", "", shared, "", into) == (
             "",
             "the common git directory could not be resolved",
         )
@@ -1557,14 +1571,14 @@ class Test_import_:
         other = at_top(take("other"), HTTPS)
         local = roots(other)[1]
         write(local, "follow-up.md", "# taken a moment ago\n")
-        real = IADD.place
+        real = AGENTIC.place
 
         def raced(destination, data):
             if destination.endswith("follow-up.md"):
-                return destination, IADD.ADDED
+                return destination, AGENTIC.ADDED
             return real(destination, data)
 
-        monkeypatch.setattr(IADD, "place", raced)
+        monkeypatch.setattr(AGENTIC, "place", raced)
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
         assert "  3 files added\n" in out
@@ -1596,7 +1610,7 @@ class Test_import_:
         code, out = said(capsys, cwd, "import", str(path))
         assert code == 1, out
         assert out == {
-            "not a repository": "not inside a git repository — iadd works on a clone\n",
+            "not a repository": "not inside a git repository — agentic works on a clone\n",
             "no file": f"{path} is not a file\n",
         }.get(shape, out)
         assert tree(other) == before
@@ -1613,14 +1627,14 @@ class Test_import_:
         z = tmp_path / "big.zip"
         if bound == "members":
             many = [
-                (f"agentory/m{n}.md", "") for n in range(IADD.MEMBER_COUNT_LIMIT + 1)
+                (f"agentory/m{n}.md", "") for n in range(AGENTIC.MEMBER_COUNT_LIMIT + 1)
             ]
             zipped(z, {"format": 1, "remote": ""}, many)
             want = "more than the 20000 this command will write."
         elif bound == "bytes":
             zipped(z, {"format": 1, "remote": ""}, [("agentory/m.md", "m")])
-            declare(z, "agentory/m.md", IADD.ARCHIVE_LIMIT + 1)
-            want = f"more than the {IADD.ARCHIVE_LIMIT} this command will read."
+            declare(z, "agentory/m.md", AGENTIC.ARCHIVE_LIMIT + 1)
+            want = f"more than the {AGENTIC.ARCHIVE_LIMIT} this command will read."
         else:
             name = (
                 "manifest.json" if bound == "the manifest's bytes" else "manifest.json/"
@@ -1632,8 +1646,8 @@ class Test_import_:
                     "manifest.json", json.dumps({"format": 1, "remote": ""})
                 )
                 archive.writestr("agentory/m.md", "m")
-            declare(z, name, IADD.MEMBER_LIMIT + 1)
-            want = f"bytes for manifest.json, more than the {IADD.MEMBER_LIMIT} a manifest may hold."
+            declare(z, name, AGENTIC.MEMBER_LIMIT + 1)
+            want = f"bytes for manifest.json, more than the {AGENTIC.MEMBER_LIMIT} a manifest may hold."
         code, out = said(capsys, other, "import", str(z))
         assert code == 1, out
         assert want in out, out
@@ -1896,9 +1910,9 @@ class Test_import_:
     def test_s6_a_copy_travels_as_agentory_and_lands_in_the_local_root_beside_the_package(
         self, package, capsys, tmp_path
     ):
-        """`iadd export` from the local root writes members named `agentory/…`, the
-        archive's own name. In a fresh clone `iadd import --into shared` writes
-        nothing into the package's `agentory/` (#1651), and `iadd import` writes
+        """`agentic export` from the local root writes members named `agentory/…`, the
+        archive's own name. In a fresh clone `agentic import --into shared` writes
+        nothing into the package's `agentory/` (#1651), and `agentic import` writes
         them under the local root, leaving the package as it was."""
         # The bytes as `write` put them on disk, with this platform's line ends,
         # which the export and the import must carry unchanged.
@@ -1945,7 +1959,7 @@ class Test_write_members:
             archive.writestr("agentory/threads/w/design.md", "w\n")
             archive.writestr("agentory/follow-up.md", "theirs\n")
         with opened(z) as archive:
-            counts, collisions, refused = IADD.write_members(archive, str(into))
+            counts, collisions, refused = AGENTIC.write_members(archive, str(into))
         assert counts == {"added": 1, "identical": 0, "collided": 1}
         assert collisions == [("follow-up.md", "follow-up.incoming.md")]
         assert refused == []
@@ -1966,14 +1980,14 @@ class Test_write_members:
         outside.mkdir()
         symlink_or_skip(str(outside / "stolen.md"), str(into / "follow-up.md"))
         monkeypatch.setattr(
-            IADD, "place", lambda destination, data: (destination, IADD.ADDED)
+            AGENTIC, "place", lambda destination, data: (destination, AGENTIC.ADDED)
         )
         without_o_excl(monkeypatch)
         z = zipped(
             tmp_path / "z.zip", None, [("agentory/follow-up.md", "FROM THE ZIP")]
         )
         with opened(z) as archive:
-            counts, collisions, refused = IADD.write_members(archive, str(into))
+            counts, collisions, refused = AGENTIC.write_members(archive, str(into))
         assert list(outside.iterdir()) == []
         assert (counts["added"], collisions, refused) == (0, [], ["follow-up.md"])
 
@@ -1982,7 +1996,7 @@ class Test_serialized:
     def test_accepts_every_member_in_order_with_its_characters_as_written(self):
         """The serializer's file: two spaces, one `\\n` at the end, a pipe and
         a character outside ASCII as written, and the members in order."""
-        assert IADD.serialized(
+        assert AGENTIC.serialized(
             [("Record language", "한국어"), ("Broad gate", "a | b"), ("Mode", "x")]
         ) == (
             '{\n  "Record language": "한국어",\n  "Broad gate": "a | b",\n'
@@ -1995,17 +2009,19 @@ class Test_serialized:
         changes no other key."""
         text = '{\n  "Other": {"b": 1, "a": [true, null]},\n  "Mode": "x"\n}\n'
         write_config(tmp_path, text)
-        pairs, _refused = IADD.repo_config.config_pairs(str(tmp_path))
-        assert json.loads(IADD.serialized(pairs)) == json.loads(text)
-        assert IADD.serialized(pairs).index('"b"') < IADD.serialized(pairs).index('"a"')
+        pairs, _refused = AGENTIC.repo_config.config_pairs(str(tmp_path))
+        assert json.loads(AGENTIC.serialized(pairs)) == json.loads(text)
+        assert AGENTIC.serialized(pairs).index('"b"') < AGENTIC.serialized(pairs).index(
+            '"a"'
+        )
 
 
 class Test_doubled_keys:
     def test_accepts_keys_written_once(self):
-        assert IADD.doubled_keys([("Mode", "x"), ("Broad gate", "y")]) == ""
+        assert AGENTIC.doubled_keys([("Mode", "x"), ("Broad gate", "y")]) == ""
 
     def test_refuses_each_key_written_twice_naming_it_once(self):
-        said = IADD.doubled_keys(
+        said = AGENTIC.doubled_keys(
             [("Mode", "x"), ("A", "1"), ("Mode", "y"), ("A", "2"), ("Mode", "z")]
         )
         assert said.startswith("writes `Mode`, `A` more than once"), said
@@ -2021,7 +2037,7 @@ class Test_write_file:
             symlink_or_skip(str(tmp_path / "nowhere.json"), str(path))
         else:
             path.mkdir()
-        said = IADD.write_file(str(path), "{}\n")
+        said = AGENTIC.write_file(str(path), "{}\n")
         assert (
             said
             == f"{path} is a {'symbolic link' if shape == 'a link' else 'directory'}"
@@ -2030,7 +2046,7 @@ class Test_write_file:
 
     def test_accepts_a_file_and_writes_newline_endings(self, tmp_path):
         path = tmp_path / "config.json"
-        assert IADD.write_file(str(path), "{\n}\n") == ""
+        assert AGENTIC.write_file(str(path), "{\n}\n") == ""
         assert path.read_bytes() == b"{\n}\n"
 
 
@@ -2066,10 +2082,10 @@ class Test_write_mode:
         its value and its place."""
         if pairs is not None:
             write_config(tmp_path, config_json(*pairs))
-        assert IADD.write_mode(str(tmp_path), "shared") == ""
+        assert AGENTIC.write_mode(str(tmp_path), "shared") == ""
         written = (tmp_path / "config.json").read_text(encoding="utf-8")
-        assert written == IADD.serialized(want), written
-        assert IADD.declared(str(tmp_path)) == ("mode", "shared")
+        assert written == AGENTIC.serialized(want), written
+        assert AGENTIC.declared(str(tmp_path)) == ("mode", "shared")
 
     @pytest.mark.parametrize(
         "shape, said",
@@ -2109,7 +2125,7 @@ class Test_write_mode:
                 "bytes that are not utf-8": '{"Mode": "\xff"}\n',
             }[shape].encode("latin-1" if "utf-8" in shape else "utf-8")
             path.write_bytes(before)
-        written = IADD.write_mode(str(tmp_path), "shared")
+        written = AGENTIC.write_mode(str(tmp_path), "shared")
         assert written.startswith(str(path)), written
         assert said in written, written
         # The writer's own refusal of the name is the sentence entire; every
@@ -2126,16 +2142,16 @@ class Test_porcelain:
         repo = take("shared")
         write(repo, "agentory/follow-up.md", "# changed\n")
         write(repo, "f2.txt", "outside\n")
-        assert IADD.porcelain(str(repo), "agentory") == [" M agentory/follow-up.md"]
-        assert IADD.porcelain(str(repo), "f.txt") == []
+        assert AGENTIC.porcelain(str(repo), "agentory") == [" M agentory/follow-up.md"]
+        assert AGENTIC.porcelain(str(repo), "f.txt") == []
 
     def test_refuses_a_git_that_cannot_answer_as_a_line_of_its_own(
         self, tmp_path, monkeypatch
     ):
-        (line,) = IADD.porcelain(str(tmp_path), "agentory")
+        (line,) = AGENTIC.porcelain(str(tmp_path), "agentory")
         assert line.startswith("fatal: ")
         unanswered(monkeypatch, ["--", "agentory"], OSError("boom"))
-        assert IADD.porcelain(str(tmp_path), "agentory") == [
+        assert AGENTIC.porcelain(str(tmp_path), "agentory") == [
             "`git status --porcelain -- agentory` could not be run: boom"
         ]
 
@@ -2157,7 +2173,7 @@ class Test_indexed:
         ],
     )
     def test_accepts_what_the_index_cannot_lose(self, line, moved):
-        assert not IADD.indexed(line, "agentory", moved=moved)
+        assert not AGENTIC.indexed(line, "agentory", moved=moved)
 
     @pytest.mark.parametrize(
         "line, moved",
@@ -2181,25 +2197,25 @@ class Test_indexed:
         ],
     )
     def test_refuses_what_git_rm_cached_would_drop(self, line, moved):
-        assert IADD.indexed(line, "agentory", moved=moved)
+        assert AGENTIC.indexed(line, "agentory", moved=moved)
 
 
 class Test_tracked:
     def test_accepts_a_path_git_tracks_something_under(self, _worlds):
-        assert IADD.tracked(str(_worlds / "shared"), "agentory")
+        assert AGENTIC.tracked(str(_worlds / "shared"), "agentory")
 
     def test_refuses_a_path_git_tracks_nothing_under_or_cannot_read(
         self, _worlds, tmp_path
     ):
-        assert not IADD.tracked(str(_worlds / "shared"), "nothing-here")
-        assert not IADD.tracked(str(tmp_path), "agentory")
+        assert not AGENTIC.tracked(str(_worlds / "shared"), "nothing-here")
+        assert not AGENTIC.tracked(str(tmp_path), "agentory")
 
     def test_refuses_a_git_that_did_not_answer_as_nothing_tracked(
         self, _worlds, monkeypatch
     ):
         unanswered(monkeypatch, [LS_FILES, "-z", "--", "agentory"], TIMED_OUT)
-        with pytest.raises(IADD.gitcmd.Unrun) as caught:
-            IADD.tracked(str(_worlds / "shared"), "agentory")
+        with pytest.raises(AGENTIC.gitcmd.Unrun) as caught:
+            AGENTIC.tracked(str(_worlds / "shared"), "agentory")
         assert caught.value.line == (
             "`git ls-files -z -- agentory` did not finish within 60 seconds"
         )
@@ -2209,7 +2225,7 @@ class Test_other_worktrees:
     def test_accepts_a_linked_worktree_by_its_path(self, take, tmp_path):
         repo = take("shared")
         git(repo, "worktree", "add", "-q", str(tmp_path / "linked"), "feature/x")
-        found = IADD.other_worktrees(str(repo))
+        found = AGENTIC.other_worktrees(str(repo))
         assert [os.path.realpath(p) for p in found] == [
             os.path.realpath(tmp_path / "linked")
         ]
@@ -2217,8 +2233,8 @@ class Test_other_worktrees:
     def test_refuses_the_clone_itself_and_a_directory_outside_git(
         self, _worlds, tmp_path
     ):
-        assert IADD.other_worktrees(str(_worlds / "shared")) == []
-        assert IADD.other_worktrees(str(tmp_path)) == []
+        assert AGENTIC.other_worktrees(str(_worlds / "shared")) == []
+        assert AGENTIC.other_worktrees(str(tmp_path)) == []
 
     def test_refuses_the_git_directory_of_a_separate_git_dir_repository(self, tmp_path):
         """#1576, design S8: `git worktree list` gives a `--separate-git-dir`
@@ -2231,7 +2247,7 @@ class Test_other_worktrees:
         write(work, "a.md", "a\n")
         commit_as_e(work, "the base")
         git(work, "worktree", "add", "-q", "-b", "feature/x", str(linked))
-        found = IADD.other_worktrees(str(work))
+        found = AGENTIC.other_worktrees(str(work))
         assert [os.path.realpath(p) for p in found] == [os.path.realpath(linked)]
 
     def test_refuses_the_bare_directory_a_worktree_was_added_to(self, tmp_path):
@@ -2243,13 +2259,13 @@ class Test_other_worktrees:
         commit_as_e(plain, "the base")
         git(tmp_path, "clone", "-q", "--bare", str(plain), str(bare))
         git(bare, "worktree", "add", "-q", str(tmp_path / "from-bare"), "main")
-        assert IADD.other_worktrees(str(tmp_path / "from-bare")) == []
+        assert AGENTIC.other_worktrees(str(tmp_path / "from-bare")) == []
 
 
 class Test_plugin_version:
     def test_accepts_the_version_the_plugin_names(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(IADD, "PLUGIN_ROOT", plugin_at(tmp_path))
-        assert IADD.plugin_version() == "1.2.3"
+        monkeypatch.setattr(AGENTIC, "PLUGIN_ROOT", plugin_at(tmp_path))
+        assert AGENTIC.plugin_version() == "1.2.3"
 
     @pytest.mark.parametrize(
         "text",
@@ -2259,14 +2275,14 @@ class Test_plugin_version:
     def test_refuses_a_version_it_cannot_read_as_none(
         self, tmp_path, monkeypatch, text
     ):
-        monkeypatch.setattr(IADD, "PLUGIN_ROOT", plugin_at(tmp_path, text, None))
-        assert IADD.plugin_version() == ""
+        monkeypatch.setattr(AGENTIC, "PLUGIN_ROOT", plugin_at(tmp_path, text, None))
+        assert AGENTIC.plugin_version() == ""
 
 
 class Test_plugin_workflow:
     def test_accepts_the_template_pinned_to_the_version(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(IADD, "PLUGIN_ROOT", plugin_at(tmp_path))
-        assert IADD.plugin_workflow() == "--branch v1.2.3\n"
+        monkeypatch.setattr(AGENTIC, "PLUGIN_ROOT", plugin_at(tmp_path))
+        assert AGENTIC.plugin_workflow() == "--branch v1.2.3\n"
 
     @pytest.mark.parametrize(
         "version, template",
@@ -2280,15 +2296,17 @@ class Test_plugin_workflow:
     def test_refuses_what_it_could_not_pin(
         self, tmp_path, monkeypatch, version, template
     ):
-        monkeypatch.setattr(IADD, "PLUGIN_ROOT", plugin_at(tmp_path, version, template))
-        assert IADD.plugin_workflow() == ""
+        monkeypatch.setattr(
+            AGENTIC, "PLUGIN_ROOT", plugin_at(tmp_path, version, template)
+        )
+        assert AGENTIC.plugin_workflow() == ""
 
 
 class Test_workflow_at:
     def test_accepts_the_file_this_plugin_writes_as_its_own(self, take):
         repo = take("shared")
-        workflow_in(repo, IADD.plugin_workflow(), commit=False)
-        assert IADD.workflow_at(str(repo)) == ("plugin", IADD.plugin_workflow())
+        workflow_in(repo, AGENTIC.plugin_workflow(), commit=False)
+        assert AGENTIC.workflow_at(str(repo)) == ("plugin", AGENTIC.plugin_workflow())
 
     @pytest.mark.parametrize(
         "shape, kind",
@@ -2311,10 +2329,10 @@ class Test_workflow_at:
             symlink_or_skip(str(tmp_path / "nowhere.yml"), path)
         elif shape == "not utf-8":
             workflow_in(repo, "x", commit=False)
-            open(path, "wb").write(b"\xff" + IADD.PLUGIN_CLONE.encode())
+            open(path, "wb").write(b"\xff" + AGENTIC.PLUGIN_CLONE.encode())
         elif shape == "no clone line":
             workflow_in(repo, "name: hygiene\njobs: {}\n", commit=False)
-        assert IADD.workflow_at(str(repo))[0] == kind
+        assert AGENTIC.workflow_at(str(repo))[0] == kind
 
 
 class Test_pinned:
@@ -2322,31 +2340,33 @@ class Test_pinned:
     a release, or a file naming none."""
 
     def test_accepts_the_release_the_clone_line_names(self):
-        assert IADD.pinned("git clone --depth 1 --branch v1.2.3 \\\n") == "v1.2.3"
+        assert AGENTIC.pinned("git clone --depth 1 --branch v1.2.3 \\\n") == "v1.2.3"
 
     def test_refuses_a_file_naming_no_release(self):
-        assert IADD.pinned("name: hygiene\n") == ""
+        assert AGENTIC.pinned("name: hygiene\n") == ""
 
 
 class Test_install_workflow:
     def test_accepts_a_shared_root_by_writing_it_pinned_and_staged(self, take):
         repo = take("shared")
-        version = IADD.plugin_version()
-        assert IADD.install_workflow(str(repo)) == (
+        version = AGENTIC.plugin_version()
+        assert AGENTIC.install_workflow(str(repo)) == (
             "written",
             f"wrote .github/workflows/hygiene.yml (pinned to v{version}) and staged it",
         )
         text = open(os.path.join(str(repo), WORKFLOW_PATH), encoding="utf-8").read()
-        assert IADD.PLACEHOLDER not in text and f"--branch v{version}" in text
+        assert AGENTIC.PLACEHOLDER not in text and f"--branch v{version}" in text
         assert staged(repo) == ".github/workflows/hygiene.yml\n"
 
     def test_accepts_its_own_file_already_there_by_naming_the_pin(self, take):
         """S5: a repository set up by an older release keeps its file and its
         pin; installing again writes nothing."""
         repo = take("shared")
-        old = IADD.plugin_workflow().replace(f"v{IADD.plugin_version()}", "v0.1.0")
+        old = AGENTIC.plugin_workflow().replace(
+            f"v{AGENTIC.plugin_version()}", "v0.1.0"
+        )
         path = workflow_in(repo, old)
-        assert IADD.install_workflow(str(repo)) == (
+        assert AGENTIC.install_workflow(str(repo)) == (
             "installed",
             ".github/workflows/hygiene.yml is already this plugin's, pinned to "
             "v0.1.0, so nothing was written",
@@ -2387,9 +2407,9 @@ class Test_install_workflow:
             else:
                 template = "--branch main\n"
             monkeypatch.setattr(
-                IADD, "PLUGIN_ROOT", plugin_at(tmp_path / "p", version, template)
+                AGENTIC, "PLUGIN_ROOT", plugin_at(tmp_path / "p", version, template)
             )
-        found, line = IADD.install_workflow(str(repo))
+        found, line = AGENTIC.install_workflow(str(repo))
         assert found == kind, line
         if shape == "a file there":
             assert open(path, encoding="utf-8").read() == "name: someone else's\n"
@@ -2401,11 +2421,11 @@ class Test_install_workflow:
             assert not os.path.lexists(path)
             assert "was NOT written" in line
         if shape in no_root:
-            # The line `iadd pr-checks install` prints with no shared root,
+            # The line `agentic pr-checks install` prints with no shared root,
             # which the person who ran it reads, with the command it names.
             assert (
                 "the checks read committed records" in line
-                and "`iadd mode shared` puts it in the tree" in line
+                and "`agentic mode shared` puts it in the tree" in line
             )
         if shape == "no version":
             assert (
@@ -2420,8 +2440,8 @@ class Test_remove_workflow:
     )
     def test_accepts_the_file_this_plugin_wrote(self, take, tracked):
         repo = take("shared")
-        path = workflow_in(repo, IADD.plugin_workflow(), commit=tracked)
-        found, line = IADD.remove_workflow(str(repo))
+        path = workflow_in(repo, AGENTIC.plugin_workflow(), commit=tracked)
+        found, line = AGENTIC.remove_workflow(str(repo))
         assert found == "removed", line
         assert not os.path.lexists(path)
         if tracked:
@@ -2431,7 +2451,7 @@ class Test_remove_workflow:
             assert any(entry.startswith("D  .github/") for entry in status(repo))
         else:
             assert "untracked, and byte for byte this plugin's" in line
-            assert "`iadd pr-checks install` writes it back" in line
+            assert "`agentic pr-checks install` writes it back" in line
 
     @pytest.mark.parametrize(
         "shape, why",
@@ -2453,14 +2473,14 @@ class Test_remove_workflow:
             symlink_or_skip(str(tmp_path / "nowhere.yml"), path)
         elif shape == "not utf-8":
             workflow_in(repo, "x", commit=False)
-            open(path, "wb").write(b"\xff" + IADD.PLUGIN_CLONE.encode())
+            open(path, "wb").write(b"\xff" + AGENTIC.PLUGIN_CLONE.encode())
         elif shape == "not this plugin's":
             workflow_in(repo, "name: hygiene\njobs: {}\n")
         elif shape == "untracked, other bytes":
             workflow_in(
-                repo, "# somebody's own\n" + IADD.PLUGIN_CLONE + "\n", commit=False
+                repo, "# somebody's own\n" + AGENTIC.PLUGIN_CLONE + "\n", commit=False
             )
-        found, line = IADD.remove_workflow(str(repo))
+        found, line = AGENTIC.remove_workflow(str(repo))
         assert found == ("absent" if shape == "absent" else "kept"), line
         assert why in line, line
         assert os.path.lexists(path) == (shape != "absent")
@@ -2473,7 +2493,7 @@ class Test_say_report:
 
     def test_accepts_a_mode_row_with_the_folder_and_the_file(self, tmp_path, capsys):
         repo, home = self.where(tmp_path)
-        IADD.say_report(repo, home, "", "", "local", "mode", "local")
+        AGENTIC.say_report(repo, home, "", "", "local", "mode", "local")
         assert capsys.readouterr().out == (
             "  folder: local  .git/agentory/\n  key:    local  .git/agentory/config.json\n"
         )
@@ -2494,7 +2514,7 @@ class Test_say_report:
         self, tmp_path, capsys, kind, value, row
     ):
         repo, home = self.where(tmp_path)
-        IADD.say_report(repo, home, "", "", "local", kind, value)
+        AGENTIC.say_report(repo, home, "", "", "local", kind, value)
         assert capsys.readouterr().out == "  folder: local  .git/agentory/\n" + row
 
 
@@ -2505,7 +2525,7 @@ class Test_mode_refusal:
     def test_accepts_a_config_a_switch_can_write(self, tmp_path, text):
         if text is not None:
             write(tmp_path, "config.json", text)
-        assert IADD.mode_refusal(str(tmp_path)) == ""
+        assert AGENTIC.mode_refusal(str(tmp_path)) == ""
 
     @pytest.mark.parametrize(
         "shape, why",
@@ -2524,7 +2544,7 @@ class Test_mode_refusal:
             path.mkdir()
         else:
             path.write_text(shape, encoding="utf-8")
-        said_why = IADD.mode_refusal(str(tmp_path))
+        said_why = AGENTIC.mode_refusal(str(tmp_path))
         assert said_why.startswith(str(path) + " "), said_why
         assert why in said_why, said_why
 
@@ -2595,11 +2615,11 @@ class Test_mode_report:
         assert code == 1, out
         assert f"They disagree: the key says `{other}` and the folder is {mode}." in out
         assert (
-            f"  iadd mode --apply     move the folder to {other}, as the key says\n"
+            f"  agentic mode --apply     move the folder to {other}, as the key says\n"
             in out
         )
         assert (
-            f"  iadd mode {mode:<11}correct the key to {mode}, as the folder is\n"
+            f"  agentic mode {mode:<11}correct the key to {mode}, as the folder is\n"
             in out
         )
         assert said(capsys, repo, "mode")[0] == 0
@@ -2674,13 +2694,13 @@ class Test_gitlinks_under_root:
     @pytest.mark.parametrize("world", ["shared", "beside"])
     def test_accepts_a_root_holding_no_submodule(self, _worlds, take, world):
         repo = _worlds / world if world == "shared" else take(world)
-        assert IADD.gitlinks_under_root(str(repo), "agentory") == ([], "")
+        assert AGENTIC.gitlinks_under_root(str(repo), "agentory") == ([], "")
 
     def test_refuses_a_submodule_under_the_root_and_a_git_that_cannot_answer(
         self, take, monkeypatch
     ):
         repo = take("under")
-        (line,), why = IADD.gitlinks_under_root(str(repo), "agentory")
+        (line,), why = AGENTIC.gitlinks_under_root(str(repo), "agentory")
         assert (
             line.startswith("160000 ")
             and line.endswith("\tagentory/vendor")
@@ -2689,7 +2709,7 @@ class Test_gitlinks_under_root:
         unanswered(
             monkeypatch, ["--stage", "--", "agentory"], OSError("git is not here")
         )
-        assert IADD.gitlinks_under_root(str(repo), "agentory") == (
+        assert AGENTIC.gitlinks_under_root(str(repo), "agentory") == (
             None,
             "`git ls-files --stage -- agentory` could not be run: git is not here",
         )
@@ -2697,7 +2717,7 @@ class Test_gitlinks_under_root:
 
 def refusals_of(repo, wanted, local=None):
     shared, found_local = roots(repo)
-    return IADD.refusals(
+    return AGENTIC.refusals(
         str(repo),
         home_of(repo),
         shared,
@@ -2836,7 +2856,7 @@ class Test_switch:
         the index, the output names the command that takes it out, and going
         back leaves `.github/` as it was."""
         repo = at_top(take("shared"))
-        workflow = workflow_in(repo, IADD.plugin_workflow())
+        workflow = workflow_in(repo, AGENTIC.plugin_workflow())
         shared, local = roots(repo)
         code, out = said(capsys, repo, "mode", "local")
         assert code == 0, out
@@ -2846,23 +2866,23 @@ class Test_switch:
             repo
         )
         assert declared_in(repo) == ("mode", "local")
-        assert open(workflow, encoding="utf-8").read() == IADD.plugin_workflow()
+        assert open(workflow, encoding="utf-8").read() == AGENTIC.plugin_workflow()
         assert (
             "  .github/workflows/hygiene.yml stays: in local mode its checks "
             "read nothing as declared and pass the commits a local-mode session "
             "writes, which carry no `IADD-Routing` trailer. A commit made before "
             "the switch whose trailer names a work item still fails a ready pull "
-            "request, and `iadd pr-checks remove` takes the checks out\n"
+            "request, and `agentic pr-checks remove` takes the checks out\n"
         ) in out
-        # The two commands `iadd mode local` prints for moving the records
+        # The two commands `agentic mode local` prints for moving the records
         # between clones, which the person who switched runs.
-        assert "`iadd export` here and `iadd import` there" in out
+        assert "`agentic export` here and `agentic import` there" in out
         commit_as_e(repo, "the switch to local")
         code, out = said(capsys, repo, "mode", "shared")
         assert code == 0, out
-        assert open(workflow, encoding="utf-8").read() == IADD.plugin_workflow()
+        assert open(workflow, encoding="utf-8").read() == AGENTIC.plugin_workflow()
         assert not any(".github" in line for line in status(repo)), status(repo)
-        assert "iadd pr-checks install" not in out, out
+        assert "agentic pr-checks install" not in out, out
 
     @pytest.mark.parametrize(
         "pin, installed",
@@ -2877,15 +2897,15 @@ class Test_switch:
         The line names the pin and the two ways out. The line reads the file
         on disk, so the workflow is not committed."""
         repo = at_top(take("shared"))
-        version = IADD.plugin_version()
-        text = IADD.plugin_workflow()
+        version = AGENTIC.plugin_version()
+        text = AGENTIC.plugin_workflow()
         if pin is not None:
             old = f"--branch v{version} "
             assert old in text, text
             text = text.replace(old, f"--branch {pin} " if pin else "")
         workflow_in(repo, text, commit=False)
         if not installed:
-            monkeypatch.setattr(IADD, "plugin_version", lambda: "")
+            monkeypatch.setattr(AGENTIC, "plugin_version", lambda: "")
         code, out = said(capsys, repo, "mode", "local")
         assert code == 0, out
         named = pin if pin is not None else f"v{version}"
@@ -2899,7 +2919,7 @@ class Test_switch:
         assert (
             f"  .github/workflows/hygiene.yml stays, {here}: a release before "
             "this one fails every pull request with no agentory/ in the tree. Move "
-            f"its `--branch` line to {to}, or run `iadd pr-checks remove`\n"
+            f"its `--branch` line to {to}, or run `agentic pr-checks remove`\n"
         ) in out
         assert "read nothing as declared" not in out, out
 
@@ -2920,7 +2940,7 @@ class Test_switch:
         assert out.index("history") < out.index("Now commit")
         assert out.count("`git reset -- :/agentory`") == 2, out
         assert (
-            "  no pull-request checks are installed: `iadd pr-checks install` "
+            "  no pull-request checks are installed: `agentic pr-checks install` "
             "writes .github/workflows/hygiene.yml\n"
         ) in out
 
@@ -3168,10 +3188,10 @@ class Test_mode:
     def test_s1_first_setup_beside_the_package_keeps_the_root_local(
         self, package, at_top, capsys
     ):
-        """`iadd mode` with no root prints the package's `agentory/` as the shared
+        """`agentic mode` with no root prints the package's `agentory/` as the shared
         place and the common directory's `agentory/` as the local one. A root made
         at the local place from the template reads as local mode, writes its
-        key there, and passes `--check`, and `iadd mode shared` refuses to
+        key there, and passes `--check`, and `agentic mode shared` refuses to
         move it over the package, which stays as it was (#1651)."""
         at_top(package)
         before = files_under(package / "agentory")
@@ -3206,11 +3226,11 @@ class Test_pr_checks:
 
     def test_accepts_install_report_and_remove_in_turn(self, take, at_top, capsys):
         repo = at_top(take("shared"))
-        version = IADD.plugin_version()
+        version = AGENTIC.plugin_version()
         assert said(capsys, repo, "pr-checks") == (
             0,
             "not installed: there is no .github/workflows/hygiene.yml. "
-            "`iadd pr-checks install` writes it where agentory/ is in the tree.\n",
+            "`agentic pr-checks install` writes it where agentory/ is in the tree.\n",
         )
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0, out
@@ -3223,7 +3243,7 @@ class Test_pr_checks:
         assert said(capsys, repo, "pr-checks") == (
             0,
             "installed: .github/workflows/hygiene.yml is this plugin's "
-            f"pull-request checks, pinned to v{version}. `iadd pr-checks remove` "
+            f"pull-request checks, pinned to v{version}. `agentic pr-checks remove` "
             "takes them out.\n",
         )
         code, out = said(capsys, repo, "pr-checks", "remove")
@@ -3247,7 +3267,7 @@ class Test_pr_checks:
         assert out == (
             "removed .github/workflows/hygiene.yml and took it out of the "
             "index — staged, never committed, and byte for byte this plugin's, "
-            "so `iadd pr-checks install` writes it back\n"
+            "so `agentic pr-checks install` writes it back\n"
         )
         assert not os.path.lexists(os.path.join(str(repo), ".github"))
         assert status(repo) == before
@@ -3260,11 +3280,11 @@ class Test_pr_checks:
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 0, out
         path = os.path.join(str(repo), WORKFLOW_PATH)
-        mine = IADD.plugin_workflow() + "# mine\n"
+        mine = AGENTIC.plugin_workflow() + "# mine\n"
         write(repo, WORKFLOW_PATH.replace(os.sep, "/"), mine)
         if edited == "index":
             git(repo, "add", "--", WORKFLOW_PATH.replace(os.sep, "/"))
-            write(repo, WORKFLOW_PATH.replace(os.sep, "/"), IADD.plugin_workflow())
+            write(repo, WORKFLOW_PATH.replace(os.sep, "/"), AGENTIC.plugin_workflow())
         before = snapshot(repo)
         on_disk = open(path, encoding="utf-8").read()
         code, out = said(capsys, repo, "pr-checks", "remove")
@@ -3290,8 +3310,10 @@ class Test_pr_checks:
         repo = at_top(take("shared"))
         before = status(repo)
         if state == " D, another release":
-            old = IADD.plugin_workflow().replace(f"v{IADD.plugin_version()}", "v0.1.0")
-            assert old != IADD.plugin_workflow()
+            old = AGENTIC.plugin_workflow().replace(
+                f"v{AGENTIC.plugin_version()}", "v0.1.0"
+            )
+            assert old != AGENTIC.plugin_workflow()
             workflow_in(repo, old)
         else:
             code, out = said(capsys, repo, "pr-checks", "install")
@@ -3348,15 +3370,17 @@ class Test_pr_checks:
         it."""
         repo = at_top(take("shared"))
         rel = WORKFLOW_PATH.replace(os.sep, "/")
-        mine = IADD.plugin_workflow() + "# mine\n"
+        mine = AGENTIC.plugin_workflow() + "# mine\n"
         if state == "AD, a staged edit":
             code, out = said(capsys, repo, "pr-checks", "install")
             assert code == 0, out
         elif state == "AD, another release":
-            mine = IADD.plugin_workflow().replace(f"v{IADD.plugin_version()}", "v0.1.0")
-            assert mine != IADD.plugin_workflow()
+            mine = AGENTIC.plugin_workflow().replace(
+                f"v{AGENTIC.plugin_version()}", "v0.1.0"
+            )
+            assert mine != AGENTIC.plugin_workflow()
         else:
-            workflow_in(repo, IADD.plugin_workflow())
+            workflow_in(repo, AGENTIC.plugin_workflow())
         write(repo, rel, mine)
         git(repo, "add", "--", rel)
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
@@ -3382,7 +3406,7 @@ class Test_pr_checks:
         it never read."""
         repo = at_top(take("shared"))
         rel = WORKFLOW_PATH.replace(os.sep, "/")
-        write(repo, rel, IADD.plugin_workflow())
+        write(repo, rel, AGENTIC.plugin_workflow())
         blob = git_out(repo, "hash-object", "-w", "--", rel)
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         done = subprocess.run(
@@ -3410,7 +3434,7 @@ class Test_pr_checks:
     def test_accepts_remove_where_the_root_left_the_tree(self, take, at_top, capsys):
         """A workflow that outlived its root is the case `remove` is for."""
         repo = at_top(take("local"))
-        workflow_in(repo, IADD.plugin_workflow())
+        workflow_in(repo, AGENTIC.plugin_workflow())
         code, out = said(capsys, repo, "pr-checks", "remove")
         assert code == 0, out
         assert "D  .github/workflows/hygiene.yml" in status(repo)
@@ -3422,7 +3446,7 @@ class Test_pr_checks:
         before = tree(repo)
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
-        # The refusal `iadd pr-checks install` prints in local mode, which the
+        # The refusal `agentic pr-checks install` prints in local mode, which the
         # person who ran it reads.
         assert "the checks read committed records" in out
         assert tree(repo) == before
@@ -3544,14 +3568,16 @@ class Test_pr_checks:
         stderr holds that reading of the non-zero exit itself."""
         repo = at_top(take("shared"))
         if held == "another release's copy, deleted by hand":
-            old = IADD.plugin_workflow().replace(f"v{IADD.plugin_version()}", "v0.1.0")
+            old = AGENTIC.plugin_workflow().replace(
+                f"v{AGENTIC.plugin_version()}", "v0.1.0"
+            )
             workflow_in(repo, old)
             os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         elif held == "this plugin's copy, staged and deleted by hand":
-            assert IADD.install_workflow(str(repo))[0] == "written"
+            assert AGENTIC.install_workflow(str(repo))[0] == "written"
             os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         elif held == "this plugin's copy, committed":
-            workflow_in(repo, IADD.plugin_workflow())
+            workflow_in(repo, AGENTIC.plugin_workflow())
         before = staged(repo)
         unanswered(monkeypatch, tail, outcome)
         code, out = said(capsys, repo, "pr-checks", action)
@@ -3562,7 +3588,7 @@ class Test_pr_checks:
     def test_pr_checks_install_names_agentory_where_no_root_stands_beside_the_package(
         self, take, at_top, capsys
     ):
-        """With no root beside the package, `iadd pr-checks install` writes
+        """With no root beside the package, `agentic pr-checks install` writes
         nothing and says that no root stands at `agentory/`, the package's own,
         which stands in the tree (#1651). `optin.home_at` reads no root
         there."""
@@ -3615,7 +3641,7 @@ class Test_check:
         assert code == 0
         assert (
             out
-            == "1 work items here and no export yet — `iadd export` writes the first copy.\n"
+            == "1 work items here and no export yet — `agentic export` writes the first copy.\n"
         )
 
     @pytest.mark.parametrize("world, code", [("shared", 0), ("plain", 1)])
@@ -3650,9 +3676,9 @@ class Test_main:
         seen = []
         for name in ("export", "check", "import_", "mode", "pr_checks"):
             monkeypatch.setattr(
-                IADD, name, lambda *a, _name=name: seen.append(_name) or 0
+                AGENTIC, name, lambda *a, _name=name: seen.append(_name) or 0
             )
-        assert IADD.main(argv, cwd=str(tmp_path)) == 0
+        assert AGENTIC.main(argv, cwd=str(tmp_path)) == 0
         assert seen == [called]
 
     @pytest.mark.parametrize(
@@ -3673,8 +3699,8 @@ class Test_main:
         repository."""
         repo = take("local")
         unanswered(monkeypatch, ["rev-parse", "--show-toplevel"], TIMED_OUT)
-        with pytest.raises(IADD.gitcmd.Unrun) as caught:
-            IADD.main(argv, cwd=str(repo))
+        with pytest.raises(AGENTIC.gitcmd.Unrun) as caught:
+            AGENTIC.main(argv, cwd=str(repo))
         assert caught.value.code == (
             "`git rev-parse --show-toplevel` did not finish within 60 seconds"
         )
@@ -3709,10 +3735,10 @@ class Test_main:
         the script's own parser answers it."""
         handed = []
         monkeypatch.setattr(
-            IADD, "hand_over", lambda command: handed.append(command) or 0
+            AGENTIC, "hand_over", lambda command: handed.append(command) or 0
         )
         argv = ["--base", "origin/main", "x y", "--help"]
-        assert IADD.main([name, *argv], cwd=str(tmp_path)) == 0
+        assert AGENTIC.main([name, *argv], cwd=str(tmp_path)) == 0
         path = os.path.normpath(os.path.join(ROOT, *script.split("/")))
         assert os.path.isfile(path), path
         assert handed == [[sys.executable, path, *argv]]
@@ -3738,18 +3764,18 @@ class Test_main:
     )
     def test_refuses_arguments_with_two_answers_or_none(self, capsys, tmp_path, argv):
         with pytest.raises(SystemExit) as stopped:
-            IADD.main(argv, cwd=str(tmp_path))
+            AGENTIC.main(argv, cwd=str(tmp_path))
         assert stopped.value.code == 2
         if len(argv) == 3:
             assert "cannot be given together" in capsys.readouterr().err
 
-    def test_names_itself_iadd_in_its_usage_line(self, capsys, tmp_path):
-        """#1651 phase 6: the command a person types is `iadd`, and the usage
+    def test_names_itself_agentic_in_its_usage_line(self, capsys, tmp_path):
+        """#1658 phase 2: the command a person types is `agentic`, and the usage
         line its help and its refusals open with says so (contract rule 14)."""
         with pytest.raises(SystemExit) as stopped:
-            IADD.main(["--help"], cwd=str(tmp_path))
+            AGENTIC.main(["--help"], cwd=str(tmp_path))
         assert stopped.value.code == 0
-        assert capsys.readouterr().out.startswith("usage: iadd [-h]\n")
+        assert capsys.readouterr().out.startswith("usage: agentic [-h]\n")
 
 
 test_census = census_case(TARGET)

@@ -413,7 +413,7 @@ class Test_module:
         assert not hasattr(stamp, "MESSAGE_BUDGET")
 
     def test_the_sample_carries_every_row_a_cleared_inspection_draws(self):
-        """`iadd stamp` with no arguments shows what a stamp draws, so its
+        """`agentic stamp` with no arguments shows what a stamp draws, so its
         labels are `inspection_rows`' with every conditional row present, in
         order, and each value in the shape that function writes it."""
         rows = stamp.inspection_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
@@ -438,9 +438,9 @@ class Test_module:
                 assert row[1].startswith("✓ ") == given[1].startswith("✓ ")
 
     def test_accepts_the_command_a_person_types_on_a_pipe(self):
-        """`bin/iadd stamp` with stdout a pipe draws the twin: the form is
+        """`bin/agentic stamp` with stdout a pipe draws the twin: the form is
         asked of the stream before `__main__` reconfigures it."""
-        wrapper = ROOT / "bin" / "iadd"
+        wrapper = ROOT / "bin" / "agentic"
         command = (
             [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "stamp"]
             if os.name == "nt"
@@ -521,7 +521,7 @@ class Test_read_sprite:
         with pytest.raises(ValueError) as refused:
             stamp.read_sprite(str(broken))
         assert str(refused.value) == (
-            f"iadd stamp: the disc's mark sprite {broken} is not 16 lines of 16 "
+            f"agentic stamp: the disc's mark sprite {broken} is not 16 lines of 16 "
             "characters over `.KPRLWY` with every drawn cell and its shadow "
             f"inside the disc's field ({fault}). Nothing was drawn."
         )
@@ -1137,14 +1137,16 @@ class Test_read_values:
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(path))
         said = str(refused.value)
-        assert said.startswith(f"iadd stamp: {path} is not a stamp's values file: ")
+        assert said.startswith(f"agentic stamp: {path} is not a stamp's values file: ")
         assert why in said and said.endswith("Nothing was drawn."), said
 
     def test_refuses_a_file_that_cannot_be_read(self, tmp_path):
         missing = tmp_path / "gone.json"
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(missing))
-        assert str(refused.value).startswith(f"iadd stamp: {missing} cannot be read (")
+        assert str(refused.value).startswith(
+            f"agentic stamp: {missing} cannot be read ("
+        )
 
 
 class Test_pending:
@@ -1488,7 +1490,7 @@ def uncommitted(item):
     """The shared repository with its closing records' commit undone and the
     records left on disk, the work item's `routing.md` naming `feat/x` beside
     them: the moment the inspector has written the inspection and runs
-    `iadd stamp --inspection`, before anything commits it."""
+    `agentic stamp --inspection`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
     write(item.repo, f"agentory/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
@@ -1614,7 +1616,7 @@ class Test_queue_for_written_inspection:
         off = off_branch_commit(shared.repo)
         write(shared.repo, INSPECTION, inspection_text(off, shared.base))
         assert queue_written(shared) == [
-            f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
+            f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
             f"cleared on feat/x, since its inspection.md names {off}, which "
             "feat/x does not hold; a new inspection at the head of feat/x draws it"
         ]
@@ -1799,7 +1801,7 @@ class Test_queue_for_written_inspection:
         refused = pathlib.Path(local.common) / "iadd-stamp-refused"
         if named:
             assert said == [
-                f"iadd: no stamp was queued for {ITEM_ID}: the work item is not "
+                f"agentic: no stamp was queued for {ITEM_ID}: the work item is not "
                 f"cleared on feat/x, since its inspection.md names {named}, which "
                 "feat/x does not hold; a new inspection at the head of feat/x "
                 "draws it"
@@ -2330,9 +2332,9 @@ class Test_main:
         (written,) = queued(item.common)
         real = os.path.realpath(written)
         line = (
-            f"iadd: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
+            f"agentic: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
             "`Stop` hook draws it at the end of the turn, and where none appears, "
-            f"`iadd stamp --from {stamp.quote(real)}` draws it"
+            f"`agentic stamp --from {stamp.quote(real)}` draws it"
         )
         assert capsys.readouterr().out == line + "\n"
         assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
@@ -2348,7 +2350,7 @@ class Test_main:
         inspection.unlink()
         assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
-        assert out == "" and err.startswith(f"iadd stamp: {inspection}: "), err
+        assert out == "" and err.startswith(f"agentic stamp: {inspection}: "), err
         assert queued(local.common) == []
 
     @pytest.mark.parametrize(
@@ -2378,7 +2380,7 @@ class Test_main:
         assert stamp.main(["--inspection", str(inspection)]) == 2
         out, err = capsys.readouterr()
         assert out == "", out
-        assert err == f"iadd stamp: {inspection}: {past_the_bound(asked[0])}\n", err
+        assert err == f"agentic stamp: {inspection}: {past_the_bound(asked[0])}\n", err
         assert queued(item.common) == []
         assert not (pathlib.Path(item.common) / "iadd-stamp-refused").exists()
 
@@ -2429,7 +2431,7 @@ class Test_main:
     ):
         """#1582 S2. `--stop` skips a stamp whose disc does not draw, so it
         exits 0, prints no `systemMessage`, and leaves the file pending for
-        `iadd stamp --from`, which names the sprite's fault."""
+        `agentic stamp --from`, which names the sprite's fault."""
         path = waiting(opted)
         a_malformed_sprite(tmp_path, monkeypatch)
         monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))

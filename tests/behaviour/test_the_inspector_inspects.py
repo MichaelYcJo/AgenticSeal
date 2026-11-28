@@ -202,7 +202,7 @@ class TestDefinition:
         self,
     ):
         """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
-        the records' own text, so step 2 checks it with `iadd pr-body
+        the records' own text, so step 2 checks it with `agentic pr-body
         --check` and withholds on any exit but 0, naming what the command
         printed. Step 2 names the command, the exit code it waits on, the
         verdict line and the constant that holds the line; that steps 2 and 4
@@ -211,7 +211,7 @@ class TestDefinition:
         step_2 = between(INSPECTOR, "2. **", "3. **")
         pinned = [
             # The command the inspector runs on the body file.
-            "`iadd pr-body <item> --body <file> --check`",
+            "`agentic pr-body <item> --body <file> --check`",
             # The exit code the inspector waits on before it reads on.
             "exit 0",
             # The verdict line `lib/fields.py` parses, as the inspector writes it.

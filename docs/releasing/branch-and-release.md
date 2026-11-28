@@ -179,7 +179,7 @@ nothing here to see it. `.github/` leaves whole, by one line: it holds this
 repository's workflows and the release automation they run, and no file
 `dist` holds loads one of them. A module a shipped file loads stands under a
 directory `dist` holds, so a change to it alone moves the version: the
-closing-keyword readers are `lib/closing.py`, and `iadd rules` runs
+closing-keyword readers are `lib/closing.py`, and `agentic rules` runs
 `skills/settle/scripts/rules.py`. `bin/test` runs `tests/run_tests.py`, the
 runner of this repository's suite, which leaves with `tests/`, so the
 `bin/test` that `dist` holds answers with its sentence that no runner stands
@@ -322,7 +322,7 @@ them.
   carries them is open, and no step fetches a ref the checkout lacks. The
   checks ship to user repositories as `templates/setup/hygiene.yml`, run from a
   clone of this repository at the release installed when
-  `iadd pr-checks install` wrote the file, at first setup or later; it
+  `agentic pr-checks install` wrote the file, at first setup or later; it
   refuses in local mode, because the checks read committed files and local
   mode commits none.
 
@@ -349,7 +349,7 @@ previous version tag does not already hold, and writes each under a link to
 the pull request that added it. The commit of the range that adds a fragment
 is its pull request's squash commit, whose subject ends with `(#N)`, so the
 number is read once, at the tag, from the history. The pull request's body
-holds the records' text (`iadd pr-body`), so one click leads from an entry to
+holds the records' text (`agentic pr-body`), so one click leads from an entry to
 the reasons behind it. A fragment whose adding commit names no pull request is
 written with no link. `DRY_RUN=1` prints the note and writes nothing.
 check: tests/github/test_publish_release_note.py

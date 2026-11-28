@@ -18,7 +18,7 @@ check: tests/skills/test_chain_check.py
 (fix, or say why not); no script decides on the word, and the agents judge
 it. What this round confirmed holds is a `confirms:` entry of
 `## Confirmations`, and what it could not judge a row of `## Not judged`
-with who answers it; neither is a finding. A wrong sentence an agent reads and acts on is `should`, and so is a wrong line of a work item's own record that a script reads or copies: a line the check reads, a row `iadd unverified` reads, or a line `iadd pr-body` copies into the pull request body. A sentence of a record that restates another record's fact and has drifted from it is a finding, answered by removing the copy and citing the home, never by correcting the copy; one that has not drifted is no finding, since no template holds a place for a copy (`docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/*). A sentence in a record that merely reads badly is not a finding.
+with who answers it; neither is a finding. A wrong sentence an agent reads and acts on is `should`, and so is a wrong line of a work item's own record that a script reads or copies: a line the check reads, a row `agentic unverified` reads, or a line `agentic pr-body` copies into the pull request body. A sentence of a record that restates another record's fact and has drifted from it is a finding, answered by removing the copy and citing the home, never by correcting the copy; one that has not drifted is no finding, since no template holds a place for a copy (`docs/layout/the-record-layout.md` *agentory/threads/<work-item-id>/*). A sentence in a record that merely reads badly is not a finding.
 check: tests/skills/test_chain_check.py
 
 **A finding's `location:` names where the defect shows, and a `fixed` commit
@@ -37,7 +37,7 @@ A finding that says a sentence states a fact wrongly names, as
 grounds say what it printed; a search on the fact's words is a sample. A
 claim resting on neither is no finding but a row of `## Not judged`. No
 script decides on the line: the check takes it in any words, or a finding
-without it, and `iadd pr-body` copies it with its block.
+without it, and `agentic pr-body` copies it with its block.
 check: tests/skills/test_chain_check.py
 
 **A claim of absence is `executed` only.** A finding that says something is

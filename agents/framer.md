@@ -160,7 +160,7 @@ are all such writes. A probe that runs the repository's code runs from a
 `git clone --no-local` made in that directory; where the clone cannot be
 made, the report says so and the question stays a row. A probe commits
 nothing and runs none of the repository's checks: no test module, no
-linter, no typechecker and no `iadd gate` (rule 2). The answer goes into
+linter, no typechecker and no `agentic gate` (rule 2). The answer goes into
 `frame/design.md`'s `## Grounding`, labelled `executed`, with the command
 that gave it. A row whose answer is a behaviour, a time or an output is
 written only where no probe can run in your environment, such as a CI leg

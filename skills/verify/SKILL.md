@@ -65,10 +65,10 @@ found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
 same defect as a `read` reported as passing, with a longer fuse.
 
-#### A unit: `iadd mutate`
+#### A unit: `agentic mutate`
 
-`iadd mutate` asks condition 2 of one unit, one break at a time, and
-`skills/verify/iadd-mutate.md` holds the command, its verdicts and their
+`agentic mutate` asks condition 2 of one unit, one break at a time, and
+`skills/verify/agentic-mutate.md` holds the command, its verdicts and their
 exit codes. A party that proves condition 2 of a unit opens that file
 before it runs the command.
 
@@ -116,7 +116,7 @@ run.
 - **Form.** The inspector's inspection is the only one drawn, and only over a verdict
   that earned it: the stamp is drawn from the inspector's `inspection.md` reading
   `cleared`, once per work item, at the end of the turn in which that file is
-  written. The inspector's `iadd stamp --inspection` writes the values it is
+  written. The inspector's `agentic stamp --inspection` writes the values it is
   drawn from, under either root, and the plugin's `Stop` hook draws them in
   the orchestrator's session
   (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
@@ -194,7 +194,7 @@ command from:
 | Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no proof to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
-| Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the search for the old spelling and its empty result in the phase record. It owes no case written new and no `iadd mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
+| Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the search for the old spelling and its empty result in the phase record. It owes no case written new and no `agentic mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
 | A merge, or a dependency bump | The broad gate. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. |
 
 check: evals/behaviour/crafter/rule-crafter-rename/
@@ -213,8 +213,8 @@ on the committer's machine alone.
 Resolve the answerer before writing the row:
 
 ```
-iadd deferrals .              # which CI and hook lines match a test runner word
-iadd deferrals . --kind all   # tests, lint, typecheck
+agentic deferrals .              # which CI and hook lines match a test runner word
+agentic deferrals . --kind all   # tests, lint, typecheck
 ```
 
 It reads each command line against the runner words it holds, and separates
@@ -245,7 +245,7 @@ tool.
 An answerer that exists still answers nothing if nobody returns to the row.
 
 ```
-iadd unverified .    # what is still open, and where
+agentic unverified .    # what is still open, and where
 ```
 
 It never fails for an open item: punishing an honest row is how sessions learn
@@ -289,13 +289,13 @@ The file is under the scratchpad and carries the work item id, never a name
 every session on the machine would also pick: agents of one session share
 one scratchpad, so a generic name is overwritten by a sibling work item's run.
 
-`iadd cost` reads a finished transcript and reports the split: command
+`agentic cost` reads a finished transcript and reports the split: command
 time, model time between calls, the repeats, and how many tools went out per
 turn. None of it is visible from inside the session:
 
 ```
-iadd cost --latest          # newest transcript for this repo
-iadd cost <transcript.jsonl>
+agentic cost --latest          # newest transcript for this repo
+agentic cost <transcript.jsonl>
 ```
 
 ## Counterfeits (stop on sight)

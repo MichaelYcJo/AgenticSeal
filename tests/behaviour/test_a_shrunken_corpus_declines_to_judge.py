@@ -137,7 +137,7 @@ OPENS_NOTHING = {
         "lists no path and opens none"
     ),
     "tests/skills/test_test_layout.py#test_refuses_a_git_that_did_not_answer_in_one_line": (
-        "its parametrize names the words of the git reads `iadd layout` "
+        "its parametrize names the words of the git reads `agentic layout` "
         "makes, `ls-files` among them, so that each one times out; the case "
         "lists no path and opens none"
     ),
@@ -148,13 +148,13 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/lib/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    # What a case staged in its own copy of a world: `iadd mode`'s switch and
-    # the workflow it stages in `tests/skills/test_iadd.py`.
+    # What a case staged in its own copy of a world: `agentic mode`'s switch and
+    # the workflow it stages in `tests/skills/test_agentic.py`.
     "tests/conftest.py#staged": 1,
     # #952's round 6 case writes stages 1 to 3 of one path into the index of
     # the repository it took, and counts that path's unmerged entries before
-    # and after `iadd pr-checks remove`, once each; it opens no listed path.
-    "tests/skills/test_iadd.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
+    # and after `agentic pr-checks remove`, once each; it opens no listed path.
+    "tests/skills/test_agentic.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
     # #1374's case of `noninferiority.py#extract` stages one file in its own
     # fixture repository and compares the staged names after `extract`; it
     # opens no listed path.

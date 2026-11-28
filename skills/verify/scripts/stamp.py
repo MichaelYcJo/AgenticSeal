@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""iadd stamp — the inspector's stamp, drawn from a `cleared` inspection.
+"""agentic stamp — the inspector's stamp, drawn from a `cleared` inspection.
 
 Drawn once per work item from the inspector's verdict. Two things side by side
 on the terminal's own background, and nothing else: at the left a wax disc
@@ -31,7 +31,7 @@ lit, dark and its gloss, `s t` its step ring dark and lit, `.` its field and
 outline, `R` its body, `L` its breast, `W` its eyes, `P` its pupils and `Y`
 its beak and branch; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
-half-blocks, and for `iadd stamp` on a pipe. The twin is chosen when
+half-blocks, and for `agentic stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
 neither: no Bash call's pipe is drawn on.
 
@@ -47,11 +47,11 @@ owner's marks) and `cleared_names` for its head. So nothing here reads a
 file at import, and the sprite is read where the disc is drawn (`build`).
 
 **The stamp is drawn where a person sees it, once per work item.** The
-inspector runs `iadd stamp --inspection <path>` once after it
+inspector runs `agentic stamp --inspection <path>` once after it
 writes `Verdict: cleared`, under either root; `queue_for_written_inspection`
 reads the file, and where it reads `cleared` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
-dir of the path's clone. `iadd stamp --stop` is the command of the
+dir of the path's clone. `agentic stamp --stop` is the command of the
 plugin's `Stop` hook, which `hooks/hooks.json` registers: it draws
 each undrawn file of the clone the payload's `cwd` is in, once, at the end
 of the main session's turn. This module owns the file:
@@ -62,11 +62,11 @@ stamp* states the rule and its limits. Nothing here reads an environment
 variable: the caller passes every place it writes.
 
 Usage:
-  iadd stamp                      the stamp over sample rows, for a person
-  iadd stamp --shape              the letter twin
-  iadd stamp --from <file>        a queued stamp's values file, drawn once
-  iadd stamp --inspection <file>   queue the stamp of a cleared inspection.md
-  iadd stamp --stop               draw at a `Stop`, the payload on stdin
+  agentic stamp                      the stamp over sample rows, for a person
+  agentic stamp --shape              the letter twin
+  agentic stamp --from <file>        a queued stamp's values file, drawn once
+  agentic stamp --inspection <file>   queue the stamp of a cleared inspection.md
+  agentic stamp --stop               draw at a `Stop`, the payload on stdin
 
 The gate imports `cleared_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules.
@@ -82,8 +82,8 @@ read or a git command `--inspection` asked that did not start or did not
 finish within `lib/gitcmd.py#TIMEOUT`, which queues nothing and records
 nothing, or, for every command but `--inspection` and `--stop`, a disc's mark
 sprite that is malformed (`SPRITE_MALFORMED`); nothing was written on 2. An
-interpreter below the floor never reaches this file through `iadd stamp`:
-`lib/launch.py` refuses `iadd` with 2 first. The `Stop` hook runs it with
+interpreter below the floor never reaches this file through `agentic stamp`:
+`lib/launch.py` refuses `agentic` with 2 first. The `Stop` hook runs it with
 whatever `python3` the harness finds, and a load that fails there, or a
 malformed sprite, draws nothing.
 """
@@ -235,7 +235,7 @@ SPRITE_COLOURS = {
 }
 SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stamp-mark.txt")
 SPRITE_MALFORMED = (
-    "iadd stamp: the disc's mark sprite {path} is not {n} lines of {n} "
+    "agentic stamp: the disc's mark sprite {path} is not {n} lines of {n} "
     "characters over `{letters}` with every drawn cell and its shadow inside "
     "the disc's field ({fault}). Nothing was drawn."
 )
@@ -754,7 +754,7 @@ def ref_is_commit(ref, base):
 def pick_shape(stream):
     """True when `stream` gets the letter twin: anything that is not a UTF-8
     terminal. A console on another codepage draws UTF-8 half-blocks as
-    mojibake, and a pipe has no terminal to draw colour on, so `iadd stamp`
+    mojibake, and a pipe has no terminal to draw colour on, so `agentic stamp`
     on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
     that call every stream answers `utf-8`, and a cp949 console would get the
     blocks it cannot draw."""
@@ -790,7 +790,7 @@ def is_terminal(stream):
 # --- a stamp's values, drawn by somebody else ------------------------------
 #
 # A Bash call's stdout is a pipe into a tool result nobody sees unfolded,
-# so the stamp's rows are written here — by `iadd stamp --inspection`
+# so the stamp's rows are written here — by `agentic stamp --inspection`
 # over a `cleared` inspection under either root (`queue_for_written_inspection`)
 # — and `--stop`, at the end of a main session's turn in the same clone, draws
 # them. The directory is under the git COMMON dir because the worktree the
@@ -805,12 +805,12 @@ VALUES_DIR = "iadd-stamp"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
-VALUES_UNREADABLE = "iadd stamp: {path} cannot be read ({why}). Nothing was drawn."
+VALUES_UNREADABLE = "agentic stamp: {path} cannot be read ({why}). Nothing was drawn."
 VALUES_MALFORMED = (
-    "iadd stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
+    "agentic stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
 )
 VALUES_DRAWN = (
-    "iadd stamp: {path} was drawn already, and a stamp's values are drawn "
+    "agentic stamp: {path} was drawn already, and a stamp's values are drawn "
     "once. Nothing was drawn; the values stay in {drawn}."
 )
 
@@ -943,7 +943,7 @@ def label(values):
 # --- the stamp, queued from a cleared inspection ------------------------------
 #
 # The rule, and what holds it to once per work item with its limits, is
-# `docs/checks/the-stamp.md` *The stamp*. `iadd stamp --inspection` calls
+# `docs/checks/the-stamp.md` *The stamp*. `agentic stamp --inspection` calls
 # `queue_for_written_inspection` (below) once the inspector has written the
 # inspection, under either root, and `--stop` draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
@@ -964,9 +964,9 @@ GITCMD = "lib/gitcmd.py"
 # `python3` that cannot load this file, or a main session whose working
 # directory is outside this clone (`docs/checks/the-stamp.md` *The stamp*).
 QUEUED = (
-    "iadd: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
+    "agentic: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
     "draws it at the end of the turn, and where none appears, "
-    "`iadd stamp --from {command}` draws it"
+    "`agentic stamp --from {command}` draws it"
 )
 # The line `queue_for_written_inspection` returns where its `inspection.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
@@ -974,14 +974,14 @@ QUEUED = (
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "iadd: no stamp was queued for {id}: the work item is not cleared on "
+    "agentic: no stamp was queued for {id}: the work item is not cleared on "
     "{branch}, since its inspection.md names {target}, which {branch} does "
     "not hold; a new inspection at the head of {branch} draws it"
 )
 
 
 def quote(path, windows=None):
-    """`path` quoted for the shell a person types `iadd stamp --from` into:
+    """`path` quoted for the shell a person types `agentic stamp --from` into:
     double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
     path holds a space prints a command that runs as printed.
 
@@ -1267,7 +1267,7 @@ def written_root(routing, records_root):
 
 
 def queue_for_written_inspection(path, now=None):
-    """The lines `iadd stamp --inspection` says of the `inspection.md` at
+    """The lines `agentic stamp --inspection` says of the `inspection.md` at
     `path`, under either root: one where it queued the work item's stamp in
     the clone `path` is in, one where its audited commit is off the work
     item's branch, else none.
@@ -1426,7 +1426,7 @@ def drawings(directory):
     drawn here cannot fail there. Only the oldest files one message carries
     are claimed (`admitted`, the owner's rule): the rest stay
     pending under their own names for the next `Stop`, or for
-    `iadd stamp --from`."""
+    `agentic stamp --from`."""
     ready = []
     for path in pending(directory):
         try:
@@ -1473,7 +1473,7 @@ def drawn_at_stop(text):
 
 # --- a person's command --------------------------------------------------
 
-# Neutral values in the stamp's shape, so `iadd stamp` shows a person what a
+# Neutral values in the stamp's shape, so `agentic stamp` shows a person what a
 # cleared inspection's commit draws without one having been committed — every
 # row `inspection_rows` can return, the conditional ones included, in its
 # order; a case in `tests/skills/test_stamp.py`'s `Test_module` holds the
@@ -1498,7 +1498,7 @@ def main(argv=None, console_wants_letters=None):
     `reconfigure` changes the one object `sys.stdout` and `sys.__stdout__`
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
-        prog="iadd stamp",
+        prog="agentic stamp",
         description="Print the inspector's stamp — what the commit of a cleared "
         "inspection draws.",
     )
@@ -1541,10 +1541,10 @@ def main(argv=None, console_wants_letters=None):
         sys.stderr.write(str(refused) + "\n")
         return 2
     except Exception as failed:
-        sys.stderr.write(f"iadd stamp: {args.inspection}: {failed}\n")
+        sys.stderr.write(f"agentic stamp: {args.inspection}: {failed}\n")
         return 2
     except _gitcmd().Failed as unanswered:
-        sys.stderr.write(f"iadd stamp: {args.inspection}: {unanswered.line}\n")
+        sys.stderr.write(f"agentic stamp: {args.inspection}: {unanswered.line}\n")
         return 2
     if said is not None:
         sys.stdout.write("".join(line + "\n" for line in said))

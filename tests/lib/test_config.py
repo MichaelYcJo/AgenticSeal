@@ -16,8 +16,8 @@ normaliser's from `tests/text/test_the_records_can_be_carried_out_and_in.py`, th
 from `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`,
 the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
-`tests/skills/test_iadd.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
-cases `tests/skills/test_pact_check.py` left for this module that run `iadd
+`tests/skills/test_agentic.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
+cases `tests/skills/test_pact_check.py` left for this module that run `agentic
 pact` over the pact's world in `tests/conftest.py`; one of them stands, and
 the rest left with the `| Signer |` table's reader. Each case keeps
 its body; a name its old file defined for it is defined here, and a fixture
@@ -67,9 +67,9 @@ NO_SIGNER = (
     "separated by `;`"
 )
 
-# `iadd.py`, which re-exports `normalise_remote`: the normaliser's cases ask
-# it by that name, through the `iadd` fixture below.
-SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py")
+# `agentic.py`, which re-exports `normalise_remote`: the normaliser's cases ask
+# it by that name, through the `agentic` fixture below.
+SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
 
 # The `Baseline commit` case asks the reader `chain_check.py` loads for the
 # parity arm, as the command reaches it.
@@ -80,7 +80,7 @@ chain = load_module(
 
 
 @pytest.fixture
-def iadd():
+def agentic():
     spec = importlib.util.spec_from_file_location("iadd_command", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -215,7 +215,7 @@ class Test_declared_policy_root:
         assert config.declared_policy_root("") == ("docs", None)
 
     def test_refuses_a_key_written_twice_beside_docs(self, tmp_path):
-        """The refusal comes back beside `docs`, so `iadd fold`, which stops
+        """The refusal comes back beside `docs`, so `agentic fold`, which stops
         on it, and `policy_root`, which reads it as the default, read one
         answer."""
         home = str(tmp_path / "agentory")
@@ -320,26 +320,26 @@ class Test_normalise_remote:
         ],
     )
     def test_accepts_remote_urls_that_reduce_to_one_host_and_path(
-        self, iadd, left, right
+        self, agentic, left, right
     ):
-        assert iadd.normalise_remote(left) == iadd.normalise_remote(right)
+        assert agentic.normalise_remote(left) == agentic.normalise_remote(right)
 
-    def test_a_port_is_not_read_as_an_scp_separator(self, iadd):
+    def test_a_port_is_not_read_as_an_scp_separator(self, agentic):
         """The colon becomes `/` only where there was no scheme. Otherwise
         `https://example.com:8443/x` reduces to `example.com/8443/x`, and two
         ports of one host stop comparing equal to themselves."""
-        assert iadd.normalise_remote("https://example.com:8443/org/repo") == (
+        assert agentic.normalise_remote("https://example.com:8443/org/repo") == (
             "example.com:8443/org/repo"
         )
 
-    def test_refuses_to_reduce_two_different_repositories_to_one(self, iadd):
+    def test_refuses_to_reduce_two_different_repositories_to_one(self, agentic):
         """The direction the normalisation must not be wrong in."""
-        assert iadd.normalise_remote(
+        assert agentic.normalise_remote(
             "git@example.com:org/a.git"
-        ) != iadd.normalise_remote("git@example.com:org/b.git")
-        assert iadd.normalise_remote("git@example.com:org/a") != iadd.normalise_remote(
-            "git@other.example:org/a"
-        )
+        ) != agentic.normalise_remote("git@example.com:org/b.git")
+        assert agentic.normalise_remote(
+            "git@example.com:org/a"
+        ) != agentic.normalise_remote("git@other.example:org/a")
 
 
 class Test_config_pairs:
@@ -405,7 +405,7 @@ class Test_config_pairs:
         `config.json`. No reader opens that table, so the root declares
         nothing, as a root holding no file does: no key, and no refusal
         naming the old file or a command that converts it. Seen red against
-        the reader that refused the root naming `iadd mode`."""
+        the reader that refused the root naming `agentic mode`."""
         (tmp_path / "config.md").write_text(
             "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
             encoding="utf-8",
@@ -494,7 +494,7 @@ class Test_declared_mode:
     def test_the_four_spellings_of_undeclared_are_one_answer(
         self, config, repo, text, expected
     ):
-        """The same four `iadd.py#declared` already had, because it is the same
+        """The same four `agentic.py#declared` already had, because it is the same
         reader — moved, not rewritten. A key that names no mode is told apart from
         no key, because a claim nobody can act on is not the same as no claim."""
         home = opt_in_shared(repo)
@@ -605,7 +605,7 @@ class Test_pact_declaration:
         """`lib/config.py#pact_declaration`: a `Pact notify` key left in the
         config is read by nobody, with a `Pact` key or without one, so neither
         a value outside the vocabulary it once had nor the key written twice is
-        refused. Seen red by `iadd mutate` against a reader that refused the
+        refused. Seen red by `agentic mutate` against a reader that refused the
         row (phase 8 of 1791940762)."""
         assert config.pact_declaration([("Pact", URL), *rows]) == (ORDERS, [])
         assert config.pact_declaration(rows) == ([], [])
@@ -637,7 +637,7 @@ class Test_pact_declaration:
 
 class Test_declared_pacts:
     def test_an_unreadable_config_is_no_declaration(self, tmp_path):
-        """`declared_pacts` is what `iadd pact` reads a signer's key
+        """`declared_pacts` is what `agentic pact` reads a signer's key
         through. No file is no key; a file that is there and will not read is
         None, which the caller refuses, because a written key read as absent is
         the silence the reader exists to end."""
@@ -651,7 +651,7 @@ class Test_declared_pacts:
         assert pacts == ORDERS and refusals == []
 
     def test_refuses_a_signer_config_that_will_not_parse_with_exit_2(self, world):
-        """S2 at `iadd pact`: a signer's config that will not parse is refused
+        """S2 at `agentic pact`: a signer's config that will not parse is refused
         as `UNREADABLE`, in the reader's sentence after the path the command
         shows, and the run exits 2. Seen red against the sentence the command
         printed before #1454, `could not be read`, which named no cause."""
@@ -863,7 +863,7 @@ class Test_module:
         self, tmp_path, value, root
     ):
         """`lib/config.py#policy_root`, which reads through
-        `declared_policy_root` as `iadd fold` does: an empty value and one
+        `declared_policy_root` as `agentic fold` does: an empty value and one
         that leaves the repository read as `docs`."""
         config = load_lib_module("config.py", "iadd_config_for_policy_root")
         (tmp_path / "config.json").write_text(

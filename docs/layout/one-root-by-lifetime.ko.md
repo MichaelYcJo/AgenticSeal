@@ -23,7 +23,7 @@
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
 (`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도
 최상위 `specs/` 나 `.specseal/` 을 스스로 열지 않습니다.
-`iadd settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
+`agentic settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
 안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가 어디
 있는지는 `skills/core/SKILL.md` 의 첫 문단 한 곳에 적혀 있습니다.
 check: tests/lib/test_optin.py
@@ -61,7 +61,7 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 **저장소가 옵트인한 것은 `skills/core/SKILL.md` 의 첫 문단이 정한 자리 가운데
 하나에 `agentory/` 가 있고 그 `README.md` 가 플러그인의 표식으로 시작할
 때입니다.** 표식은 `templates/setup/agentory-README.md` 의 첫 줄이고, 처음 설정이
-이것을 씁니다. `iadd` 명령과 pull request 검사, 도장의 `--stop` 은 그 자리들을
+이것을 씁니다. `agentic` 명령과 pull request 검사, 도장의 `--stop` 은 그 자리들을
 코어가 정한 순서로 보고, 표식과 함께 있는 첫 자리가 "켜졌다" 와 "어느
 모드인가" 를 함께 말해 줍니다. README 가 표식으로
 시작하지 않는 `agentory/` 는 `agentory` 라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
@@ -76,7 +76,7 @@ git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 
 | 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 IADD 프로세스를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
 
 플러그인을 깔지 않은 협업자에게는 어느 모드에서도 아무것도 돌지 않습니다.
-훅과 스킬과 `iadd` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
+훅과 스킬과 `agentic` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
 자리 어디에도 폴더가 없으면 옵트인하지 않은 것이고, 판단하지 못하는 명령은
 저장소를 옵트인하지 않은 것으로 읽는다는 것입니다. 버릴 저장소는 공통 git
 디렉터리 아래의 빈 파일 `.git/iadd-scratch` 하나로 옵트인하지 않은
@@ -92,7 +92,7 @@ check: tests/lib/test_optin.py
 - **shared, records only** 는 `<repo>/agentory/` 를 만들고, 라우팅 커밋이
   그것을 싣습니다. `.github/` 아래에는 아무것도 쓰지 않습니다.
 - **shared, with pull-request checks** 는 같은 일을 한 뒤
-  `iadd pr-checks install` 을 실행합니다. 이 명령은
+  `agentic pr-checks install` 을 실행합니다. 이 명령은
   `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
   씁니다. 설정할 때 깔린 릴리스의 플러그인 클론과 PR 검사입니다.
 - **local** 은 `$(git rev-parse --git-common-dir)/agentory/` 를 만들고, 트리에는
@@ -114,9 +114,9 @@ check: tests/behaviour/test_first_setup_asks_once.py
 | `agentory/` 가 사는 곳 | `.git/agentory/`, 공통 git 디렉터리 안 | `<repo>/agentory/`, 트리 안 |
 | 커밋 | 하지 않는다. gitignore 할 것도 없다 | 한다 |
 | 연결된 워크트리와 병렬 세션 | 서로의 기록을 읽는다. git 디렉터리가 클론의 모든 워크트리에 공통이기 때문이다 | 서로의 기록을 읽는다. 파일이 커밋되기 때문이다 |
-| 다른 기기와 다시 클론한 경우 | 빈 상태로 시작한다. `iadd export` / `iadd import` 로 사본을 손으로 옮긴다 | 모두 가지고 있다 |
-| CI (PR 검사) | 돌 수 없다. `iadd pr-checks install` 이 여기서는 거절한다 | 처음 설정의 답이나 `iadd pr-checks install` 이 워크플로를 트리에 넣은 곳에서 돈다 |
-| 나중에 바꾸기 | `iadd mode shared` 가 `.git/agentory/` 를 `<repo>/agentory/` 로 옮기고 스테이지한다. 커밋은 사람이 한다 | `iadd mode local` 이 `<repo>/agentory/` 를 되돌리고 삭제를 스테이지한다. 커밋은 사람이 한다 |
+| 다른 기기와 다시 클론한 경우 | 빈 상태로 시작한다. `agentic export` / `agentic import` 로 사본을 손으로 옮긴다 | 모두 가지고 있다 |
+| CI (PR 검사) | 돌 수 없다. `agentic pr-checks install` 이 여기서는 거절한다 | 처음 설정의 답이나 `agentic pr-checks install` 이 워크플로를 트리에 넣은 곳에서 돈다 |
+| 나중에 바꾸기 | `agentic mode shared` 가 `.git/agentory/` 를 `<repo>/agentory/` 로 옮기고 스테이지한다. 커밋은 사람이 한다 | `agentic mode local` 이 `<repo>/agentory/` 를 되돌리고 삭제를 스테이지한다. 커밋은 사람이 한다 |
 
 **`agentory/config.json` 의 `Mode` 키는 옵트인이 아니고, 차이는 무엇이 그것을
 읽느냐에 있습니다.** 그 키는 루트가 *있어야 할* 자리를 말하고, 폴더의 자리는
@@ -129,12 +129,12 @@ check: tests/behaviour/test_first_setup_asks_once.py
 채웁니다. 틀릴 수 없는 값은 그것 하나뿐입니다.
 
 **기록이 어디 사는가와 CI 가 PR 을 검사하는가는 두 개의 답이고, 둘째의
-기록은 워크플로 파일 자체입니다.** `iadd mode` 는 루트를 옮기고 `Mode`
-키를 쓰며, `.github/` 에는 손대지 않습니다. `iadd pr-checks install` 은
+기록은 워크플로 파일 자체입니다.** `agentic mode` 는 루트를 옮기고 `Mode`
+키를 쓰며, `.github/` 에는 손대지 않습니다. `agentic pr-checks install` 은
 `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
 설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/agentory/` 가 디렉터리가
 아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
-`iadd pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
+`agentic pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
 그대로 둡니다. 검사가 설치되었는지를 말하는 설정 키는 없습니다. 파일이
 그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. 루트가 없는 상태를
 아는 릴리스로 고정된 워크플로는 local 모드에 남으면 선언된 것이 없는 것으로
@@ -143,9 +143,9 @@ check: tests/behaviour/test_first_setup_asks_once.py
 커밋에는 `IADD-Routing` 트레일러가 없으니 통과하고, 전환 전에 만든 커밋의
 트레일러가 작업 항목을 가리키면 준비된 PR 을 실패시킵니다.
 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
-`iadd pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
-`iadd mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
-check: tests/skills/test_iadd.py
+`agentic pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
+`agentic mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
+check: tests/skills/test_agentic.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된
 워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/agentory/` 는 모든
@@ -158,22 +158,22 @@ check: tests/skills/test_iadd.py
 맞바꾸는 것은 그것이 전부입니다.
 
 **local 기록은 손으로 다른 클론에 옮길 수 있고, 사본은 동기화가 아닙니다.**
-`iadd export` 는 루트만, 그 옆의 세션 상태는 빼고, `agentory-<repo>-<date>.zip` 으로
+`agentic export` 는 루트만, 그 옆의 세션 상태는 빼고, `agentory-<repo>-<date>.zip` 으로
 묶으며, 내보낸 때의 원격 URL 과 HEAD SHA 를 적은 목록을 넣습니다.
-`iadd import <zip>` 은 덮어쓰지 않습니다. 없는 파일은 더하고, 이미 있는데
+`agentic import <zip>` 은 덮어쓰지 않습니다. 없는 파일은 더하고, 이미 있는데
 바이트가 다른 파일은 그 옆에 `<name>.incoming<ext>` 로 놓고 알릴 뿐 묻지
 않습니다. 나중 사본이 이기고 어느 행이 갔는지는 사람이 챙기므로, 사본이 두 번
-필요해지면 shared 모드로 바꿀 때라는 신호입니다. `iadd export --check` 는
+필요해지면 shared 모드로 바꿀 때라는 신호입니다. `agentic export --check` 는
 마지막 내보내기 뒤에 바뀐 작업 항목의 수를 알려 주고, 어디에도 올리지
 않습니다.
 
 **모드는 되돌릴 수 있지만 이력은 되돌릴 수 없습니다.** shared 로 가면 기록이
 트리에 들어가고, 그 커밋이 들어가는 순간 저장소 이력에 남습니다. 다시
 돌아오면 트리에서는 빠지지만 이력에서는 빠지지 않습니다. local 모드가 막으려는
-방향이 바로 되돌릴 수 없는 그 방향이므로, `iadd mode shared` 는 실행하기 전에
+방향이 바로 되돌릴 수 없는 그 방향이므로, `agentic mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tests/skills/test_iadd.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tests/skills/test_agentic.py
 
 ## 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
 
@@ -198,7 +198,7 @@ check: tests/text/test_the_settings_have_a_front_door.py
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다. `agentory/config.json` 의 두 언어 키는 반드시 있어야 합니다. 처음 설정할
 때와, 작업 항목의 첫 편집 전에 질문을 한꺼번에 물을 때 두 키를 함께 묻고, 질문
-옆에 최근 PR 제목들이 쓰인 언어를 보여 줍니다. `iadd pr-body` 는 두 키가
+옆에 최근 PR 제목들이 쓰인 언어를 보여 줍니다. `agentic pr-body` 는 두 키가
 없으면 PR 본문을 만들지 않고 거절합니다. 답할 사람이 없으면 orchestrator 가 두
 키를 그 제목들의 언어로 적고, 그렇게 했다는 것을 `routing.md` 에 남깁니다. 두
 키가 없어도 커밋은 거절되지 않습니다.
@@ -229,7 +229,7 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 객체가 아닌 파일은 통째로 거절합니다. 두 번 적힌 키와 값이 문자열이 아닌 키는
 값이 없고, 나머지 키는 읽습니다. 값은 모두 `templates/setup/config.md` 가 그
 키에 정한 문법의 문자열이므로, 셸 명령은 파이프를 적힌 그대로 담습니다.
-check: tests/lib/test_config.py tests/skills/test_iadd.py
+check: tests/lib/test_config.py tests/skills/test_agentic.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이
 비는 것과, 물을 수 없어서 출력이 비는 것은 다른 사실입니다. 둘을 구별하지
@@ -237,4 +237,4 @@ check: tests/lib/test_config.py tests/skills/test_iadd.py
 없다, 추적되는 파일이 없다는 식입니다. 호출자가 그 구별을 필요로 하는 호출
 자리는 모두 그것을 돌려주고, 거부는 확신에 찬 "없음" 이 아니라 어느 호출이
 실패했는지를 말합니다.
-check: tests/skills/test_iadd.py
+check: tests/skills/test_agentic.py

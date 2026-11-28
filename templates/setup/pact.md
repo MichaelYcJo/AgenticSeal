@@ -22,8 +22,8 @@ a work item's `frame/design.md`, each cell written bare:
     | <this repository's origin URL> | ## Clause / ### Narrower | <hash> |
 
 where `<hash>` is the eight lowercase hex digits of the clause region's
-content hash that `iadd pact` prints. A `SUPERSEDED` or `UNMATCHED` line from
-`iadd pact` names the clause's current hash, so a new citation can be written
+content hash that `agentic pact` prints. A `SUPERSEDED` or `UNMATCHED` line from
+`agentic pact` names the clause's current hash, so a new citation can be written
 with `00000000` and corrected from its first report.
 
 **A heading is an address.** Rewording a clause's prose is a change every

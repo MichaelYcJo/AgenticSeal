@@ -15,8 +15,8 @@ in a work item's `frame/design.md`:
 This command reads every signer from the pact's repository and grades each
 row naming this pact against the clause as the pact holds it now.
 
-  iadd pact             in the pact's repository
-  iadd pact ROOT        the pact's repository at ROOT
+  agentic pact             in the pact's repository
+  agentic pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
 repository, and this needs all of them. A signer's CI
@@ -35,10 +35,10 @@ heads a table no row of which is read: it is named at its line,
 and is in no exit class. Whether it meant the anchor table is the judgment
 of the person reading the report and of the proofer reading the frame. A row is graded where its `Pact` cell, compared normalised, is the
 origin URL of this repository; a row naming another pact the signer's
-`Pact` key declares is passed over, for that pact's `iadd pact` to grade.
+`Pact` key declares is passed over, for that pact's `agentic pact` to grade.
 Refused at the row's line: a `Pact` cell that is not one remote URL, or
 that names a pact the signer's `Pact` key does not declare, which no
-`iadd pact` grades, because another pact's reports the signer `ONE-SIDED`
+`agentic pact` grades, because another pact's reports the signer `ONE-SIDED`
 and reads none of its frames; and, in a row naming this pact, a `Clause`
 cell that opens with no heading or a `Hash` cell that is not eight
 lowercase hex digits. Refused at the frame: every refusal of the walk, and
@@ -158,7 +158,7 @@ MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 
 
 def shown(path, repo=None, home_dir=None, flavour=os.path):
-    """PATH as every line of `iadd pact` prints it, on every platform:
+    """PATH as every line of `agentic pact` prints it, on every platform:
     relative to REPO where it lies inside that repository, `~/`-relative
     where it lies under HOME_DIR, and otherwise whole, with `/` for every
     separator.
@@ -251,7 +251,7 @@ NOT_A_HASH = (
 # holding a backtick before this sentence is reached.
 UNDECLARED = (
     "the `Pact` cell names `{cell}`, a pact this signer's `agentory/config.json` "
-    "does not declare in its `Pact` key, so no `iadd pact` grades the row — "
+    "does not declare in its `Pact` key, so no `agentic pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
 )
@@ -616,7 +616,7 @@ def check(root, out=sys.stdout, home_dir=None):
     repo = optin.toplevel(os.path.abspath(root))
     if not repo:
         say(
-            f"iadd pact: {shown(root, home_dir=home_dir)} is not in a git "
+            f"agentic pact: {shown(root, home_dir=home_dir)} is not in a git "
             "repository — nothing was read"
         )
         return 2
@@ -624,7 +624,7 @@ def check(root, out=sys.stdout, home_dir=None):
     pact_path = os.path.join(home, PACT_FILE) if home else ""
     if not home or not os.path.lexists(pact_path):
         say(
-            f"iadd pact: {shown(repo, home_dir=home_dir)} holds no "
+            f"agentic pact: {shown(repo, home_dir=home_dir)} holds no "
             f"agentory/{PACT_FILE}, so there is no pact "
             "to reconcile here — run it in the repository that holds the pact"
         )
@@ -639,7 +639,7 @@ def check(root, out=sys.stdout, home_dir=None):
     mine = origin(repo)
     if not mine:
         say(
-            f"iadd pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
+            f"agentic pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
             "so no pact anchor can be matched to the pact — set `origin` and "
             "run it again"
         )
@@ -740,7 +740,7 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         # Every pact the signer declares, this one among them: a row naming
         # one of the others is that pact's to grade, and a row naming none
-        # of them is graded by no `iadd pact`, since another pact's reports
+        # of them is graded by no `agentic pact`, since another pact's reports
         # this signer `ONE-SIDED` above and reads none of its frames.
         declared_remotes = frozenset(n for _w, n in pacts)
         read_count += 1
@@ -791,7 +791,7 @@ def check(root, out=sys.stdout, home_dir=None):
         )
 
     summary = (
-        f"iadd pact: the pact at {mine} — {read_count} of {len(signers)} "
+        f"agentic pact: the pact at {mine} — {read_count} of {len(signers)} "
         f"signer{'' if len(signers) == 1 else 's'} read · "
         + " · ".join(f"{counts[s]} {s.lower()}" for s in counts)
     )
@@ -820,7 +820,7 @@ def after_path(path, sentence):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="iadd pact",
+        prog="agentic pact",
         description="At the pact's repository: does every signer still "
         "agree with the pact?",
     )
@@ -834,7 +834,7 @@ def main(argv=None):
     try:
         return check(args.root)
     except sibling.load("lib/gitcmd.py").Failed as unanswered:
-        print(f"iadd pact: {unanswered.line}")
+        print(f"agentic pact: {unanswered.line}")
         return 2
 
 

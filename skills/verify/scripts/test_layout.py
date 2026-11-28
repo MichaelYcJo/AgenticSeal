@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""iadd layout: whether each test file stands where the test layout puts it.
+"""agentic layout: whether each test file stands where the test layout puts it.
 
-  iadd layout --check [paths]         refuse a file that breaks the layout
-  iadd layout --pairs [paths]         name two cases of a class that look alike
-  iadd layout --moved BASE --from OLD... --to NEW...
+  agentic layout --check [paths]         refuse a file that breaks the layout
+  agentic layout --pairs [paths]         name two cases of a class that look alike
+  agentic layout --moved BASE --from OLD... --to NEW...
                                       whether the NEW files hold the OLD
                                       files' cases, only moved
 
@@ -1140,7 +1140,7 @@ def _moved_main(root, base, olds, news):
             gitcmd.git(root, "worktree", "remove", "--force", tree)
         except gitcmd.Failed as unanswered:
             print(
-                f"iadd layout: the scratch worktree {tree} was not removed: "
+                f"agentic layout: the scratch worktree {tree} was not removed: "
                 f"{unanswered.line}",
                 file=sys.stderr,
                 flush=True,
@@ -1157,7 +1157,7 @@ def _moved_main(root, base, olds, news):
         print(line)
     cases = sum(len(_all_cases(ast.parse(source))) for source in old.values())
     print(
-        f"iadd layout: moved: {cases} old cases, {after} items against {before} "
+        f"agentic layout: moved: {cases} old cases, {after} items against {before} "
         f"at {sha[:12]}, {len(lines)} failed",
         flush=True,
     )
@@ -1203,7 +1203,7 @@ def _read_tests(root, paths):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="iadd layout",
+        prog="agentic layout",
         description="Whether each test file stands where the test layout puts it.",
     )
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -1246,7 +1246,7 @@ def main(argv=None):
     try:
         return _laid_out(args)
     except gitcmd.Failed as unanswered:
-        print(f"iadd layout: {unanswered.line}", flush=True)
+        print(f"agentic layout: {unanswered.line}", flush=True)
         return 2
 
 
@@ -1259,23 +1259,23 @@ def _laid_out(args):
         start = os.path.dirname(os.path.abspath(args.news[0]))
         root = optin.toplevel(start)
         if not root:
-            print(f"iadd layout: {start} is not inside a git repository", flush=True)
+            print(f"agentic layout: {start} is not inside a git repository", flush=True)
             return 2
         try:
             return _moved_main(root, args.moved, args.olds, args.news)
         except Unreadable as exc:
-            print(f"iadd layout: {exc}", flush=True)
+            print(f"agentic layout: {exc}", flush=True)
             return 2
     first = args.paths[0] if args.paths else os.getcwd()
     start = first if os.path.isdir(first) else os.path.dirname(os.path.abspath(first))
     root = optin.toplevel(start)
     if not root:
-        print(f"iadd layout: {start} is not inside a git repository", flush=True)
+        print(f"agentic layout: {start} is not inside a git repository", flush=True)
         return 2
     missing = [path for path in args.paths if not os.path.exists(path)]
     if missing:
         print(
-            f"iadd layout: {', '.join(missing)} names no file or directory",
+            f"agentic layout: {', '.join(missing)} names no file or directory",
             flush=True,
         )
         return 2
@@ -1284,7 +1284,9 @@ def _laid_out(args):
         lines = pairs(tests)
         for line in lines:
             print(line)
-        print(f"iadd layout: {len(tests)} files read, {len(lines)} pairs", flush=True)
+        print(
+            f"agentic layout: {len(tests)} files read, {len(lines)} pairs", flush=True
+        )
         return 0
     # Helpers are compared over every test file and `tests/conftest.py`,
     # whatever the paths name; the paths choose the files judged.
@@ -1304,7 +1306,7 @@ def _laid_out(args):
         1 for line in refused + reported if line.endswith(f"declares no {TARGET_NAME}")
     )
     print(
-        f"iadd layout: {len(tests)} files read, {len(refused)} refused, "
+        f"agentic layout: {len(tests)} files read, {len(refused)} refused, "
         f"{undeclared} declare no {TARGET_NAME}",
         flush=True,
     )

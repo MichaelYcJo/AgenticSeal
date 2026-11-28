@@ -63,7 +63,7 @@ every pull request, and they pass for a different reason: they ask nothing
 of a branch that declared nothing. Those are the review-chain check and the
 issue-claim report. The suite reads one fact
 about the rule files: a `check:` target the change renamed or removed fails
-it, naming the file, the line and the heading, and `bin/iadd rules --check`
+it, naming the file, the line and the heading, and `bin/agentic rules --check`
 gives the same answer before the push. Each row below gives its own reason,
 and a maintainer adding a CI step reads the row rather than this sentence.
 
@@ -115,7 +115,7 @@ does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
 **Python 3.12 is the supported floor**, held as `FLOOR` in `lib/launch.py`
-so this sentence and the code state one number. `bin/iadd` runs its script
+so this sentence and the code state one number. `bin/agentic` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the
 interpreter it held. `bin/test` starts on
@@ -208,7 +208,7 @@ a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/setup/hygiene.yml`: the chain check and the mode check, run from a
-clone of this repository at the release the user installed. `iadd pr-checks
+clone of this repository at the release the user installed. `agentic pr-checks
 install` writes it, at first setup or later, so a change to either of them
 here reaches a user at their next install, and the template has to keep
 telling the same story as the workflow. Every step
@@ -231,7 +231,7 @@ keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
-`TARGET = "<tracked path>"`. A file whose cases run an `iadd` subcommand names
+`TARGET = "<tracked path>"`. A file whose cases run an `agentic` subcommand names
 the script that subcommand runs. The file holds one class per public top-level
 function of the module, `Test_<name>`, with the name spelt as the code spells
 it, and a class or a private function of the module may have a class too.
@@ -250,9 +250,9 @@ other imports by its name. Each module file ends with
 `tests/censuses.py` over its module, and a line a census flags on purpose
 carries `# exempt from <census>: <why>` on its own line above it, where the
 census reads it and refuses it once it excuses nothing.
-`bin/iadd layout --check` refuses a file that declares `TARGET` and breaks
+`bin/agentic layout --check` refuses a file that declares `TARGET` and breaks
 this, and lists the files that declare none. A contributor writing a case
-first reads its class and the pairs `bin/iadd layout --pairs` names in it.
+first reads its class and the pairs `bin/agentic layout --pairs` names in it.
 Each pair the report prints carries its reason in its class's docstring: one
 sentence stating the input its two cases differ by where they call the
 function alike, such as the world a fixture or a monkeypatch builds.
@@ -272,7 +272,7 @@ check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 **A case stands in the file of what it holds, and a file that declares no
 `TARGET` says why.** What a case holds is read from the case whole, never
 from its file's name. A case that calls a function of one module, directly
-or through a loader, or runs the `iadd` subcommand or the script that one
+or through a loader, or runs the `agentic` subcommand or the script that one
 module is, and asserts on what that call returned, printed, raised or
 wrote, stands in that module's file. The module is a shipped one, or a
 module under `tests/` that is not a test file, such as
@@ -313,7 +313,7 @@ killed by another case, or where the behaviour it guarded has left the tree.
 past the threshold.** The threshold is 60 seconds of the module's old files in
 the `test-durations` artifact of the newest push run on `main`, which
 `gh run download <run id> -n test-durations -D <dir>` writes to
-`<dir>/.test_durations`, or a pair `bin/iadd layout --pairs` names inside one of
+`<dir>/.test_durations`, or a pair `bin/agentic layout --pairs` names inside one of
 the module's classes whose docstring states no input its two cases differ
 by. A pair whose class states that input is two cases a reader has judged
 distinct, so it is no ground to write the module's tests anew. Every other
@@ -337,7 +337,7 @@ seconds the record states are read by the release table, not by a gate.
 and one line per removed case.** The contributor writes it into the phase
 record of the work item that rebuilt the module, in four parts:
 
-- the move check, `bin/iadd layout --moved <base> --from <old file>...
+- the move check, `bin/agentic layout --moved <base> --from <old file>...
   --to <new file>...`, with its command and its last line. One run covers
   a group, the modules of one shipped directory or a smaller group rebuilt
   together, and names every old file the group's cases came from after
@@ -361,7 +361,7 @@ record of the work item that rebuilt the module, in four parts:
   where a case accepts or refuses, one or two per class and one more for
   each further decision point a function holds, so their count follows
   the module's classes. They run against the new file in one
-  `bin/iadd mutate` call with `-x` in its tests command. The old files'
+  `bin/agentic mutate` call with `-x` in its tests command. The old files'
   column runs only for a mutant the new file lets survive: where the old
   files miss it too, the table names an old gap, and where they kill it,
   the new file gets a case seen red on that mutant;

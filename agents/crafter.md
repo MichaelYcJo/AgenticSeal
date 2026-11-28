@@ -51,9 +51,9 @@ is a write you do not make.
    case new for it: the existing cases that prove it at the new name or
    path, and the census that table's row asks for, go into
    `trail/phases/phase-N.md`'s `## What this phase found`.
-6. Commit, then run `iadd mutate` over each unit that adds behaviour, as
+6. Commit, then run `agentic mutate` over each unit that adds behaviour, as
    `skills/implement/SKILL.md` *Commit before you mutate, and restore from
-   `iadd mutate`'s copy* and *Mutation-test every unit that adds behaviour,
+   `agentic mutate`'s copy* and *Mutation-test every unit that adds behaviour,
    one command each* state.
 7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
    cheap and often, broad and once* names, as one command through the

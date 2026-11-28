@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-"""iadd rules: a document's sections with what their tests guard, or every check line read.
+"""agentic rules: a document's sections with what their tests guard, or every check line read.
 
-  iadd rules <doc>          every heading of DOC, and under each the targets
+  agentic rules <doc>          every heading of DOC, and under each the targets
                             of its `check:` lines, each with the first
                             sentence of its docstring, resolved in the
                             repository the current directory is in
-  iadd rules --check        every `check:` line in every rule file read, and
+  agentic rules --check        every `check:` line in every rule file read, and
                             each one that is out of grammar or names a target
                             that does not resolve named; each line that opens
                             like one and is not one named as not read
-  iadd rules ... --root DIR resolve in DIR instead
+  agentic rules ... --root DIR resolve in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
-that holds it, and a rule file lists its tests by `check:` line. `iadd rules <doc>`
+that holds it, and a rule file lists its tests by `check:` line. `agentic rules <doc>`
 prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
 The grammar of the line is `skills/settle/rule-changes.md` *A rule has one shape*,
-and this module is its one reader. `iadd rules --check` reads every rule file
+and this module is its one reader. `agentic rules --check` reads every rule file
 `RULE_FILES` names, every document of the policy root
 `skills/settle/scripts/fold_check.py#documents` lists (`policy_documents`),
 and every line a renderer shows in them, inside a rule
@@ -31,7 +31,7 @@ the line into the policy root.
 **It reads one shape.** A check line is `check: ` after any leading spaces.
 A line that opens like one and is not one, another case, emphasis, block
 markup before the label, a space before the colon, the plural or the old
-label `Enforced by`, is printed as `iadd rules: not read: path:line:
+label `Enforced by`, is printed as `agentic rules: not read: path:line:
 heading: why` and decides nothing; whether it meant a check line is
 review's to judge. A target wrapped onto the line below is not read either,
 and nothing names it: the line below is prose.
@@ -39,9 +39,9 @@ and nothing names it: the line below is prose.
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by review alone.
 
-`iadd rules --check` excuses one shape of a pending rule change: a refused
+`agentic rules --check` excuses one shape of a pending rule change: a refused
 line inside a section that an unsettled design's `remove` with no `from`
-takes out at the settle is printed as `iadd rules: excused: path:line:
+takes out at the settle is printed as `agentic rules: excused: path:line:
 heading: why; <work item> removes this section at the settle`, and is no
 refusal. The designs are read through
 `skills/settle/scripts/rule_changes.py#pending`, under `<root>/agentory/threads/`,
@@ -51,10 +51,10 @@ excuses nothing, so the test the line names stays until the settle. In local
 mode the designs sit under the common git directory, which a CI checkout does
 not hold, so no line is excused there.
 
-Exit codes: `iadd rules <doc>` 0 the document was read, whatever its lines say.
-`iadd rules --check` 0 every line holds or is excused, whatever lines it did
+Exit codes: `agentic rules <doc>` 0 the document was read, whatever its lines say.
+`agentic rules --check` 0 every line holds or is excused, whatever lines it did
 not read, 1 a line is refused,
-each named as `iadd rules: path:line: heading: why`. 2 for either: a file it had to read cannot
+each named as `agentic rules: path:line: heading: why`. 2 for either: a file it had to read cannot
 be read, a module it reads through is not in the tree, or neither or both of
 DOC and `--check` were given.
 """
@@ -403,23 +403,23 @@ def check(root):
     nor a line not read is a refusal."""
     found, excused, unread, files, lines = unresolved(root)
     for failure in found:
-        print(f"iadd rules: {failure}")
+        print(f"agentic rules: {failure}")
     for line in excused:
-        print(f"iadd rules: excused: {line}")
+        print(f"agentic rules: excused: {line}")
     for line in unread:
-        print(f"iadd rules: not read: {line}")
+        print(f"agentic rules: not read: {line}")
     if found:
         print(
-            f"iadd rules: {len(found)} refused in {lines} check lines of {files} rule files."
+            f"agentic rules: {len(found)} refused in {lines} check lines of {files} rule files."
         )
         return 1
     if excused:
         print(
-            f"iadd rules: {len(excused)} excused in {lines} check lines of {files} "
+            f"agentic rules: {len(excused)} excused in {lines} check lines of {files} "
             "rule files, and every other line holds."
         )
         return 0
-    print(f"iadd rules: all {lines} check lines in {files} rule files hold.")
+    print(f"agentic rules: all {lines} check lines in {files} rule files hold.")
     return 0
 
 
@@ -512,13 +512,13 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     if args.check == (args.doc is not None):
-        sys.stderr.write("iadd rules: name a document, or --check, and not both.\n")
+        sys.stderr.write("agentic rules: name a document, or --check, and not both.\n")
         return 2
     root = os.path.abspath(args.root or os.getcwd())
     try:
         if args.root is None:
             # Typed anywhere inside a repository, the command reads that
-            # repository, as `iadd fold` does. `bin/` is on a user's PATH,
+            # repository, as `agentic fold` does. `bin/` is on a user's PATH,
             # and the tree this script ships in is the plugin's, not theirs.
             root = sibling("optin").repo_root(root) or root
         if args.check:
@@ -532,11 +532,11 @@ def main(argv=None):
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except (OSError, UnicodeDecodeError) as error:
-            sys.stderr.write(f"iadd rules: cannot read {args.doc}: {error}.\n")
+            sys.stderr.write(f"agentic rules: cannot read {args.doc}: {error}.\n")
             return 2
         sys.stdout.write(render(root, text))
     except Unreadable as error:
-        sys.stderr.write(f"iadd rules: {error}.\n")
+        sys.stderr.write(f"agentic rules: {error}.\n")
         return 2
     return 0
 

@@ -21,7 +21,7 @@ round 9 fix pass, each a case of one helper of this module.
 
 Seen red before they were committed (contract rule 15): the three accepting
 cases failed against the conftest that still held the failing ceiling, which
-had neither `SLOW_CASE_S` nor a summary hook, and `iadd mutate` turned
+had neither `SLOW_CASE_S` nor a summary hook, and `agentic mutate` turned
 each refusing case red by breaking the condition it pins.
 """
 

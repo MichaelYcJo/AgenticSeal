@@ -16,7 +16,7 @@ The cases came from the modules that held each census whole:
 names every old case and where it went.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without `tests/censuses.py`, and `iadd mutate` broke each
+against the tree without `tests/censuses.py`, and `agentic mutate` broke each
 census's refusal in turn and watched a case of its class fail.
 `vacated_paths` (#1060) failed its cases before the census existed, and was
 seen red over the tree after `templates/` moved and before its citations were

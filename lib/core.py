@@ -8,7 +8,7 @@ first line naming the file printed and the running plugin's version, and
 above one closing line, `closing`, naming where work starts by two paths
 relative to the plugin's root. The frontmatter stays out because its
 `description:` already reaches every session in the harness's skill
-listing. `iadd payload` counts `rendered`'s bytes, so the hook and the meter
+listing. `agentic payload` counts `rendered`'s bytes, so the hook and the meter
 cannot disagree about what a session received.
 
 **Where the core is printed, the plugin's root stands once in the

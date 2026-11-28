@@ -429,7 +429,7 @@ def apply_op(text, op):
     there. An `add` whose `to` is one table row lands as the last row of the
     last table in the section's own text (`_last_row`), and where no table
     stands there, as any `add` does. The document's line end, CRLF or LF, is
-    kept in what it writes. `iadd settle --draft` calls it once per released
+    kept in what it writes. `agentic settle --draft` calls it once per released
     operation. `copies` above applies an operation too, to the whole document
     with no section, for the runs of words the document will hold; a new
     operation kind is applied in both."""

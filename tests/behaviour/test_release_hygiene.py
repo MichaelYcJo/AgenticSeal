@@ -126,15 +126,15 @@ RECORDS_OF_A_MOMENT = (
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
     # The policy states which gits a git-side decision was measured to hold
-    # on, and that is the class the `iadd.py` row for `2.50.1` and the
+    # on, and that is the class the `agentic.py` row for `2.50.1` and the
     # `broad_gate.py` row below name: a property read off an unnamed git is
     # not a measurement.
-    ("skills/implement/scripts/iadd.py", "4.4.17"): (
+    ("skills/implement/scripts/agentic.py", "4.4.17"): (
         "the zip specification's, APPNOTE's section number that `unsafe`'s "
         "docstring cites for a zip's `/`-separated names. It is no version, "
         "and no release of IADD makes the number wrong"
     ),
-    ("skills/implement/scripts/iadd.py", "2.50.1"): (
+    ("skills/implement/scripts/agentic.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
         "codes were measured. An exit code read off an unnamed git is not a "
         "measurement, and no release of IADD makes the number wrong (#111)"
@@ -858,7 +858,7 @@ def test_the_declared_token_is_the_one_the_refusal_printed():
     finally:
         del VERSIONS_OF_ANOTHER_PRODUCT[(rel, "v9.9.9")]
     # And the BARE spelling keeps working, which is what the live entry uses.
-    # Neither arm is pinned by that entry: `iadd.py` writes `4.4.17` with no
+    # Neither arm is pinned by that entry: `agentic.py` writes `4.4.17` with no
     # `v`, so the printed and the bare token are the same string there and
     # dropping either arm leaves the tree green — measured.
     VERSIONS_OF_ANOTHER_PRODUCT[(rel, "9.9.9")] = "bash's, declared bare"
@@ -877,7 +877,7 @@ def test_another_products_version_is_allowed_only_in_the_file_that_declares_it()
     """
     text = "bash 4.4.17 changed how the glob answers"
     assert (
-        timers_in("skills/implement/scripts/iadd.py", text, RUNNING_IN_THE_FIXTURES)
+        timers_in("skills/implement/scripts/agentic.py", text, RUNNING_IN_THE_FIXTURES)
         == []
     )
     assert timers_in("docs/somewhere-else.md", text, RUNNING_IN_THE_FIXTURES) == [
@@ -1252,7 +1252,7 @@ RULES_COMMAND = "python3 skills/settle/scripts/rules.py --check"
 
 @pytest.mark.skipif(os.name == "nt", reason="the step runs under bash on Linux")
 def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
-    """Round 6 of #1167, finding 3: `iadd rules --check` gates inside the
+    """Round 6 of #1167, finding 3: `agentic rules --check` gates inside the
     suite, whose capture keeps its output, so the hygiene step is where a
     line it names as not read reaches the pull request: the step's own shell,
     run over a tree holding one, prints it as a notice annotation at its

@@ -12,15 +12,15 @@ verified the work item, the inspector last, and the work is done, so it is drawn
 from that verdict and never from the broad gate's run, which comes before the
 inspector has read anything and draws nothing (`docs/running/the-broad-gate.md`
 *One act, one owner*). The inspector runs
-`iadd stamp --inspection <path>` once, after it writes `inspection.md` with
+`agentic stamp --inspection <path>` once, after it writes `inspection.md` with
 `Verdict: cleared`, under either root. Where the reader the pull request's check
 reads it through refuses none of its lines and its newest verdict block reads
 `Verdict: cleared`, the command writes the stamp's values under
 `<git-common-dir>/iadd-stamp/` of the clone the path is in, and prints one
-line naming the file and `iadd stamp --from <path>`, which the inspector's
+line naming the file and `agentic stamp --from <path>`, which the inspector's
 hand-back carries to the orchestrator. The queue is keyed by the clone and by
 nothing else, so the stamp script reads no environment variable. The `Stop`
-hook runs `iadd stamp --stop`, which draws each undrawn file of the clone the
+hook runs `agentic stamp --stop`, which draws each undrawn file of the clone the
 payload's `cwd` is in, once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values file
@@ -57,7 +57,7 @@ Two limits follow from the queue's key. Where two sessions work in one clone,
 the one whose turn ends first draws every stamp pending there. A values file an
 earlier release wrote into a per-session directory under
 `<git-common-dir>/iadd-stamp/` is neither drawn nor counted, and
-`iadd stamp --from` draws it by hand.
+`agentic stamp --from` draws it by hand.
 check: stamp-drawn-once
 
 **A `cleared` refused because its audited commit is not on the branch leaves a
@@ -68,7 +68,7 @@ the refused verdict's block, and without a record that earlier block would
 count as the stamp. The record is an empty file,
 `<git-common-dir>/iadd-stamp-refused/<id>-<target>`, beside the values
 directory and never listed with it. One writer leaves it, for a row that stands
-in its own clone and nowhere else: `iadd stamp --inspection`, in either mode,
+in its own clone and nowhere else: `agentic stamp --inspection`, in either mode,
 where the `Branch` row's branch stands and does not hold the audited commit. It
 says one line naming the commit and the branch. In shared mode the pull
 request's check refuses the same row as stale; in local mode no check reads it.
@@ -110,7 +110,7 @@ past what one message can carry stays pending and is drawn at the next turn's
 end, and a single stamp that does not fit with its disc by itself is the only
 one drawn as the text block with no disc. A stamp can come out without its disc
 or a turn later, and a session that ends first leaves it for
-`iadd stamp --from`. `iadd stamp` is not limited, because it is no hook's
+`agentic stamp --from`. `agentic stamp` is not limited, because it is no hook's
 message.
 check: tests/skills/test_stamp.py
 
@@ -131,8 +131,8 @@ quote of it, and nobody has watched a stamp the plugin's `Stop` hook draws on
 a screen yet.
 **Nor is the drawer's silence where it cannot draw.** No stamp is queued, and
 nothing is said, for an `inspection.md` the inspector wrote without running
-`iadd stamp --inspection`, as an inspector of an earlier release does, or one that
-arrived by a commit fetched from elsewhere or `iadd import`; or for a verdict
+`agentic stamp --inspection`, as an inspector of an earlier release does, or one that
+arrived by a commit fetched from elsewhere or `agentic import`; or for a verdict
 whose work item names no branch, or a branch the clone no longer holds. A
 `cleared` over a commit the branch does not hold still counts as the work item's
 stamp, so its repair draws none, where nothing queued it: by a person, or under
@@ -141,7 +141,7 @@ that landed row as stale. `--inspection` judges the file's newest verdict block
 alone, never the earlier blocks, so a `cleared` that drew and whose audited
 commit a later rebase, amend or cherry-pick moved out of the history counts as
 stamped, which it is. In local mode the record is the clone's own: a values
-directory emptied by hand, or an inspection brought by `iadd import` from a clone
+directory emptied by hand, or an inspection brought by `agentic import` from a clone
 that drew and cleared again here, draws again. A wrong row that names, by
 coincidence, the very commit a copy of the item on another branch was cleared
 and drawn over draws a second time once `--inspection` refuses and records it,
@@ -155,9 +155,9 @@ directory is outside the clone the stamp was queued in. Nothing draws either
 where the `python3` the harness finds cannot load `stamp.py`, or
 where the disc's mark sprite, `skills/verify/scripts/stamp-mark.txt`, is
 malformed, and the command still exits 0. A values file the sprite kept
-from drawing stays pending, and `iadd stamp --from` refuses it with a line
+from drawing stays pending, and `agentic stamp --from` refuses it with a line
 naming the sprite's fault until the sprite is repaired. Where a file was written, the line
-`--inspection` printed names `iadd stamp --from <path>`, and a stamp that did
+`--inspection` printed names `agentic stamp --from <path>`, and a stamp that did
 not appear is drawn by hand from it, once. Where none was, the pull request's
 check is what says the work item was cleared.
 No case, hook or workflow can observe a screen.

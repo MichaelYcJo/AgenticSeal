@@ -9,10 +9,10 @@ own `agentory/config.json`:
     "Pact": "git@example.com:org/orders-api.git"
 
 The key has one reader, `lib/config.py#pact_declaration`, which
-`pact_check.py` asks, run as `iadd pact`, and refuses on. That reader's
+`pact_check.py` asks, run as `agentic pact`, and refuses on. That reader's
 cases (S1-S3 of the work item's `frame/design.md`) and those of the `Pact
-signers` key's reader are in `tests/lib/test_config.py`, and `iadd.py`'s re-export of
-its normaliser is in `tests/skills/test_iadd.py`. What stays here reads the configs
+signers` key's reader are in `tests/lib/test_config.py`, and `agentic.py`'s re-export of
+its normaliser is in `tests/skills/test_agentic.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the commands and the
 key the routing step names (S4).
 """
@@ -27,12 +27,12 @@ config = load_lib_module("config.py", "config_for_the_pact")
 
 
 def test_s4_the_configs_this_plugin_writes_are_silent():
-    """S4. This repository's own `agentory/config.json` and the file `iadd mode`
+    """S4. This repository's own `agentory/config.json` and the file `agentic mode`
     writes, with and without the `Pact` key `orchestration.md` writes into
-    it, give no refusal to the reader `iadd pact` reads strictly. Each is
+    it, give no refusal to the reader `agentic pact` reads strictly. Each is
     read from the tree or written by the tree's serializer, not retyped."""
-    iadd = load_module(
-        os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py"),
+    agentic = load_module(
+        os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py"),
         "iadd_for_the_silent_set",
     )
     pairs, refusal = config.config_pairs(os.path.join(ROOT, "agentory"))
@@ -42,7 +42,7 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
         ([("Mode", "shared")], []),
         ([("Mode", "shared"), ("Pact", URL)], ORDERS),
     ):
-        read, refusal = config.parse_config(iadd.serialized(written), "config.json")
+        read, refusal = config.parse_config(agentic.serialized(written), "config.json")
         assert refusal is None, refusal
         assert config.pact_declaration(read) == (pacts, [])
 

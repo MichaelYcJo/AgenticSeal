@@ -3,7 +3,7 @@ name: inspector
 description: |
   The final, independent inspector. Spawn once per work item, before the pull
   request opens: after the review rounds settle, the changelog fragment is
-  written, the orchestrator has run the broad gate, and `iadd pr-body` has
+  written, the orchestrator has run the broad gate, and `agentic pr-body` has
   written the pull request body to a file. It audits every party's account
   against the issue and the tree, and writes the work item's `inspection.md`.
 model: opus
@@ -29,7 +29,7 @@ and the one inspection is the inspector's* owns that rule, and
 
 Under rule 6, your writes are `inspection.md` and the stamp's values file
 step 6 queues, and a write not named here is a write you do not make;
-`trail/gate.md` is the orchestrator's run's, written through `iadd gate
+`trail/gate.md` is the orchestrator's run's, written through `agentic gate
 --record` before you were spawned.
 
 You work in the clone the prompt names, at its HEAD, against the base it
@@ -40,7 +40,7 @@ already open.
 Where the session has no tracker, it names a file holding the issue body too,
 and you read that file.
 The base arrives as a plain branch name, which may be missing
-here or behind its remote, so resolve it once as `iadd gate` does
+here or behind its remote, so resolve it once as `agentic gate` does
 (`broad_gate.py#resolve_base`): take the first of `<name>@{upstream}`,
 `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
 answers, and every `<base>` below is the commit it prints, never the ref,
@@ -71,7 +71,7 @@ return.
      the path where one follows, and return. Nothing broad is run in its
      place (rule 2).
 2. **Check the body's copy of the records, then read, yourself.** Run
-   `iadd pr-body <item> --body <file> --check`, `<item>` being the work
+   `agentic pr-body <item> --body <file> --check`, `<item>` being the work
    item's directory and `<file>` the body file the prompt names. On any exit
    but 0, write `inspection.md` with
    `Verdict: withheld reason: <the first line the command printed>` and
@@ -148,7 +148,7 @@ return.
    `skills/legacy-parity/SKILL.md`, and record it as its *Recording the
    comparison* states.
 6. **Queue the stamp once, where you wrote `Verdict: cleared`.** Run
-   `iadd stamp --inspection <path>` once, `<path>` being the `inspection.md`
+   `agentic stamp --inspection <path>` once, `<path>` being the `inspection.md`
    you wrote. The values file it writes under the clone's common git
    directory is your one write beside `inspection.md` (rule 6), and you draw
    nothing: the plugin's `Stop` hook draws it. Its one line goes into your

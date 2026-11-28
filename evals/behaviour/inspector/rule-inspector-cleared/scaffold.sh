@@ -225,7 +225,7 @@ From `changelog.md`.
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
 
 <details>
-<summary>Copied from the records in agentory/threads/1790000030-inspection-cleared/ by iadd pr-body.</summary>
+<summary>Copied from the records in agentory/threads/1790000030-inspection-cleared/ by agentic pr-body.</summary>
 
 ## How it was built
 

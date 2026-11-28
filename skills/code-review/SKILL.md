@@ -53,9 +53,9 @@ nothing reads a row taken out there.
 Where `agentory/config.json` has a `Pact` key, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape
 `skills/verify/scripts/pact_check.py` states under *What each frame is read
-for*, which is all `iadd pact` reads. A line written as a pact anchor and
+for*, which is all `agentic pact` reads. A line written as a pact anchor and
 outside that shape is a finding, whatever remote its `Pact` cell names:
-`iadd pact` reads it as no anchor and reports the signer as citing nothing.
+`agentic pact` reads it as no anchor and reports the signer as citing nothing.
 Examples are a table under a plural or other wording of the anchor header,
 a row with no header, a row outside the anchor table, and any of these
 naming a remote one letter off a pact that key declares.

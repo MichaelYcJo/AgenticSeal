@@ -1,4 +1,4 @@
-"""`skills/implement/scripts/range_read.py`, `iadd range`, one class per
+"""`skills/implement/scripts/range_read.py`, `agentic range`, one class per
 function.
 
 A case builds a repository of its own under its `tmp_path`, with a marked
@@ -81,7 +81,7 @@ def built(tmp_path, files):
 
 
 def ran(monkeypatch, capsys, repo, item, start, out):
-    """`iadd range ITEM --from START --out OUT` run in REPO: the exit code,
+    """`agentic range ITEM --from START --out OUT` run in REPO: the exit code,
     the summary it printed and what it wrote to stderr."""
     monkeypatch.chdir(repo)
     code = RANGE.main([str(item), "--from", start, "--out", str(out)])
@@ -507,7 +507,7 @@ class Test_main:
         assert code == 0, said
         text = written(out)
         assert text.split("\n", 1)[0] == f"range: {base}..{head}"
-        assert f"iadd range: {base}..{head}" in said
+        assert f"agentic range: {base}..{head}" in said
         assert RANGE.WROTE.format(out=out, lines=text.count("\n")) in said
 
     @pytest.mark.parametrize(
@@ -570,7 +570,7 @@ class Test_main:
         code, said, err = ran(monkeypatch, capsys, repo, repo / ITEM, base, out)
         assert code == 2, said
         assert err == (
-            "iadd range: git 2.29.3 answers here, and the plugin's scripts need "
+            "agentic range: git 2.29.3 answers here, and the plugin's scripts need "
             "git 2.30 or newer\n"
         )
         assert said == ""

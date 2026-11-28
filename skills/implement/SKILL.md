@@ -193,7 +193,7 @@ it. The grammar is `skills/settle/rule-changes.md` *A rule has one shape*.
 reads the tests of the function it covers and any pair a duplicate check in
 the repository names, and adds the case to that group; a case that covers
 nothing its group does not already cover is not added. In a repository
-whose test files declare `TARGET`, `iadd layout --pairs` is that check.
+whose test files declare `TARGET`, `agentic layout --pairs` is that check.
 
 **The build holds to the request.** It adds no speculative feature, no
 drive-by refactor and no TODO stub in a core path.
@@ -241,9 +241,9 @@ saved, so the party that commits runs them. The project's own package
 manager wins; where it names none, Python runs through `uv` and Node.js
 through `pnpm`.
 
-**Commit before you mutate, and restore from `iadd mutate`'s copy.** A
+**Commit before you mutate, and restore from `agentic mutate`'s copy.** A
 revert through `git checkout -- <file>` restores the committed state and
-takes every uncommitted fix in that file with it; `iadd mutate` holds the
+takes every uncommitted fix in that file with it; `agentic mutate` holds the
 bytes it read and compares the hash after the restore.
 
 **Mutation-test every unit that adds behaviour, one command each.** The
@@ -254,13 +254,13 @@ only renamed or moved adds nothing to break, and owes no run
 fail*).
 
 ```
-iadd mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
+agentic mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
 ```
 
 Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, the builder adds `-p no:xdist` for a handful of cases.
-`skills/verify/iadd-mutate.md` carries the verdicts and their exit codes.
+`skills/verify/agentic-mutate.md` carries the verdicts and their exit codes.
 
 **Three failed fixes stop the work.** The same bug through three failed
 fixes is the architecture talking: stop, and the next step is the
@@ -268,7 +268,7 @@ architecture question, not a fourth fix.
 
 **Before the builder closes a phase or a fix pass, its range and the work
 item's records are read whole against HEAD.** After its last commit the
-builder runs `iadd range <item> --from <commit> --out <file>`. `<item>` is
+builder runs `agentic range <item> --from <commit> --out <file>`. `<item>` is
 the work item's directory, `--from` names the commit the range starts
 after, HEAD as the phase began or the commit
 `skills/implement/fix-pass.md` *The narrow set, then the read of the range*
@@ -302,7 +302,7 @@ reach is the proofer's share.
 **The account of that read quotes its commands and describes no read in
 other words.** It names the commit the read ran at, which is HEAD after
 the builder's last build or fix commit. It quotes, as typed, the
-`iadd range` line with the lines the command printed, each command that
+`agentic range` line with the lines the command printed, each command that
 printed a correction's hunk after the commit that made the correction, and
 each `git grep` of the sample. Then it gives each statement the read leaves
 standing, with why, and where the part the sample did not reach stands.
@@ -345,11 +345,11 @@ without a registry — take it from `date +%s` when creating the directory.
 |---|---|---|---|---|
 | `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
 | `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule and spells the line) | before implementing |
-| `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `iadd settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
+| `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `agentic settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
 | `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame names as `docs/running/the-agent-set.md` *What each party writes, and when* says, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
-| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `iadd pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
+| `pr.md` | no template: `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* gives its shape | the orchestrator, where the work runs through the review chain | the pull request body's first part, after `pr.<lang>.md` where `config.json`'s two language keys differ, which `agentic pr-body` writes above the records' copy. What `pr.md` and `pr.<lang>.md` hold is stated in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the work item is cleared* | once the build's last phase has closed, before the first round, with its `pr.<lang>.md` where the keys differ |
 
 Reading `plan.md` and spawning the build is the approval, and no line
 records it: the phase's Status cell is the trace that the build happened.
@@ -436,8 +436,8 @@ reading is what keeps "I verified it" and "I tidied it away" from being the
 same edit.
 
 No check judges whether the second cell of a closed row says what closed
-the item. `iadd unverified` refuses that cell only where it is empty or
-still the template's placeholder, and `iadd settle` prints it as it stands.
+the item. `agentic unverified` refuses that cell only where it is empty or
+still the template's placeholder, and `agentic settle` prints it as it stands.
 Leaving the original answerer in place beside the word is how a closing goes
 out unproven, and only a reader catches it.
 

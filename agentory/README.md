@@ -5,7 +5,7 @@ root laid out by lifetime: the rows that outlive a work item at the top, and
 each work item whole under `agentory/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released designs' `## Rule changes` name, as their latest decision, and
-`iadd settle --apply` removes each released directory whole whose record holds no
+`agentic settle --apply` removes each released directory whole whose record holds no
 open row, whether or not it wrote a `frame/design.md`, and keeps one whose
 version's published note, built from the fragments, does not carry its entry. A settle is not a work item and
 opens no directory here.
@@ -26,14 +26,14 @@ candidate, and no `.gitignore` line is needed. What local mode
 gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 
-**`iadd mode local` and `iadd mode shared` switch between the two.** Each
+**`agentic mode local` and `agentic mode shared` switch between the two.** Each
 moves the root, stages the change and records the mode in `config.json`
 beside this file, and leaves `.github/` alone; whoever ran the command
 commits the change. Whether CI checks pull requests is a second answer:
-`iadd pr-checks install` writes `.github/workflows/hygiene.yml` where this
-root is in the tree, `iadd pr-checks remove` takes it out, and
-`iadd pr-checks` says which is the case. `iadd mode` alone says where the root is and what that key claims,
-and `iadd mode --check`, which the pull-request checks run, exits non-zero
+`agentic pr-checks install` writes `.github/workflows/hygiene.yml` where this
+root is in the tree, `agentic pr-checks remove` takes it out, and
+`agentic pr-checks` says which is the case. `agentic mode` alone says where the root is and what that key claims,
+and `agentic mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the key at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
 the commands land the same from a subdirectory. From local to shared:
@@ -43,9 +43,9 @@ to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/agentory"`,
 `mv "$(git rev-parse --show-toplevel)/agentory" "$(git rev-parse --git-common-dir)/agentory"`
 and a commit of the removal.
 
-**`iadd export` and `iadd import` are the way across between machines**, and
+**`agentic export` and `agentic import` are the way across between machines**, and
 the only one there is: local mode's records reach no other clone by
-themselves. `iadd export` zips this root alone; `iadd import` merges a zip
+themselves. `agentic export` zips this root alone; `agentic import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the

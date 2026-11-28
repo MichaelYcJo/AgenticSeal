@@ -15,7 +15,7 @@ whether a sentence of today's definition was followed:
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
-           `iadd mutate` run, and the phase record naming that case
+           `agentic mutate` run, and the phase record naming that case
   framer   six issues to frame, each handed whole with a line naming its
            comments: the three documents with the mark and a Phases table
            carrying `Verified by`, nothing written outside the work item;
@@ -61,7 +61,7 @@ optin = sibling.load("lib/optin.py")
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 
-# `iadd pr-body`'s module: its `compose` writes the part of an inspector case's
+# `agentic pr-body`'s module: its `compose` writes the part of an inspector case's
 # pull request body that the case's records hold.
 pr_body = sibling.load("skills/code-review/scripts/pr_body.py")
 
@@ -108,7 +108,7 @@ CONFIG = """{
   "Broad gate": "python3 -m unittest discover -s tests -t . -q"
 }
 """
-# An inspector case's config: the two language keys `iadd pr-body` refuses a
+# An inspector case's config: the two language keys `agentic pr-body` refuses a
 # body without (#1453), naming one language, so the body's first part is
 # the case's `pr.md` alone.
 INSPECTOR_CONFIG = """{
@@ -460,7 +460,7 @@ RENAMED = {
 def crafter_rename_case():
     """One one-phase rename of `shout` to `exclaim`, which adds no behaviour:
     the case `tests/test_textutil.py` already holds proves it at the new name,
-    so the phase writes no case new and runs no `iadd mutate`."""
+    so the phase writes no case new and runs no `agentic mutate`."""
     item, branch = RENAME_ITEM, "refactor/exclaim"
     spec = """# Design: shout is renamed exclaim
 
@@ -525,7 +525,7 @@ What it returns does not change.
             "no-mutation",
             "Bash",
             "The rename ran no mutation: it added no unit to break.",
-            input_match=r"iadd\s+mutate|mutation_check\.py",
+            input_match=r"agentic\s+mutate|mutation_check\.py",
             max=0,
         ),
         behaviour.report_regex(
@@ -827,12 +827,12 @@ INSPECTOR_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
 # Each case's `pr.md`, the orchestrator's part of the pull request body,
-# which it commits before the first round and `iadd pr-body` writes above
+# which it commits before the first round and `agentic pr-body` writes above
 # `pr_body.HEADING`: the `Closes` line, after the claim a case adds. The
 # body is this text as `write` leaves it, one line end after its last line,
 # then `pr_body.compose` over the case's records.
 OWN_PART = "{extra}Closes #101.\n"
-# The record `iadd gate --record` writes, in `broad_gate.write_gate_file`'s
+# The record `agentic gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
 # placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
 # `pr_body.compose` reads the block through `lib/fields.py` first.
@@ -889,7 +889,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
     red; the round record confirms it; the changelog describes it. The work
     item's `pr.md` is `OWN_PART`, committed with the round record, and the
     pull request body is that text, then `pr_body.compose` over the records;
-    its placeholders are filled as the records' are, so `iadd pr-body
+    its placeholders are filled as the records' are, so `agentic pr-body
     --check` accepts it. One case makes `pr.md` claim a change the tree
     lacks, and one makes the case pass against the old code too.
 
@@ -1009,7 +1009,7 @@ def inspector_case(slug, true_case, extra, verdict, names, gate):
             "Bash",
             "The inspector runs no broad gate: the run is the orchestrator's, "
             "before the spawn, and `trail/gate.md` is its record.",
-            input_match=r"iadd\s+gate\s+--base",
+            input_match=r"agentic\s+gate\s+--base",
             max=0,
         ),
         *writes_only(

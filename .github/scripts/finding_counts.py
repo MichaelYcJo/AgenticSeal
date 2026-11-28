@@ -15,7 +15,7 @@ every path that block's `location:` names lies under `agentory/threads/`
 (`Finding.located`). A close block's `location:` names where the fix went,
 not where the defect shows, so the count does not read it.
 
-**The rows are the work items `iadd settle` treats as released**: those
+**The rows are the work items `agentic settle` treats as released**: those
 whose directory is present at `--released-at`
 (`skills/settle/scripts/settle.py#released`, default `origin/main` as the
 settle defaults it), that the tree still holds, and whose `routing.md`
@@ -200,7 +200,7 @@ def main(argv=None):
     for name in sorted(released):
         where = os.path.join(root, *specs.split("/"), name)
         if not os.path.isdir(where):
-            # Released and since removed from the tree: `iadd settle` lists
+            # Released and since removed from the tree: `agentic settle` lists
             # it nowhere either, so it is no row and no line.
             continue
         through, why = chained(routing, where)

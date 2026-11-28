@@ -4,7 +4,7 @@ reach.
 #1454 moved the walker out of `lib/config.py`, which reads the settings as
 JSON, and its cases came with it from `tests/lib/test_config.py`. Each
 keeps its body, except that it calls the walker as `tables.<name>` and no
-longer takes the `config` and `iadd` fixtures it did not read. The cases
+longer takes the `config` and `agentic` fixtures it did not read. The cases
 over an earlier release's `| Item | Value |` table stay as the walker's
 two-cell cases, run under `Test_gfm_table` through `_Old_config_table` and
 `_Old_config_shapes`; no shipped reader hands the walker that header.
@@ -909,7 +909,7 @@ class _Old_config_shapes:
     def test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote(self):
         """A3. The walk that read ON past the stopping line treated any line
         beginning with a pipe as a line somebody wrote as a row — so a line
-        inside an example block came back as refused, and `iadd gate` quotes a
+        inside an example block came back as refused, and `agentic gate` quotes a
         refused line back at the person as their own.
 
         Re-pinned by #871: the fence directly under the delimiter row ends the

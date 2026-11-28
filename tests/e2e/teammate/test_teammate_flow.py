@@ -40,7 +40,7 @@ pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run the steps 
 BASE = "main"
 BRANCH = "teammate"
 SWITCH = "to-local"
-IADD = os.path.join(ROOT, "skills", "implement", "scripts", "iadd.py")
+AGENTIC = os.path.join(ROOT, "skills", "implement", "scripts", "agentic.py")
 # The one expression the template's `run:` blocks carry, and what GitHub
 # puts in its place for a pull request into BASE.
 BASE_REF = "${{ github.base_ref }}"
@@ -123,10 +123,10 @@ def without_this_run(environ):
     return {k: v for k, v in environ.items() if not k.startswith(("GIT_", "RUNNER_"))}
 
 
-def iadd(repo, *argv):
-    """`iadd <argv>` from the tree under test, run in REPO; it has to exit 0."""
+def agentic(repo, *argv):
+    """`agentic <argv>` from the tree under test, run in REPO; it has to exit 0."""
     ran = subprocess.run(
-        [sys.executable, IADD, *argv],
+        [sys.executable, AGENTIC, *argv],
         cwd=repo,
         env=without_this_run(os.environ),
         capture_output=True,
@@ -134,12 +134,12 @@ def iadd(repo, *argv):
         errors="replace",
         timeout=120,
     )
-    assert ran.returncode == 0, f"iadd {' '.join(argv)}: {ran.stdout}{ran.stderr}"
+    assert ran.returncode == 0, f"agentic {' '.join(argv)}: {ran.stdout}{ran.stderr}"
 
 
 def base_repository(tmp_path, files, checks=False):
     """A repository whose `main` holds FILES and a README, reachable as
-    `origin/main`; where CHECKS, `iadd pr-checks install` wrote the plugin's
+    `origin/main`; where CHECKS, `agentic pr-checks install` wrote the plugin's
     workflow into the same commit."""
     d = tmp_path / "repo"
     d.mkdir()
@@ -150,7 +150,7 @@ def base_repository(tmp_path, files, checks=False):
     if (d / "agentory").is_dir():
         mark_root(d / "agentory")
     if checks:
-        iadd(d, "pr-checks", "install")
+        agentic(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")
     git(d, "update-ref", f"refs/remotes/origin/{BASE}", BASE)
     return d
@@ -169,11 +169,11 @@ def teammate_repository(tmp_path, files):
 def switching_repository(tmp_path):
     """`base_repository` on the base with an open row and a round record and
     the plugin's workflow, with a branch whose one commit is what
-    `iadd mode local` staged. The local root is moved aside afterwards, as a
+    `agentic mode local` staged. The local root is moved aside afterwards, as a
     checkout in CI holds none."""
     d = base_repository(tmp_path, BASES[OPEN_ROW_AND_ROUND], checks=True)
     git(d, "switch", "-qc", SWITCH)
-    iadd(d, "mode", "local")
+    agentic(d, "mode", "local")
     commit_everything_as_e(d, "the switch to local")
     common = git(d, "rev-parse", "--path-format=absolute", "--git-common-dir")
     os.rename(os.path.join(common.stdout.strip(), "agentory"), tmp_path / "local-root")

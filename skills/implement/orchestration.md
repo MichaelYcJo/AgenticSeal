@@ -8,7 +8,7 @@ declaration, the route chosen under `agentic`, the ladder that says whether
 a work item has a frame, the drain before the broad run, and where a
 decision or a lesson is written. Where no `agentory/` whose `README.md` opens
 with the marker stands at any of the places the opening paragraph of
-`skills/core/SKILL.md` names, which `iadd mode` answers by exiting 1, the
+`skills/core/SKILL.md` names, which `agentic mode` answers by exiting 1, the
 orchestrator reads `skills/implement/bootstrap.md` first.
 
 `skills/implement/SKILL.md` is the other half, and the orchestrator reads
@@ -48,8 +48,8 @@ lifetimes* states (contract rule 11).
    orchestrator writes and commits the work item's `pr.md`, the pull request body's
    first part, with its `pr.<lang>.md` where the two language keys differ,
    before the first round. The proofer's rounds follow, then
-   `iadd gate --preflight` and `iadd gate --record`, both run by the
-   orchestrator, then `iadd pr-body`, which the orchestrator runs to write
+   `agentic gate --preflight` and `agentic gate --record`, both run by the
+   orchestrator, then `agentic pr-body`, which the orchestrator runs to write
    the pull request body from `pr.md` and the records, then the inspector,
    and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
@@ -563,7 +563,7 @@ phase or fix pass, and a finding it defers in a round record before the
 verifying round, where another finding of that round takes a fix pass.
 
 **Every other row moves out once the last round record has no finding
-open, and before the orchestrator runs `iadd gate --preflight`**, whichever
+open, and before the orchestrator runs `agentic gate --preflight`**, whichever
 party `routing.md`'s `Implementation` row names: a row whose destination
 stands inside the work item's directory, and a row that makes no commit,
 such as an issue or a comment on one. The orchestrator opens the pull

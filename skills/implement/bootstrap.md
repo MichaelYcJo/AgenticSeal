@@ -24,13 +24,13 @@ it from `templates/` in this plugin and continues. In particular:
 place, the orchestrator asks once, in the one call step 1 states, before
 creating anything, then does two more things before continuing.**
 Creating the root is what opts the repository in: from the next command on,
-the `iadd` commands and the pull request's check read it. Where the root
+the `agentic` commands and the pull request's check read it. Where the root
 lands, committed with the repository or under the git directory on this
 machine only, is the person's decision and not the orchestrator's. Nobody
 reads a README to discover a question they did not know to ask, so this is
 the only place the mode, and whether the project ports an original
 codebase, are asked at all. Before it asks, the orchestrator runs
-`iadd mode`: with no root at either place, the command exits 1 and prints
+`agentic mode`: with no root at either place, the command exits 1 and prints
 the shared place and the local place, both from `lib/optin.py#home_paths`.
 A shared answer creates the root at the shared place it printed.
 
@@ -51,13 +51,13 @@ carries the `Broad gate` question and the two language questions.
    this order:
 
    - **shared, records only** (the default, listed first) creates
-     `<repo>/agentory/` in the tree, at the shared place `iadd mode` prints; the
+     `<repo>/agentory/` in the tree, at the shared place `agentic mode` prints; the
      routing commit made before the first edit carries it. It writes
      nothing under `.github/`, so nothing it installs can stop a teammate's
      pull request.
    - **shared, with pull-request checks** does the same, and then the
-     orchestrator installs the checks with `iadd pr-checks install`, run
-     after `iadd mode` below. That command writes
+     orchestrator installs the checks with `agentic pr-checks install`, run
+     after `agentic mode` below. That command writes
      `.github/workflows/hygiene.yml` from `templates/setup/hygiene.yml` only when
      that path is absent, pinned to the release of the installed plugin, and
      stages it, so the routing commit carries it too. An existing file is
@@ -77,11 +77,11 @@ carries the `Broad gate` question and the two language questions.
    order, so a repository with a root in the tree and one under the git
    directory is shared.
 
-   **The answer is not a door that shuts.** `iadd mode` reports where the
-   root is, and `iadd mode local` or `iadd mode shared` moves it, writing the
+   **The answer is not a door that shuts.** `agentic mode` reports where the
+   root is, and `agentic mode local` or `agentic mode shared` moves it, writing the
    mode into `agentory/config.json` on the way and leaving `.github/` alone.
-   `iadd pr-checks` reports whether the checks are installed, and
-   `iadd pr-checks install` and `iadd pr-checks remove` put them in and take
+   `agentic pr-checks` reports whether the checks are installed, and
+   `agentic pr-checks install` and `agentic pr-checks remove` put them in and take
    them out. The orchestrator says so in one line when it creates the root,
    because the question is asked once and the person answering it does not
    yet know what they will want.
@@ -115,8 +115,8 @@ carries the `Broad gate` question and the two language questions.
    or `\\`**, because the key's value is a JSON string, and a CI `run:`
    step is where one is likeliest to come from. Offer it that way rather
    than dropping the character or moving to the next candidate. Say why: a
-   bare `"` ends the string, so the file no longer parses and `iadd gate`,
-   `iadd pr-body` and every other command that refuses an unreadable config
+   bare `"` ends the string, so the file no longer parses and `agentic gate`,
+   `agentic pr-body` and every other command that refuses an unreadable config
    refuses it, and a bare `\` before `t` or `n` reads as
    a tab or a new line, so the gate runs a command nobody wrote. A `|`
    stays as written. `templates/setup/config.md` *Broad gate* carries the
@@ -128,7 +128,7 @@ carries the `Broad gate` question and the two language questions.
 
    **Offer a decline, and say what it costs.** *Not yet* is a real answer:
    one written to get past a question is worse than none. The cost is one
-   sentence: the first `iadd gate` run refuses with nothing run, and that
+   sentence: the first `agentic gate` run refuses with nothing run, and that
    refusal lands after the review rounds have settled. `/iadd:config`
    fills the key in at any point before then.
 
@@ -144,17 +144,17 @@ carries the `Broad gate` question and the two language questions.
    otherwise. Each question says in one line what its key governs, taken
    from that key's section of `templates/setup/config.md`.
 
-   **Then record the answer: run `iadd mode`, with no argument.** It writes
+   **Then record the answer: run `agentic mode`, with no argument.** It writes
    the `Mode` key from where the folder is and moves nothing. The key is the
    only trace that anybody was asked: left unwritten, a root somebody chose
    and a root that appeared because a session followed the routing rule are
-   the same bytes. Nothing asks the question again later: `iadd mode --check`
+   the same bytes. Nothing asks the question again later: `agentic mode --check`
    reports a key that is absent or disagrees with the folder, and writes
    nothing. Under **shared, with pull-request checks**, the orchestrator then
-   runs `iadd pr-checks install` and relays the line it prints; an exit 1 is
+   runs `agentic pr-checks install` and relays the line it prints; an exit 1 is
    that line's refusal, and the setup goes on without the checks.
 
-   **Then the two language keys.** `iadd mode` has just written
+   **Then the two language keys.** `agentic mode` has just written
    `config.json` holding `Mode` and nothing else, and the root's
    `README.md` already names `templates/setup/config.md` as the
    documentation of every key. So the orchestrator adds the two keys to
@@ -169,7 +169,7 @@ carries the `Broad gate` question and the two language questions.
    `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *Broad gate* and never
    copied into the config, where a frozen copy would say something false
    at the plugin's next release. No command does this and none is being
-   added: `skills/implement/scripts/iadd.py`'s writer is the `Mode` key's,
+   added: `skills/implement/scripts/agentic.py`'s writer is the `Mode` key's,
    and `skills/config/SKILL.md` *What this does not do* refuses a generic
    setter for a file people edit by hand.
 

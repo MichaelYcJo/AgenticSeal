@@ -50,11 +50,11 @@ claude
 ```
 
 You need `git` 2.30 or newer, and Python 3.12 or newer answering to `python3`
-on your PATH. The `iadd` commands are Python scripts that start `git`, and
+on your PATH. The `agentic` commands are Python scripts that start `git`, and
 `python3` is the command they run with. Run `python3 -V` before you install:
 macOS ships 3.9 as `/usr/bin/python3`, and a version manager answers with
 whatever it was last told. On Windows, where the official installer creates
-no `python3`, `iadd.cmd` runs `py -3`, and the plugin's hooks fall back to it.
+no `python3`, `agentic.cmd` runs `py -3`, and the plugin's hooks fall back to it.
 
 That is the whole install. Nothing is written into your `CLAUDE.md` or your
 settings, and the plugin's hooks come with it (*What runs on your
@@ -99,9 +99,9 @@ The second alone reports that you are at the latest version, against
 whatever that copy last knew. A release reaches you only when the version in
 `plugin.json` changes.
 
-The pull-request checks `iadd pr-checks install` wrote clone the release
+The pull-request checks `agentic pr-checks install` wrote clone the release
 they were written against, and an update leaves that pin where it is. Run
-`iadd pr-checks remove` and then `iadd pr-checks install` to pin them to the
+`agentic pr-checks remove` and then `agentic pr-checks install` to pin them to the
 release you run.
 
 ## Your first work item
@@ -176,7 +176,7 @@ item, the broad gate's commit and the number of review rounds:
 ![The stamp a cleared work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
 
 Where the hook could not draw it, the inspector's hand-back names
-`iadd stamp --from <path>`, which draws it by hand.
+`agentic stamp --from <path>`, which draws it by hand.
 `docs/checks/the-stamp.md` says when the stamp is drawn and when it is not.
 
 ### Shared or local
@@ -206,10 +206,10 @@ package, the plugin leaves it alone, and only local is offered.
 commit it.
 
 ```bash
-iadd mode            # where the root is, and whether agentory/config.json agrees
-iadd mode local      # move the root out of the tree
-iadd mode shared     # move the root into the tree
-iadd mode --check    # write nothing; exit non-zero when the two disagree
+agentic mode            # where the root is, and whether agentory/config.json agrees
+agentic mode local      # move the root out of the tree
+agentic mode shared     # move the root into the tree
+agentic mode --check    # write nothing; exit non-zero when the two disagree
 ```
 
 Going to shared puts the records into the history for good. The way back
@@ -221,9 +221,9 @@ say what cannot be undone*. The two moves by hand are in your root's own
 The pull-request checks are a command of their own:
 
 ```bash
-iadd pr-checks           # whether .github/workflows/hygiene.yml is this plugin's
-iadd pr-checks install   # write it, pinned to the release you run, and stage it
-iadd pr-checks remove    # take out the file this plugin wrote
+agentic pr-checks           # whether .github/workflows/hygiene.yml is this plugin's
+agentic pr-checks install   # write it, pinned to the release you run, and stage it
+agentic pr-checks remove    # take out the file this plugin wrote
 ```
 
 A workflow left behind after a move to local stays in the tree, and
@@ -233,14 +233,14 @@ there and how to move one that fails.
 Local records reach another machine only as a copy you carry:
 
 ```bash
-iadd export              # write the root to agentory-<repo>-<date>.zip beside the clone
-iadd import <the zip>    # take a copy in, overwriting nothing
+agentic export              # write the root to agentory-<repo>-<date>.zip beside the clone
+agentic import <the zip>    # take a copy in, overwriting nothing
 ```
 
 Where a file already stands with other bytes, the incoming copy lands beside
 it, as `follow-up.incoming.md` beside `follow-up.md`, and the import lists
 it. An import refuses, and writes nothing, where it cannot tell that the zip
-came from this repository, and `iadd import --help` names the flag for each
+came from this repository, and `agentic import --help` names the flag for each
 case. `docs/layout/one-root-by-lifetime.md` *Shared or local* says why a
 copy is not a sync.
 
@@ -249,7 +249,7 @@ copy is not a sync.
 Every agent, and every session in a repository with an `agentory/` root, opens
 with the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
-context, as an `iadd` command or a pull request's check.
+context, as an `agentic` command or a pull request's check.
 [A study of context files](https://arxiv.org/abs/2602.11988) found that they
 generally do not improve task success, and that they add over 20% to the
 cost of inference.
@@ -285,7 +285,7 @@ and typecheck, at the pull request's head commit or at one that only the work
 item's records follow. No agent runs it,
 because a full run taken mid-review is spent by the next fix
 (`docs/running/the-broad-gate.md`). The inspector reads the gate's record and
-every other party's, checks that the pull request body `iadd pr-body` wrote
+every other party's, checks that the pull request body `agentic pr-body` wrote
 is `pr.md` and the records' own text, and writes `cleared`, `withheld` with
 what the tree contradicts, or `undecided` with a question for you. The pull
 request opens once the work item is cleared, and its body carries the inspection
@@ -294,7 +294,7 @@ language keys name different languages, the body opens with `pr.<lang>.md`,
 written in the pull request language. Where the pull-request checks are
 installed, they fail a ready pull request that lacks a cleared inspection at
 its head commit, whose last fixes no round read, or whose body is not what
-`iadd pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
+`agentic pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
 not licence to skip a party*). **The chain ends at a pull request, never at
 a merge.**
 
@@ -311,7 +311,7 @@ relates to the policy documents your repository keeps under `docs/` is
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*.
 
 A rule a policy document states ends with a `check:` line naming the test
-that holds it, and `iadd rules --check` exits non-zero on a target that does
+that holds it, and `agentic rules --check` exits non-zero on a target that does
 not exist.
 
 ### Migrations
@@ -332,7 +332,7 @@ method.
 
 ## What runs on your machine
 
-What runs on your machine is an `iadd` command you or the session starts,
+What runs on your machine is an `agentic` command you or the session starts,
 and the plugin's hooks, which Claude Code runs at its own events.
 
 **The plugin ships four hooks, registered in `hooks/hooks.json`, and none
@@ -391,7 +391,7 @@ No hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints, the reason the `PreToolUse` hook refuses a call
 with, and the places the `PostToolUse` hook names, go into the session's
 own context, as a file the session opens does. These side effects are
-worth stating outright: the inspector's `iadd stamp --inspection`, run once on
+worth stating outright: the inspector's `agentic stamp --inspection`, run once on
 an `inspection.md` reading `cleared`, writes the stamp's values under
 `<git-common-dir>/iadd-stamp/`, which the stamp's hook renames once
 drawn and nothing prunes, and a `cleared` refused because its audited commit
@@ -406,11 +406,11 @@ it, or, in the last row, in your CI on a pull request.
 | What | Reaches | Sends | When |
 |---|---|---|---|
 | `/iadd:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
-| `iadd cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
-| `chain_check.py` run without `--inspecting`, as the orchestrator's and the proofer's `--worktree` reads run it ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, to learn whether the branch's pull request is a draft. `iadd gate` runs the check with `--inspecting`, which reads no pull request's state and asks `gh` nothing | each such run outside GitHub Actions, where `gh` is on the PATH |
-| `iadd settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
+| `agentic cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. With `--work-item`, it also names the work item's directory and branch, and the directory of each other work item a segment's spawn prompt also names, read from the records directory and from every local branch, pushed or not. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | with `--work-item`, when a work item's run ends, where the orchestrator runs it, and again at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
+| `chain_check.py` run without `--inspecting`, as the orchestrator's and the proofer's `--worktree` reads run it ([`skills/code-review/scripts/chain_check.py`](skills/code-review/scripts/chain_check.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, to learn whether the branch's pull request is a draft. `agentic gate` runs the check with `--inspecting`, which reads no pull request's state and asks `gh` nothing | each such run outside GitHub Actions, where `gh` is on the PATH |
+| `agentic settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
 | the IADD process's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md), [`skills/code-review/gate-to-pull-request.md`](skills/code-review/gate-to-pull-request.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a GitHub Actions workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
-| the pull-request checks `iadd pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
+| the pull-request checks `agentic pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
 The plugin's hooks are the only things on your machine that run without you or
 the session starting them. Each row above that goes through your own `gh`
@@ -420,22 +420,22 @@ there, because that is what they are for.
 
 ## Commands
 
-These you run. The `iadd` commands are on the
+These you run. The `agentic` commands are on the
 PATH of Claude Code's Bash tool while the plugin is enabled, so you type one
 after `!` in a session, or ask the session to run it.
 
 | Command | Does |
 |---|---|
-| `iadd deferrals . [--kind all]` | names each CI file and hook line a runner word matches for the check an `unverified` row defers, and exits 0 whatever it matched; whether anything runs the check is read in the CI files themselves (`skills/verify/SKILL.md` *The answerer has to exist*) |
-| `iadd unverified .` | lists the rows the `unverified` labels left open, in which work item, and who was named to answer each (`docs/checks/the-unverified-record.md`) |
-| `iadd cost --latest` | says where a session's minutes went, from its transcript (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
-| `iadd cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |
-| `iadd cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
-| `iadd settle [--apply]` | shows the `## Rule changes` the released work items' `frame/design.md` files state, by section, and with `--apply` removes the settled directories (`skills/settle/SKILL.md` *The settling session's procedure*) |
-| `iadd fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `agentory/config.json` (`templates/setup/config.md` *The fold's values*) |
-| `iadd rules <doc>` · `iadd rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
-| `iadd pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
-| `iadd payload [--json] [--agent <name>] [--root <dir>]` | measures what a session's and each agent's startup context is made of, in bytes, with the tokens estimated from the bytes (`skills/verify/scripts/payload_meter.py`) |
+| `agentic deferrals . [--kind all]` | names each CI file and hook line a runner word matches for the check an `unverified` row defers, and exits 0 whatever it matched; whether anything runs the check is read in the CI files themselves (`skills/verify/SKILL.md` *The answerer has to exist*) |
+| `agentic unverified .` | lists the rows the `unverified` labels left open, in which work item, and who was named to answer each (`docs/checks/the-unverified-record.md`) |
+| `agentic cost --latest` | says where a session's minutes went, from its transcript (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
+| `agentic cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |
+| `agentic cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the run, and feed the flow log*) |
+| `agentic settle [--apply]` | shows the `## Rule changes` the released work items' `frame/design.md` files state, by section, and with `--apply` removes the settled directories (`skills/settle/SKILL.md` *The settling session's procedure*) |
+| `agentic fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `agentory/config.json` (`templates/setup/config.md` *The fold's values*) |
+| `agentic rules <doc>` · `agentic rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
+| `agentic pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
+| `agentic payload [--json] [--agent <name>] [--root <dir>]` | measures what a session's and each agent's startup context is made of, in bytes, with the tokens estimated from the bytes (`skills/verify/scripts/payload_meter.py`) |
 | `/iadd:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/iadd:config` | shows every key of `agentory/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
 | `/iadd:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
@@ -448,7 +448,7 @@ after `!` in a session, or ask the session to run it.
   and a commit you make yourself in a terminal runs none of this plugin's
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
-- **`iadd rules --check` proves that a named test exists, not that it asserts
+- **`agentic rules --check` proves that a named test exists, not that it asserts
   the rule.** It reads no rule without a `check:` line. In a policy document
   such a rule is held by review alone. The agent definitions and the contract
   carry no line at all, so the command reads none of their rules: a rule there

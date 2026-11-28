@@ -3,7 +3,7 @@
 Work item 1790562543. An inspector's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The stamp is
 drawn from the inspector's `cleared` inspection: the inspector's
-`iadd stamp --inspection` queues its values under the git common dir (#1376),
+`agentic stamp --inspection` queues its values under the git common dir (#1376),
 and the plugin's `Stop` hook draws each undrawn file once, after the
 orchestrator's turn's text (#1430).
 
@@ -66,14 +66,14 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
     for fact in (
         # The command the inspector queues the stamp with, whose line the
         # orchestrator meets in the inspector's hand-back.
-        "`iadd stamp --inspection`",
+        "`agentic stamp --inspection`",
         # The lines the broad run's stdout opens with, which the orchestrator
         # relays.
         "`BROAD GATE PASSED`",
         "`BROAD GATE FAILED`",
         # Round 1's yellow 1 of #400: the command a line names for the person
         # to type, which the orchestrator quotes and never runs.
-        "`iadd stamp --from`",
+        "`agentic stamp --from`",
     ):
         assert fact in section, fact
 
@@ -81,13 +81,13 @@ def test_the_orchestrator_is_given_the_stamps_commands_and_the_runs_lines():
 def test_the_verify_skill_names_what_queues_the_stamp_and_what_draws_it():
     """S16, `verify`'s half, and #975 S13. The stamp is the inspector's, drawn
     once per work item from its `cleared` inspection, and the gate draws
-    nothing. #1376: queued by the inspector's `iadd stamp --inspection` under
+    nothing. #1376: queued by the inspector's `agentic stamp --inspection` under
     either root; #1430: drawn by the plugin's `Stop` hook. The skill names
     the command and the hook; its sentences are the proofer's to read."""
     text = flat("skills", "verify", "SKILL.md")
     for fact in (
         # The command the inspector queues the stamp's values with.
-        "`iadd stamp --inspection`",
+        "`agentic stamp --inspection`",
         # The harness event whose hook draws the stamp, which a reader
         # resolves in `hooks/hooks.json`.
         "`Stop`",
@@ -100,7 +100,7 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     *The stamp* carries the drawing rule, names the command that queues the
     stamp, and ends in a `check:` line naming the marker the cases that
     queue and draw it carry; a second statement, on what the screen shows,
-    names `iadd stamp --from <path>` for where a file was written. The
+    names `agentic stamp --from <path>` for where a file was written. The
     rule's trigger, its limits, its exit and the places nothing draws are
     the proofer's to read (1792363231 S7 and S8, #1027 and #1376); the
     command's closing ` || exit 0` is pinned. #1492: the measurement of
@@ -110,8 +110,8 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     rule, unchecked = text.split(screen, 1)
     # The command that queues the stamp, and the one that draws it, which a
     # person resolves to see what wrote the values file and what read it.
-    assert "`iadd stamp --inspection <path>`" in rule
-    assert "`iadd stamp --stop`" in rule
+    assert "`agentic stamp --inspection <path>`" in rule
+    assert "`agentic stamp --stop`" in rule
     # The marker `skills/settle/scripts/rules.py#markers` reads on the rule's
     # check line, whose carriers the loop below reads back from that reader.
     assert "check: stamp-drawn-once" in rule
@@ -132,9 +132,9 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
         "Test_main.test_the_plugins_stop_command_draws_once_and_exits_0",
     ):
         assert case in held, case
-    # The command `iadd stamp --from <path>`, which the person types to draw
+    # The command `agentic stamp --from <path>`, which the person types to draw
     # a stamp the hook could not.
-    assert "names `iadd stamp --from <path>`" in unchecked
+    assert "names `agentic stamp --from <path>`" in unchecked
     # Round 2 of #1430, finding 1: the closing ` || exit 0` of the `Stop`
     # command, which a person reads to tell why the hook never keeps a turn
     # going.
@@ -150,7 +150,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the inspector's new
     audit draws the work item's one stamp. #1027 and #1376: it names the
-    record's path, the one writer, `iadd stamp --inspection`, the matcher's
+    record's path, the one writer, `agentic stamp --inspection`, the matcher's
     floor, and `cleared_before`, which skips a recorded refusal as the chain
     does; and its `check:` line names the marker the cases that hold each
     carry. Its sentences are the proofer's to read."""
@@ -164,7 +164,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         # The path of the refusal record, which a person opens or clears.
         "`<git-common-dir>/iadd-stamp-refused/<id>-<target>`",
         # The command that writes it, which the inspector runs.
-        "`iadd stamp --inspection`",
+        "`agentic stamp --inspection`",
         # The matcher's floor, the number of characters a row's commit is
         # written in at least.
         "seven",
@@ -213,7 +213,7 @@ README_FACTS = (
     '`python3 "<script>" || py -3 "<script>" || exit 0`',
     # The command that writes the stamp's values, and the two directories
     # the queue and a refusal leave under the git common dir.
-    "`iadd stamp --inspection`",
+    "`agentic stamp --inspection`",
     "`<git-common-dir>/iadd-stamp/`",
     "`<git-common-dir>/iadd-stamp-refused/`",
 )
@@ -252,20 +252,20 @@ def test_the_inspector_queues_the_stamp_once_and_draws_none():
     there is no line of the gate's for it to pass on. Since #975 the stamp is
     drawn in the orchestrator's session from the inspector's own `cleared`
     verdict, once per work item, and never from the orchestrator's run. Since
-    #1376 the inspector queues it itself, with `iadd stamp --inspection`, names
+    #1376 the inspector queues it itself, with `agentic stamp --inspection`, names
     that write as its own, and carries the line it prints into its report.
     Since #1430 the plugin's `Stop` hook draws it. The definition names the
     command the inspector runs and not the one that draws by hand; how it says
     the rest is the proofer's to read."""
     text = flat("agents", "inspector.md")
     # The command the inspector runs once on the `inspection.md` it wrote.
-    assert "`iadd stamp --inspection <path>`" in text
+    assert "`agentic stamp --inspection <path>`" in text
     # The command that draws a stamp by hand, which the inspector would run were
     # it written here: the inspector draws no stamp (`agents/inspector.md` *Never*,
     # its bullet on a stamp, and `docs/checks/the-stamp.md` *The stamp*, its
     # bold lead **The stamp is drawn once per work item, from the inspector's
     # `cleared`**).
-    assert "iadd stamp --from" not in text, (
+    assert "agentic stamp --from" not in text, (
         "the inspector is told a command that draws a stamp, which it never does"
     )
 
@@ -274,7 +274,7 @@ def test_the_inspector_queues_the_stamp_once_and_draws_none():
 
 
 def test_the_stamp_draws_its_sample_and_neither_command_offers_a_scale():
-    """S13 (#853). The disc has one size since #832, so `iadd stamp --shape`
+    """S13 (#853). The disc has one size since #832, so `agentic stamp --shape`
     draws the sample with no scale to choose, and neither command's help
     names a scale. What the comment where the scale stood says is the
     proofer's to read."""

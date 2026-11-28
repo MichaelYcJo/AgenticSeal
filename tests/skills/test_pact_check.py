@@ -53,7 +53,7 @@ from test_settle import past_the_bound, unanswered
 TARGET = "skills/verify/scripts/pact_check.py"
 
 SCRIPT = os.path.join(ROOT, *TARGET.split("/"))
-WRAPPER = os.path.join(ROOT, "bin", "iadd")
+WRAPPER = os.path.join(ROOT, "bin", "agentic")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so
 # the world's `check` runs and this file patches one module. The world, its
@@ -70,14 +70,14 @@ MAP = ".claude/iadd/pact-paths.json"
 MAP_REFUSED = "REFUSED ~/.claude/iadd/pact-paths.json — the map "
 # Two remotes the map's cases name.
 MAP_A, MAP_B = "https://example.com/org/a", "https://example.com/org/b"
-# The sentence `iadd pact` refuses a pact no `Pact signers` key signs in,
+# The sentence `agentic pact` refuses a pact no `Pact signers` key signs in,
 # pinned whole (contract rule 14).
 NO_SIGNER = (
     "no `Pact signers` key names a signer, and a pact nobody signs is not a "
     "pact — write the origin remote URL of every other signer into that key, "
     "separated by `;`"
 )
-# The sentences `iadd pact` refuses an anchor row in, pinned whole
+# The sentences `agentic pact` refuses an anchor row in, pinned whole
 # (contract rule 14).
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
@@ -94,14 +94,14 @@ NOT_A_HASH = (
 )
 UNDECLARED = (
     "the `Pact` cell names `{cell}`, a pact this signer's `agentory/config.json` "
-    "does not declare in its `Pact` key, so no `iadd pact` grades the row — "
+    "does not declare in its `Pact` key, so no `agentic pact` grades the row — "
     "write the origin URL of a pact that key declares, or add `{cell}` to "
     "that key"
 )
 
 
 def posix(path):
-    """A path as `iadd pact` prints one outside HOME: every separator `/`."""
+    """A path as `agentic pact` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
 
 
@@ -166,7 +166,7 @@ class Test_module:
         """The command run as a person types it, from a directory that is
         not the pact's repository."""
         if os.name == "nt":
-            pytest.skip("the POSIX wrapper; bin/iadd.cmd is its Windows twin")
+            pytest.skip("the POSIX wrapper; bin/agentic.cmd is its Windows twin")
         world.cite(clause(V2))
         done = subprocess.run(
             ["sh", WRAPPER, "pact", str(world.api)],
@@ -668,7 +668,7 @@ class Test_check:
             f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming this pact"
         ) in out, out
         assert out.endswith(
-            f"iadd pact: the pact at {PACT_URL} — 1 of 1 signer read · 2 ok · 0 "
+            f"agentic pact: the pact at {PACT_URL} — 1 of 1 signer read · 2 ok · 0 "
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "REFUSED" not in out, out
@@ -798,7 +798,9 @@ class Test_check:
         code, out = world.run()
         assert code == 1, out
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
-        assert f"iadd pact: the pact at {PACT_URL} — 1 of 2 signers read · " in out, out
+        assert (
+            f"agentic pact: the pact at {PACT_URL} — 1 of 2 signers read · " in out
+        ), out
 
     def test_refuses_a_pact_listing_its_own_repository(self, world):
         """Not `NOT FOUND`, which would send a person looking for a checkout
@@ -921,7 +923,7 @@ class Test_check:
     def test_refuses_a_row_it_cannot_grade_at_its_line(self, world, row, said):
         """S8: each shape is refused at the row's line, at exit 2. A
         remote the signer's `Pact` key does not declare is graded by no
-        `iadd pact`, since another pact's reports the signer `ONE-SIDED`
+        `agentic pact`, since another pact's reports the signer `ONE-SIDED`
         (#1132, S1)."""
         write(world.web, SPEC, anchor_table(row))
         code, out = world.run()
@@ -1239,7 +1241,7 @@ class Test_main:
         world.cite(clause(V2))
         asked = unanswered(monkeypatch, *words)
         assert pc.main([str(world.api)]) == 2
-        assert capsys.readouterr().out == f"iadd pact: {past_the_bound(asked[0])}\n"
+        assert capsys.readouterr().out == f"agentic pact: {past_the_bound(asked[0])}\n"
         assert printed.getvalue() == ""
 
 

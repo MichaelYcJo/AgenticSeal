@@ -65,7 +65,7 @@ def test_the_plan_template_carries_a_status_column():
 
 def test_the_plan_template_carries_the_judgments_table():
     """#1167, *Scope* item 11. The orchestrator writes its judgments of the
-    run to the plan, and `iadd settle` reads them by this heading and this
+    run to the plan, and `agentic settle` reads them by this heading and this
     header (`skills/settle/scripts/settle.py#JUDGMENTS_HEADER`), so the
     shipped template carries both, with an empty row the settle reads as no
     judgment."""

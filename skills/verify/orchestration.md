@@ -29,13 +29,13 @@ has to guess, and one who reaches for the record does not.
 
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
-`iadd gate --base <base> --record <item>` is the command the orchestrator
+`agentic gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and
 `skills/code-review/gate-to-pull-request.md` *Orchestrator: from the
 preflight to the open pull request* owns when, before the inspector is
 spawned. The run judges no failure and fixes none; the
 inspector reads its record, and what it inspects after it
-is `docs/forms/the-inspection.md` *The inspection*. `iadd gate --preflight`,
+is `docs/forms/the-inspection.md` *The inspection*. `agentic gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 
@@ -123,7 +123,7 @@ and the gate is paid for again.
 ## Measure the run, and feed the flow log
 
 When a work item's run ends, the orchestrator measures it once with
-`skills/verify/scripts/session_cost.py`, typed as `iadd cost`, and posts the
+`skills/verify/scripts/session_cost.py`, typed as `agentic cost`, and posts the
 numbers, and what they say, as one comment on one of this repository's two
 measurement logs. Which of the two is not a filing detail: one of them is
 deleted at every release, so a reading put in the wrong one is a reading
@@ -149,7 +149,7 @@ inspector's where one runs. The orchestrator first reads the run, and the read
 posts nothing:
 
 ```
-iadd cost --work-item <the work item's directory>
+agentic cost --work-item <the work item's directory>
 ```
 
 It prints the rows the post will carry, any `Contract rule 6` line below
@@ -157,7 +157,7 @@ them, and the log's state. The orchestrator writes the `--says` file from
 that reading, then posts it with the same command:
 
 ```
-iadd cost --work-item <the work item's directory> --post --says <file>
+agentic cost --work-item <the work item's directory> --post --says <file>
 ```
 
 The read comes first because the posting form sends the reading into the
