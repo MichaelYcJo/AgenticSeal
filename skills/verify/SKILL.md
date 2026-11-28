@@ -75,15 +75,16 @@ phase's close, written as `git grep` prints it with no line number,
 `path:content`, and sorted under `LC_ALL=C sort`. Those lines are the
 lines the design keeps and the lines a later phase changes or removes.
 Where an earlier phase runs the same search, a phase's own lines are the
-lines its keep file lacks and the earlier phase's keep file holds. Where the old spelling stands in a
-path, `frame/keep-<N>-paths.txt` holds, the same way, each path the path
-search is to print. A keep file names each line it keeps, so a second
-line in a file that holds a kept line is printed. A file named in the
-cell, a pathspec that excludes the file, or a pattern narrowed past the
-kept line would hide that second line. `frame/design.md` gives the reason
-for each kind of kept line, as a table of kinds where many lines share
-one, and names the lines a later phase changes or removes by that phase's
-*Scope* items. It does not copy the lines.
+lines its keep file lacks and the earlier phase's keep file holds. Where
+the old spelling stands in a path, `frame/keep-<N>-paths.txt` holds, the
+same way, each path the path search is to print. A keep file names each
+line it keeps, so a second line in a file that holds a kept line is
+printed. A file named in the cell, a pathspec that excludes the file, or a
+pattern narrowed past the kept line would hide that second line.
+`frame/design.md` gives the reason for each kind of kept line, as a table
+of kinds where many lines share one, and names the lines a later phase
+changes or removes by that phase's *Scope* items. It does not copy the
+lines.
 
 The commands below run from the repository's top level, because `git grep` run
 from a subdirectory searches that subdirectory alone and prints paths
