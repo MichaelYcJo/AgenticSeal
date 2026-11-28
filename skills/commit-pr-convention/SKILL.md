@@ -128,7 +128,7 @@ meets it after the merge, a user or a party working on a later change.**
 
 | Kind | What whoever meets the change meets | Examples |
 |---|---|---|
-| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around |
+| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around; a rename of what a user types, installs or keeps in a repository, such as the command, the plugin or the records root |
 | `fix:` | behaviour that was wrong against a rule the tree stated before the change, now matching it | a check that let through what its rule refused; a skill sentence that contradicted the policy it cites |
 | `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
 | `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
