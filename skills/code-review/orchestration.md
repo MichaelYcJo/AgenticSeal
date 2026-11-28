@@ -309,15 +309,71 @@ changes conflict with this one has landed on the base. Where a work item's
 work item, the orchestrator merges the base into this branch once that item
 has landed, before this branch's next round, or before its broad run where
 its rounds have ended. So a round already owed reads the resolution, and
-the broad run and the inspector read the merged tree once. Where the merge
-resolved a conflict in a file outside the work item's records, the
-orchestrator spawns a verifying round on that resolution, because the chain
-check lists the branch's commits with `--no-merges` and reads no merge commit
-(`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
-past `trail/gate.md` and `inspection.md`, so after the merge, and after that
-verifying round's record is committed where one is owed, the orchestrator
-runs the broad gate again, commits its record, runs `agentic pr-body` on the
-body file again and spawns the inspector again.
+the broad run and the inspector read the merged tree once: a merge before
+the newest broad run owes no broad run beyond the one ahead.
+
+**What a merge owes a round is read from the merge commit, by what its
+resolution changed.** Once the merge is committed, the orchestrator runs
+`git show --remerge-diff --ignore-submodules=none --format= --name-only <merge>`.
+It prints each path where the committed result differs from git's own
+merge of the two parents: a path resolved by hand, and no path for a clean
+merge or for a file git merged on its own. The flag keeps a moved
+submodule pointer in the listing. Where the command does not run, the
+orchestrator treats the merge as one whose resolution changed a path
+outside the work item's records. Where the command names a path outside
+`agentory/threads/<work-item-id>/`, the orchestrator spawns a verifying
+round on the resolution before the broad run or its stand-in below,
+because the chain check lists the branch's commits with `--no-merges` and
+leaves the base's own commits out, so it reads no merge commit
+(`skills/code-review/scripts/chain_check.py#follows`). That round's scope
+is `agents/proofer.md` *A round after a merge of the base reviews the
+branch's own commits and the merge's resolution, and holds the work item
+against the merged tree*. Where the command names paths in the records
+alone, no round is owed, and the inspector reads them. Where it names
+nothing, no round is owed.
+
+**A merge after the newest broad run owes the broad run again, unless the
+pull request's checks stand in for it.** They stand in where three
+conditions hold. The pull request is open. Its `pull_request` run runs
+each check the `Broad gate` command runs, which the orchestrator judges in
+the workflow files at HEAD as `skills/verify/SKILL.md` *The answerer has to
+exist* judges an answerer. And `agentic pr-wait <N>` exits 0 at HEAD, where
+HEAD is the merge commit or a commit after it that changes only the work
+item's records. The stand-in applies whatever the command above names. A
+commit of the branch's own after the newest broad run that changes a path
+outside the records owes the broad run all the same, as the broad gate arm
+reads it. Under `stop before the pull request`, before the pull request
+opens, or where the run reads less than the `Broad gate` command, the
+orchestrator runs the broad gate again and commits its record.
+
+**The stand-in counts only while the base's tip is in HEAD, read when the
+orchestrator hands the pull request over.** GitHub runs a pull request's
+checks on the head merged into the base as the base stood at that push,
+and does not run them again when the base moves. So before the
+orchestrator treats the pull request as checked and ends its run, it
+fetches the base and runs `git -C <root> merge-base --is-ancestor <base> HEAD`,
+with `<base>` resolved as `agentic gate` resolves it
+(`skills/verify/scripts/broad_gate.py#resolve_base`). Exit 0 means every
+run at HEAD tested the tree that merging HEAD into the base as it stands
+gives. Exit 1 means the base has moved past the run, and the stand-in has
+lapsed: the orchestrator merges the base again, that merge owes what this
+section gives a merge after the newest broad run, and its push starts the
+run that stands in, read again the same way. Any other exit code means the
+base was not read, and the stand-in does not count. The moment the owner
+presses merge comes after this read, and no read the orchestrator takes
+holds it.
+
+**A merge after the inspector's verdict owes `agentic pr-body` on the body
+file and the inspector again**, because the merge moves HEAD past
+`trail/gate.md` and `inspection.md`. The orchestrator runs `agentic pr-body`
+and spawns the inspector after the verifying round's record is committed
+where one is owed, and after the broad run's record is committed or, where
+the stand-in is taken, after `agentic pr-wait <N>` exits 0. Before that
+spawn, the orchestrator writes one row of `frame/plan.md` *Judgments of the
+run* for each merge after the newest broad run. The row names the merge
+commit, the paths the command above printed, what the merge owed, and,
+where the stand-in was taken, the workflow and job whose run stood in,
+with the grounds of that judgment. The inspector reads the row.
 
 **A commit after the newest broad run that changes only files under
 `agentory/threads/<work-item-id>/` owes no broad run.** Where such a commit
@@ -333,7 +389,8 @@ is not licence to skip a party* gives it.
 `agents/inspector.md` step 1 and the pull request check's broad gate arm read
 the same rule over the branch's own commits
 (`skills/code-review/scripts/chain_check.py#follows`), so neither reads a
-merge, which the paragraph above holds to its own rule. What a `Broad gate`
+merge, which the paragraphs above on merging the base hold to their own
+rule. What a `Broad gate`
 command that reads the records misses then is `templates/setup/config.md`
 *Broad gate*'s.
 

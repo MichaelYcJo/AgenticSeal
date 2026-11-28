@@ -604,7 +604,11 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     exits 4 to 6, and the flag the orchestrator reads the branch's commits
     with; each row's act is the proofer's to read. Since #1579 the merge
     stands in the owner section and the wait in the steps from the
-    preflight to the open pull request, so the case reads both."""
+    preflight to the open pull request, so the case reads both. #1583 and
+    #1631 have the orchestrator read what a merge's resolution changed
+    from the merge commit, by a command any later reader re-runs on it,
+    and the case holds that command; what each reading owes is the
+    proofer's to read."""
     text = flat(*ORCH)
     owner = text[
         text.index(
@@ -645,6 +649,10 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         # The flag the orchestrator reads the branch's commits with, so a
         # merge commit is left out.
         "`--no-merges`",
+        # The command the orchestrator reads a merge's resolution with: each
+        # path where the merge commit differs from git's own merge of its
+        # parents.
+        "`git show --remerge-diff --ignore-submodules=none --format= --name-only <merge>`",
     ):
         assert said in section, f"the owner section no longer says {said!r}"
 

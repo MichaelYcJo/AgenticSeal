@@ -1705,12 +1705,12 @@ def reviewed_to_head(root):
     inspect(root)
 
 
-def on_main(root, rel, text):
-    """Commit TEXT at REL on `main` and merge `main` into `feature/x`."""
+def on_main(root, rel, text, branch="feature/x"):
+    """Commit TEXT at REL on `main` and merge `main` into BRANCH."""
     git(root, "switch", "-q", "main")
     write(root, rel, text)
     commit(root, f"{rel} on the base")
-    git(root, "switch", "-q", "feature/x")
+    git(root, "switch", "-q", branch)
     git(root, "merge", "-q", "--no-edit", "main")
 
 
@@ -3337,6 +3337,30 @@ class Test_broad_gate:
         ]
         write(root, "f.txt", "three\n")
         code = commit(root, "a code change after the gate")
+        assert chain.broad_gate(str(root), ITEM, "main") == [
+            (
+                f"{ITEM}/trail/gate.md",
+                0,
+                chain.follows_reason(("after", code, "f.txt"), "the newest gate run"),
+            )
+        ]
+
+    def test_reads_the_branchs_own_commits_across_a_merge_of_the_base(self, item):
+        """#1583 and #1631: the broad gate arm and the inspection arm read
+        the branch's own commits, so a merge of the base after the closing
+        records, which brings a commit of the base outside the records,
+        lapses neither; what the merge owes is
+        `skills/code-review/orchestration.md` *Orchestrator: the pull request
+        opens once the work item is cleared*'s. A later commit of the
+        branch's own outside the records is refused, naming it. Seen red
+        with `^<base>` taken out of `follows`'s `rev-list`, where the broad
+        gate arm names the base's commit."""
+        root, _sha = item
+        on_main(root, "g.txt", "the base moves\n", branch="feature/g")
+        assert chain.broad_gate(str(root), ITEM, "main") == []
+        assert chain.inspection(str(root), ITEM, "main") == []
+        write(root, "f.txt", "three\n")
+        code = commit(root, "a code change after the merge")
         assert chain.broad_gate(str(root), ITEM, "main") == [
             (
                 f"{ITEM}/trail/gate.md",
