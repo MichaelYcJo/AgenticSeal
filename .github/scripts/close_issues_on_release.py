@@ -18,10 +18,12 @@ The keywords are already written, one per feature pull request, by the session
 that knew which issue it was answering.
 
 **It never reopens and never comments on an unrelated issue.** There are two
-writes and no others: the close, and taking `size: now` off the issue being
-closed -- the moment `docs/releasing/issues-and-milestones.md` names as
-where a spent sizing label comes off.
-Both are idempotent. A close of an issue already closed is skipped rather
+writes and no others: the close, and taking the spent labels off the issue
+being closed. `size: now` comes off at the moment
+`docs/releasing/issues-and-milestones.md` names as where a spent sizing
+label comes off, and `merged: next`, which says an issue is in and not yet
+shipped, comes off at the close that ships it (#1671).
+Both writes are idempotent. A close of an issue already closed is skipped rather
 than repeated, and the removal happens only after a read says the label is
 there, so a re-run or a force-push changes nothing.
 
@@ -191,6 +193,19 @@ def issue_labels(repo, number):
 SPENT_ON_CLOSE = "size: now"
 
 
+def spent_labels():
+    """The labels the close spends: `SPENT_ON_CLOSE`, and the signal's
+    `MERGED_LABEL`, which says an issue is in `release/next` and not yet
+    shipped, so the close that ships the issue spends it (#1671).
+
+    The signal, `label_merged_on_release_branch.py`, holds that name and
+    creates the label, and it loads this module at its own top level. So it
+    is loaded here, when the run asks for the names, and never while this
+    module is imported."""
+    signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
+    return (SPENT_ON_CLOSE, signal.MERGED_LABEL)
+
+
 def drop_label(repo, number, label):
     """Take `label` off an issue, tolerating a failure.
 
@@ -212,11 +227,12 @@ def drop_label(repo, number, label):
     return ok
 
 
-def spend_label(repo, number, dry):
-    """Take the spent sizing label off `number`, and say what happened.
+def spend_labels(repo, number, labels, dry):
+    """Take each of the spent `labels` off `number`, in order, and say what
+    happened to each.
 
     **Three call sites reach this, and there is one copy.** The loop below
-    spends the label on an issue it just closed and on one a previous run
+    spends the labels on an issue it just closed and on one a previous run
     closed. A copy per site that did not guard its report on the write would
     print `could not remove …` and then `removed …` for the same issue, in
     the job log that is the only record of what the release did to the
@@ -225,16 +241,18 @@ def spend_label(repo, number, dry):
 
     The dry arm is here for the same reason: written at one of the three
     sites and not the others, a preview over an already-closed issue would
-    say nothing about the label at all, and `DRY_RUN` exists precisely so a
+    say nothing about the labels at all, and `DRY_RUN` exists precisely so a
     person can see the whole act before it happens.
 
     One copy is what keeps a fourth call site from being written unguarded.
+    A refused removal of one label does not keep the next from being tried.
     """
-    if dry:
-        print(f"would remove {SPENT_ON_CLOSE!r} from #{number}")
-        return
-    if drop_label(repo, number, SPENT_ON_CLOSE):
-        print(f"removed {SPENT_ON_CLOSE!r} from #{number}")
+    for label in labels:
+        if dry:
+            print(f"would remove {label!r} from #{number}")
+            continue
+        if drop_label(repo, number, label):
+            print(f"removed {label!r} from #{number}")
 
 
 def closing_comment(source):
@@ -391,26 +409,29 @@ def main():
         return
 
     failures = []
+    names = spent_labels()
     for issue, source in sorted(wanted.items()):
         carried, exists = issue_labels(repo, issue)
         state = issue_state(repo, issue)
         if state is None:
             print(f"#{issue} does not exist (named by #{source}) — skipping")
             continue
-        spent = exists and SPENT_ON_CLOSE in carried
+        # Only the labels a read says the issue carries, so a removal of one
+        # that is not there is never sent.
+        spent = [name for name in names if exists and name in carried]
         if state == "closed":
             print(f"#{issue} already closed (named by #{source}) — leaving it")
-            # A closed issue still carrying it is one closed by hand, or one
+            # A closed issue still carrying one is one closed by hand, or one
             # a previous run closed and whose removal failed. The label is
             # spent either way and the removal is idempotent, so taking it
             # off here costs one call and leaves no stale ones behind.
             if spent:
-                spend_label(repo, issue, dry)
+                spend_labels(repo, issue, spent, dry)
             continue
         if dry:
             print(f"would close #{issue}, named by #{source}")
             if spent:
-                spend_label(repo, issue, dry)
+                spend_labels(repo, issue, spent, dry)
             continue
         errors = close_issue(repo, issue, closing_comment(source))
         if errors:
@@ -426,7 +447,7 @@ def main():
         # exists for and the label is bookkeeping about it, so the order is
         # the one where a failing label write cannot cost an issue its close.
         if spent:
-            spend_label(repo, issue, dry)
+            spend_labels(repo, issue, spent, dry)
 
     if failures:
         named = "\n".join(

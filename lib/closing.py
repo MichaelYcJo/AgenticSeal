@@ -89,9 +89,9 @@ MERGED_PR = re.compile(r"\s*\(#(\d+)\)\s*$")
 # fence stays the first alternative, so its group stays group 1 for `\1`.
 #
 # Limits, stated and not guarded. Each but the last masks more than GitHub,
-# so the closer closes fewer and the completeness check refuses the release,
-# which is loud. The line-start test of `COMMENT`'s second arm reads one
-# line's own text, with no block model. So where CommonMark's block rules make
+# so the closer closes fewer, and an issue a body claimed stays open on the
+# tracker after its release ships. The line-start test of `COMMENT`'s second
+# arm reads one line's own text, with no block model. So where CommonMark's block rules make
 # GitHub read on past an opener the test treats as a line start, such as an
 # opener in an indented code block or after a list marker that opens no list
 # item, it masks to the end of the text all the same, and the closer closes

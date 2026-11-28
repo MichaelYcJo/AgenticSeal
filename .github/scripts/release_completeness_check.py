@@ -1,87 +1,77 @@
 #!/usr/bin/env python3
-"""A release cannot ship while its milestone claims work the release has not
-got, or while a release named as a patch carries a `feat:`.
+"""A release ships at the number its own commit subjects read, and every issue
+labelled `merged: next` is one it carries.
 
-*Is everything in* is asked here by the machine, at the release pull
-request, which is the last moment anybody is looking.
+Both questions are asked here by the machine, at the release pull request,
+which is the last moment anybody is looking. Both read the same subjects:
+`git log --format=%s` from the merge base of the base and the head to the
+head, read once.
 
-Three sets of issue numbers, and naming them is what keeps a failure pointing
-at the right party.
+**The number (#1671).** `plugin.json` is read at the base and at the head. A
+subject that opens with `feat:` makes the release the next minor of the
+base's version, `A.(B+1).0`, and the absence of one makes it the next
+patch, `A.B.(C+1)`. Each pull request's prefix was its writer's judgment
+(`skills/commit-pr-convention/SKILL.md` *Commit messages*), and this reads
+the prefixes exactly, so no person approves the number.
 
-    M   open issues whose milestone is `release: X.Y.Z`
-    D   issues the release branch actually carries: its commit subjects ->
-        `(#N)` -> those pull request bodies -> closing keywords
+    head moved to the number read      passes
+    head moved to another version      FAILS, naming the number and each
+                                       `feat:` subject
+    head moves the major, to a version passes, printed as not read against
+    whose minor and patch are 0        the subjects: a major is the
+                                       owner's word
+    head where the base has it         refuses nothing here and prints the
+                                       number; the version step of
+                                       `.github/workflows/hygiene.yml`
+                                       judges a release that leaves it
 
-        **A reverted squash stays in D**, named here so nobody
-        rediscovers it. The revert's own subject carries the revert pull
-        request's `(#N)` and its body carries no closing keyword, so nothing
-        subtracts the original claim — "actually carries" is read over the
-        range rather than over the tree at its tip. No release here has
-        reverted a squash; if one does, the issue is in D, out of `M \\ D`,
-        and the release ships claiming work it no longer has.
-    L   issues carrying the label `merged: X.Y.Z`
+The reading counts that one spelling. A subject whose first word is `feat`
+spelt otherwise, such as `Feat:` or `feat(agents):`, is printed as not read
+and changes neither the number nor the exit code; whether it meant the
+prefix is its writer's judgment. **A reverted squash stays in the range**,
+read over the commits rather than over the tree at the tip, so a reverted
+`feat:` still makes a minor.
+
+**The labels (#359).** Two sets of issue numbers, and naming them is what
+keeps a failure pointing at the right party.
+
+    D   issues the release actually carries: its commit subjects -> `(#N)`
+        -> those pull request bodies -> closing keywords. A reverted squash
+        stays in D, for the reason above: the revert's own subject carries
+        the revert pull request's `(#N)` and its body carries no closing
+        keyword, so nothing subtracts the original claim.
+    L   issues carrying the label `merged: next`, in every state
 
 **D is the source of truth and L is a cache of it.** The signal
-(`label_merged_on_release_branch.py`) writes L from D one push at a time; this
-recomputes D in full from the release branch's own range. So the refusal is
-`M \\ D` and never depends on a label write having succeeded — computing it as
-`M \\ L` would give the same answer by transitivity and blame the wrong party,
-since a release blocked by a failed label write is repaired by a person adding
-a label by hand, which is the act the signal exists to remove.
+(`label_merged_on_release_branch.py`) writes L from D one push at a time;
+this recomputes D in full from the release's own range.
 
-What it does in each direction, and every line says which direction it is
-reporting:
+    L \\ D   FAILS. A `merged: next` on an issue this release does not carry
+            is a hand-edit, a squash subject that lost its `(#N)`, or a
+            label the last release's close did not take off, and one
+            command repairs each
+    D \\ L   reports, passes. The signal missed one, and a release must not
+            be held for a failure of the signal rather than of its contents
 
-    M \\ D   FAILS. The milestone claims an item the release does not carry
-    L \\ D   FAILS. A label naming a release the issue is not in is always a
-            hand-edit or a squash subject that lost its `(#N)`, and one
-            command repairs it
-    D \\ L   reports, passes. The signal missed one, and a release must not be
-            held for a failure of the signal rather than of its contents
-    D \\ M   reports, passes. An issue somebody closed by hand mid-release is
-            in D and in no open milestone, which is ordinary tracker hygiene
-
-**A second question, from the same subjects: does a patch carry a `feat:`.**
-A `feat:` makes a minor, so a release whose version's third number
-is not 0 FAILS where one of its own subjects opens with `feat:`, and the
-error names each subject and the two repairs `docs/releasing/branch-and-release.md`
-*Work accumulates on a release branch* states, each at the moment it can be
-made: before its squash, a `feat:` in a milestone numbered as a
-patch moves to the planned minor whose goal it shares; once squashed here,
-the milestone and every later planned one are renamed one step forward and
-the branch is cut again under the new name. The reading counts that one
-spelling. A subject whose first word is `feat` spelt otherwise, such as
-`Feat:` or `feat(agents):`, is printed as not read and changes no exit
-code; whether it meant the prefix is its writer's judgment. It needs no
-milestone, so it runs before the milestone reading and a missing milestone
-does not skip it. A `feat:` squashed here stays counted after a revert, as
-a reverted squash stays in D, so the repair the error names for it is the
-rename.
-
-It writes nothing anywhere. Exit 0 or 1, and a shape it cannot judge exits 0
-with the reason printed.
+It writes nothing anywhere. Exit 0 or 1.
 
 Environment: every entry the step in `.github/workflows/hygiene.yml` passes,
 and the boundary is what the step must pass rather than what `os.environ`
 reads -- `GH_TOKEN` reaches this through `gh` and is an input all the same.
-One entry removed at a time against a fixture branch name, with exit codes
-read directly, gives:
+What each entry's absence does:
 
-    `REPO`         exit 1   `KeyError: 'REPO'` -- loud
-    `HEAD_SHA`     exit 0   the commit the range is measured TO falls back to
-                            `HEAD`, which in CI is the merge ref; nothing
-                            printed says so, and `merge_base` below carries
-                            what that costs on a `pull_request` event
-    `HEAD_BRANCH`  exit 0   `'' is not a release/vX.Y.Z branch -- nothing to
-                            judge`: the hotfix skip, borrowed by a gate that
-                            was asked to judge a release and could not see
-                            which one
-    `BASE`         exit 0   the default `origin/main`, the ref the range is
-                            measured FROM, which is what a release pull
-                            request wants
-    `GH_TOKEN`     exit 1   `gh api ... failed: ... gh auth login` -- loud
+    `REPO`      exit 1   `KeyError: 'REPO'` -- loud
+    `HEAD_SHA`  exit 0   the commit the range is measured TO, and the head
+                         `plugin.json` is read at, falls back to `HEAD`,
+                         which in CI is the merge ref; nothing printed says
+                         so, and `merge_base` below carries what that costs
+                         on a `pull_request` event
+    `BASE`      exit 0   the default `origin/main`, the ref the range is
+                         measured FROM and the base version is read at,
+                         which is what a release pull request wants
+    `GH_TOKEN`  exit 1   `gh issue list ... failed` -- loud
 
-Two absences are silent, and neither is caught here: the case
+One absence is silent, and it is not caught here: the case
 `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py#test_every_input_the_script_reads_is_handed_to_it_by_the_step`
 holds the step to every entry of the table.
 """
@@ -96,13 +86,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
 
-# The signal holds the name mapping — branch -> version -> milestone -> label
-# — and reaches the closer's `run` through its own `closer`.
+# The signal holds the names, the integration branch and `merged: next`, and
+# reaches the closer's `run` through its own `closer`.
 # Loading it runs nothing: it defines constants and functions at module
 # level and guards its `main`.
 signal = sibling.load(".github/scripts/label_merged_on_release_branch.py")
 closer = signal.closer
 console = sibling.load("lib/console.py")
+
+# Where the version a release ships at stands, read at a commit as the
+# version step of `.github/workflows/hygiene.yml` reads it.
+PLUGIN_JSON = ".claude-plugin/plugin.json"
 
 
 # --- reads ----------------------------------------------------------------
@@ -112,10 +106,9 @@ def merge_base(base, head="HEAD"):
     """Where this branch left `base`.
 
     `origin/main..HEAD` is the obvious spelling and it is wrong the moment
-    `main` moves during a release's life, which a hotfix does
-    (`docs/releasing/branch-and-release.md` has the hotfix row). What the release
-    carries is what it accumulated since it was cut, and that is measured
-    from the fork point.
+    `main` moves during a release's life. What the release carries is what
+    it accumulated since it left `main`, and that is measured from the fork
+    point.
 
     **`head` is not `HEAD` in CI.** On a `pull_request` event
     `actions/checkout` checks out the merge ref GitHub builds — the head
@@ -137,62 +130,13 @@ def subjects_since(point, head="HEAD"):
     return out.splitlines()
 
 
+def version_at(ref):
+    """The version `plugin.json` holds at REF."""
+    return json.loads(closer.run("git", "show", f"{ref}:{PLUGIN_JSON}"))["version"]
+
+
 def issue_numbers(out):
     return {int(entry["number"]) for entry in json.loads(out)}
-
-
-def milestone_titles(repo):
-    """Every milestone this repository has, open or closed.
-
-    Asked for separately because `gh issue list --milestone` answers a title
-    nothing has with an empty list and exit 0. Without this read a
-    mistyped or absent milestone would make the whole check pass while
-    verifying nothing, which is the one direction a checker of claims must
-    not fail in.
-
-    `--paginate` closes that same fail-open one level down. `per_page` caps
-    at 100, so an unpaginated read of a repository with more milestones than
-    that leaves the title off the page and this function reports it absent
-    — the hole it exists to close, arriving through it.
-
-    **No `--jq`, and the reason is measured rather than assumed.**
-    `--jq .[].title` would be owed only if `--paginate` over an array
-    endpoint concatenated arrays into something `json.loads` refuses. On gh
-    2.92 it does not: `--paginate` MERGES the pages into one array, and
-    `per_page=2` — seventeen pages — comes back as a single list of 33 that
-    `json.loads` accepts. A gh old enough to concatenate would make
-    `json.loads` raise, which is loud and is the direction this function is
-    for; what it would never do is quietly return a short list.
-    """
-    out = closer.run(
-        "gh", "api", "--paginate", f"repos/{repo}/milestones?state=all&per_page=100"
-    )
-    return {entry["title"] for entry in json.loads(out)}
-
-
-def open_in_milestone(repo, title):
-    """M. `gh issue list` and not the REST `/issues` endpoint: REST counts a
-    pull request as an issue and `gh issue list` does not, and that
-    matters because a pull request in the milestone could never carry
-    `merged: X.Y.Z` and would block the release with nothing anyone could
-    do about it."""
-    return issue_numbers(
-        closer.run(
-            "gh",
-            "issue",
-            "list",
-            "--repo",
-            repo,
-            "--milestone",
-            title,
-            "--state",
-            "open",
-            "--limit",
-            "1000",
-            "--json",
-            "number",
-        )
-    )
 
 
 def labelled(repo, name):
@@ -225,33 +169,24 @@ def listed(numbers):
     return ", ".join(f"#{n}" for n in sorted(numbers)) or "none"
 
 
-def judge(milestone_open, carried, labels, version):
+def judge(carried, labels):
     """(lines, failed). Pure, so every direction is a case rather than a run.
 
     Order is the reader's: what stops the release first, then what is only
     being reported, then the two sets the reader needs to check any of it.
     """
     lines, failed = [], False
-    milestone, label = signal.milestone_title(version), signal.label_name(version)
-
-    missing = milestone_open - carried
-    if missing:
-        failed = True
-        lines.append(
-            f"::error::M \\ D — the milestone {milestone!r} claims "
-            f"{len(missing)} open issue(s) this release branch does not "
-            f"carry: {listed(missing)}. Either the work is not in, or the "
-            f"issues belong in another milestone"
-        )
+    label = signal.MERGED_LABEL
 
     stray = labels - carried
     if stray:
         failed = True
         lines.append(
             f"::error::L \\ D — {len(stray)} issue(s) carry {label!r} and are "
-            f"not in this release: {listed(stray)}. A label naming a release "
-            f"the issue is not in is a hand-edit or a squash subject that "
-            f"lost its `(#N)`; `gh issue edit <n> --remove-label {label!r}` "
+            f"not in this release: {listed(stray)}. A {label!r} on an issue "
+            f"this release does not carry is a hand-edit, a squash subject "
+            f"that lost its `(#N)`, or a label the last release's close did "
+            f"not take off; `gh issue edit <n> --remove-label {label!r}` "
             f"repairs it"
         )
 
@@ -263,22 +198,12 @@ def judge(milestone_open, carried, labels, version):
             f"held for a failure of the signal rather than of its contents"
         )
 
-    unclaimed = carried - milestone_open
-    if unclaimed:
-        lines.append(
-            f"D \\ M — the release carries {len(unclaimed)} that no OPEN "
-            f"issue in {milestone!r} claims: {listed(unclaimed)}. Reported, "
-            f"not failed: an issue closed by hand mid-release looks exactly "
-            f"like this"
-        )
-
-    lines.append(f"M (open in {milestone!r}): {listed(milestone_open)}")
-    lines.append(f"D (carried by this release branch): {listed(carried)}")
+    lines.append(f"D (carried by this release): {listed(carried)}")
     lines.append(f"L (carrying {label!r}): {listed(labels)}")
     return lines, failed
 
 
-# The one spelling the version reading counts. A subject that spells the word
+# The one spelling the number reading counts. A subject that spells the word
 # otherwise is named as not read, and no list of its other spellings is kept
 # (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
 FEAT = "feat:"
@@ -296,100 +221,95 @@ def first_word_is_feat(subject):
     return word.casefold() == "feat"
 
 
-def judge_feat(version, subjects):
-    """(lines, failed). The release's own subjects against its number.
+def parts(version):
+    """`(major, minor, patch)` of an `X.Y.Z` version, as integers."""
+    major, minor, patch = (int(n) for n in version.split("."))
+    return major, minor, patch
 
-    A `feat:` makes a minor, so a release named as a patch, a version whose
-    third number is not 0, fails where one or more subjects open with
-    `feat:` (`docs/releasing/branch-and-release.md` *Work accumulates on a release
-    branch*). Pure, like `judge`, and in the same order: what stops the
-    release, then the count, then what is only reported.
+
+def number_read(version, subjects):
+    """The number the release's SUBJECTS read from VERSION, the version the
+    base holds: its next minor where a subject opens with `feat:`, and its
+    next patch otherwise."""
+    major, minor, patch = parts(version)
+    if any(s.startswith(FEAT) for s in subjects):
+        return f"{major}.{minor + 1}.0"
+    return f"{major}.{minor}.{patch + 1}"
+
+
+def judge_number(base, head, subjects):
+    """(lines, failed). The version the head moves `plugin.json` to, against
+    the number the release's own subjects read from the BASE version.
+
+    Pure, like `judge`, and in the same order: what stops the release, then
+    the number and what it was read from, then what is only reported.
     """
     counted = [s for s in subjects if s.startswith(FEAT)]
     near = [s for s in subjects if not s.startswith(FEAT) and first_word_is_feat(s)]
-    patch = int(version.split(".")[2]) != 0
-    kind = "patch" if patch else "minor"
+    number = number_read(base, subjects)
+    kind = "minor" if counted else "patch"
+    moved_to = parts(head)
+    # The owner's word: the major moves up, to its first release.
+    major = moved_to[0] > parts(base)[0] and moved_to[1:] == (0, 0)
     lines, failed = [], False
 
-    if patch and counted:
+    if head not in (base, number) and not major:
         failed = True
-        named = "; ".join(f"`{s}`" for s in counted)
+        named = "; ".join(f"`{s}`" for s in counted) or "none"
         lines.append(
-            f"::error::{version} is a patch and this release branch carries "
-            f"{len(counted)} feat: subject(s): {named}. A feat: makes a minor. "
-            f"A feat: filed or moved into a milestone numbered as a patch "
-            f"moves, before its squash, to the planned minor whose goal it "
-            f"shares. One squashed onto this branch stays in its range, "
-            f"because this reading counts it after a revert as well, so the "
-            f"repair here is to rename {signal.milestone_title(version)!r} "
-            f"and every later planned release: milestone one step forward, "
-            f"cut this branch again under the new name, and move plugin.json "
-            f"to the new version in the new branch's first pull request "
-            f"(docs/releasing/branch-and-release.md, Work accumulates on a release "
-            f"branch). The prefix states what the change is and is never "
-            f"lowered to fit the number"
+            f"::error::the head moves plugin.json to {head}, and the subjects "
+            f"read {number}: {base} with {len(counted)} feat: subject(s) "
+            f"makes the next {kind}. The feat: subjects: {named}. A feat: "
+            f"makes a minor, and every other prefix a patch. The repair is to "
+            f"move plugin.json to {number} in a pull request into "
+            f"{signal.INTEGRATION_BRANCH}; a major, whose minor and patch are "
+            f"0, is the owner's word alone. The prefix states what the change "
+            f"is and is never lowered to fit the number"
         )
 
     lines.append(
-        f"{len(counted)} feat: subject(s) on this release branch, and "
-        f"{version} is a {kind}"
+        f"number read: {number}, the next {kind} of {base}, from "
+        f"{len(counted)} feat: subject(s)"
     )
-    if not patch and not counted:
+    lines.append(f"plugin.json: {base} at the base, {head} at the head")
+    lines.extend(f"feat: subject: {s}" for s in counted)
+    if head == base:
         lines.append(
-            f"{version} carries no feat: and ships as the minor it was named, "
-            f"since its branch is cut under that name"
+            f"plugin.json is not moved from {base}, and the version step "
+            f"judges a release that leaves it"
+        )
+    elif major:
+        lines.append(
+            f"{head} moves the major, the owner's word, and is not read "
+            f"against the subjects"
         )
     lines.extend(f"not read: {s}" for s in near)
     return lines, failed
 
 
 def main():
-    head = os.environ.get("HEAD_BRANCH", "")
-    version = signal.version_of(head)
-    if version is None:
-        # `docs/releasing/branch-and-release.md` lists a hotfix branch as the other
-        # thing that reaches `main`, and a hotfix carries no release
-        # milestone. Skipping is the answer rather than guessing a version.
-        print(f"{head!r} is not a release/vX.Y.Z branch — nothing to judge")
-        return 0
-
     repo = os.environ["REPO"]
     base = os.environ.get("BASE", "origin/main")
-    # The commit the range is measured to. `HEAD` is the merge ref in CI and
-    # already contains the base, which collapses the fork point — `merge_base`
-    # carries the whole reading. The pull request names its own head and the
-    # step passes it; by hand there is none and `HEAD` is the branch tip.
+    # The commit the range is measured to, and the head version is read at.
+    # `HEAD` is the merge ref in CI and already contains the base, which
+    # collapses the fork point — `merge_base` carries the whole reading. The
+    # pull request names its own head and the step passes it; by hand there
+    # is none and `HEAD` is the branch tip.
     point = os.environ.get("HEAD_SHA") or "HEAD"
-    milestone = signal.milestone_title(version)
 
-    # Read once and handed to both readings. The version reading runs first
-    # because it needs no milestone: the number is in the head's name.
+    # Read once and handed to both readings.
     subjects = subjects_since(merge_base(base, point), point)
-    feat_lines, feat_failed = judge_feat(version, subjects)
-    for line in feat_lines:
+    number_lines, number_failed = judge_number(
+        version_at(base), version_at(point), subjects
+    )
+    for line in number_lines:
         print(line)
-
-    if milestone not in milestone_titles(repo):
-        print(
-            f"::warning::no milestone {milestone!r} exists — the milestone "
-            f"reading verified NOTHING. `gh issue list --milestone` answers a "
-            f"title nothing has with an empty list, so the check would "
-            f"otherwise pass by measuring an empty set. That reading passes "
-            f"anyway: a release nobody scheduled is a person's call, not "
-            f"this gate's"
-        )
-        return 1 if feat_failed else 0
 
     carried = set(signal.issues_in(repo, subjects))
-    lines, failed = judge(
-        open_in_milestone(repo, milestone),
-        carried,
-        labelled(repo, signal.label_name(version)),
-        version,
-    )
+    lines, failed = judge(carried, labelled(repo, signal.MERGED_LABEL))
     for line in lines:
         print(line)
-    return 1 if failed or feat_failed else 0
+    return 1 if failed or number_failed else 0
 
 
 if __name__ == "__main__":

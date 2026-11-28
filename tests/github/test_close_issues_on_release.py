@@ -2,7 +2,8 @@
 
 The closer runs when a release reaches `main`. It closes each issue a
 shipped pull request claimed with a closing keyword, and takes `size: now`
-off each issue it closes (#450). One issue the tracker refuses to close does
+(#450) and `merged: next` (#1671) off each issue it closes. One issue the
+tracker refuses to close does
 not leave the rest open (#536): a refusal on `gh issue close` takes the REST
 route, a PATCH and then the same comment through `gh api ../comments`, and a
 refusal on both routes is named with both errors at the end, after every
@@ -13,6 +14,9 @@ The labels the cases' docstrings carry:
   A11  an issue carrying `size: now` that a shipped pull request claimed
        loses the label in the same act that closes it, and the issue closes
        even when that write fails
+  S8   an issue carrying `merged: next` that the release closed, or that was
+       already closed, loses the label after the close, and a failed removal
+       is reported while the run goes on (#1671)
   S1   a refusal on `gh issue close` takes the REST route, and the run exits
        0 with every issue closed
   S2   a refusal on both routes is named with both errors, every other issue
@@ -72,6 +76,7 @@ SCRIPTS = os.path.join(ROOT, ".github", "scripts")
 
 REPO = "example/repo"
 LABEL = "size: now"
+MERGED = "merged: next"
 GRAPHQL_REFUSAL = "GraphQL: Something went wrong while executing your query"
 REST_REFUSAL = "HTTP 502: Bad Gateway"
 
@@ -217,8 +222,9 @@ class Tracker:
             number = int(args[3])
             if number in self.refuse:
                 return False, "HTTP 502"
-            if LABEL in self.issues.get(number, []):
-                self.issues[number].remove(LABEL)
+            removed = args[args.index("--remove-label") + 1]
+            if removed in self.issues.get(number, []):
+                self.issues[number].remove(removed)
             return True, ""
         raise AssertionError(f"unexpected command: {args}")
 
@@ -314,8 +320,9 @@ class RefusingTracker:
             return True, ""
         if args[:3] == ("gh", "issue", "edit"):
             number = int(args[3])
-            if LABEL in self.issues.get(number, []):
-                self.issues[number].remove(LABEL)
+            removed = args[args.index("--remove-label") + 1]
+            if removed in self.issues.get(number, []):
+                self.issues[number].remove(removed)
             return True, ""
         raise AssertionError(f"unexpected command: {args}")
 
@@ -687,6 +694,69 @@ class Test_main:
         out = capsys.readouterr().out
         assert "would close #7" in out and f"would remove {LABEL!r} from #7" in out
 
+    def test_merged_next_comes_off_the_issue_the_release_closed_after_the_close(
+        self, monkeypatch, capsys
+    ):
+        """S8 of #1671. `merged: next` says an issue is in and not yet
+        shipped, so the close that ships it takes the label off, after the
+        close and never before it, and leaves every other label."""
+        tracker = Tracker(issues={7: [MERGED, "release"]}, pulls={100: "Closes #7"})
+        mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
+        mod.main()
+        assert tracker.states[7] == "closed"
+        assert MERGED not in tracker.issues[7], "merged: next survived the close"
+        assert "release" in tracker.issues[7], "it removed a label it was not asked to"
+        closes = [
+            i for i, a in enumerate(tracker.calls) if a[:3] == ("gh", "issue", "close")
+        ]
+        edits = [i for i, a in enumerate(tracker.calls) if "--remove-label" in a]
+        assert closes and edits and closes[0] < edits[0], tracker.calls
+        assert f"removed {MERGED!r} from #7" in capsys.readouterr().out
+
+    def test_an_issue_carrying_both_spent_labels_loses_both(self, monkeypatch):
+        """S8 of #1671 beside A11: the two labels are spent at the one close."""
+        tracker = Tracker(issues={7: [LABEL, MERGED]}, pulls={100: "Closes #7"})
+        mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
+        mod.main()
+        assert tracker.issues[7] == [], tracker.issues
+
+    def test_a_failed_removal_of_merged_next_is_reported_and_the_run_goes_on(
+        self, monkeypatch, capsys
+    ):
+        """S8 of #1671. The close is the act and the label is bookkeeping
+        about it, so a refused removal is named and the issue sorted after it
+        is still closed and still loses its label."""
+        tracker = Tracker(
+            issues={7: [MERGED], 8: [MERGED]},
+            pulls={100: "Closes #7\nCloses #8"},
+            refuse={7},
+        )
+        mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
+        mod.main()
+        assert tracker.states == {7: "closed", 8: "closed"}, tracker.states
+        assert MERGED not in tracker.issues[8], tracker.issues
+        out = capsys.readouterr().out
+        assert f"could not remove {MERGED!r} from #7" in out, out
+        assert f"removed {MERGED!r} from #7" not in out, out
+
+    def test_an_already_closed_issue_loses_merged_next(self, monkeypatch, capsys):
+        """S8 of #1671, on the loop's other branch: an issue closed by hand,
+        or by a run whose removal failed, still carries a spent label."""
+        tracker = Tracker(issues={7: [MERGED]}, pulls={100: "Closes #7"})
+        tracker.states[7] = "closed"
+        mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
+        mod.main()
+        assert MERGED not in tracker.issues[7], "merged: next survived"
+        assert f"removed {MERGED!r} from #7" in capsys.readouterr().out
+
+    def test_a_dry_run_names_merged_next_and_writes_nothing(self, monkeypatch, capsys):
+        tracker = Tracker(issues={7: [MERGED]}, pulls={100: "Closes #7"})
+        mod = wire_closer(monkeypatch, tracker, ["feat: a thing (#100)"])
+        monkeypatch.setenv("DRY_RUN", "1")
+        mod.main()
+        assert MERGED in tracker.issues[7]
+        assert f"would remove {MERGED!r} from #7" in capsys.readouterr().out
+
     # The already-closed issue, which no case reached (round 1, finding 1).
     # Every A11 case above puts the issue in the `open` state, so all of them
     # walk the branch that closes it. The loop's OTHER branch — an issue a
@@ -1009,13 +1079,13 @@ class Test_module:
     def test_every_report_of_the_removal_goes_through_one_place(self):
         """Contract rule 12: the defect was one copy of three being unguarded, so what is owed
         is that a fourth copy cannot be written. Both branches of the loop call
-        `spend_label`, and the two lines a reader sees are inside it."""
+        `spend_labels`, and the two lines a reader sees are inside it."""
         source = read(os.path.join(SCRIPTS, "close_issues_on_release.py"))
         body = source.split('"""', 2)[2]
         assert body.count("would remove") == 1, (
             "the dry-run line is written in more than one place again"
         )
-        assert body.count("removed {SPENT_ON_CLOSE!r}") == 1, (
+        assert body.count("removed {label!r}") == 1, (
             "the success line is written in more than one place again"
         )
         # Call sites, not occurrences: `def drop_label(repo, …)` is the third
@@ -1029,7 +1099,7 @@ class Test_module:
         ]
         assert len(calls) == 1, (
             "a call site reaches `drop_label` without going through "
-            f"`spend_label`, which is where the report is guarded on the "
+            f"`spend_labels`, which is where the report is guarded on the "
             f"write: {calls}"
         )
 
@@ -1084,7 +1154,7 @@ class Test_module:
             "the fallback reaches `gh issue comment`, which the argv case forbids"
         )
 
-    def test_the_script_closes_and_takes_off_one_named_label_and_nothing_else(self):
+    def test_the_script_closes_and_takes_off_its_spent_labels_and_nothing_else(self):
         """Parse the source; never search it.
 
         The arguments go one per line, so `issue reopen` cannot occur as a literal
@@ -1104,7 +1174,9 @@ class Test_module:
         form but `--remove-label`, because the property being protected was never
         the verb. It is that a re-run and a force-push are safe to reason about,
         and both acts are idempotent: the close skips an issue already closed,
-        and the removal is guarded by a read saying the label is there.
+        and the removal is guarded by a read saying the label is there. #1671
+        added `merged: next`, spent at the same close through the same one
+        removal.
 
         Adding a label here would not be. That is the sibling's act
         (`label_merged_on_release_branch.py`, at the squash rather than at the
@@ -1160,8 +1232,8 @@ class Test_module:
         for forbidden in ("reopen", "delete", "create", "comment", "transfer"):
             assert not issue_argvs(forbidden), (
                 f"the script gained `issue {forbidden}`. Closing and taking off "
-                "one named label is what makes a re-run and a force-push safe to "
-                "reason about"
+                "its named spent labels is what makes a re-run and a force-push "
+                "safe to reason about"
             )
         edit_calls = issue_argvs("edit")
         # EXACTLY one, never `<= 1`: the label removal is behaviour this case
@@ -1170,7 +1242,7 @@ class Test_module:
         # skipped at zero.
         assert len(edit_calls) == 1, (
             f"{len(edit_calls)} `gh issue edit` argv lists; there is one, and it "
-            "is the removal of a spent sizing label"
+            "is the removal of a spent label"
         )
         flags = {word for word in edit_calls[0] if word.startswith("--")}
         assert flags == {"--repo", "--remove-label"}, (

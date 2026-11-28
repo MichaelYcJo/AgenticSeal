@@ -697,8 +697,7 @@ class Test_main:
     def test_a_tag_that_is_not_a_version_goes_red(self, monkeypatch, tmp_path, capsys):
         """A3's neighbour. `v*` matches `vnext` too, and a tag this cannot name a
         version for has no section to look for — so it says so instead of
-        guessing one, the way `label_merged_on_release_branch.py` refuses a branch
-        name it cannot read a version out of."""
+        guessing one."""
         mod, tracker = wire(monkeypatch, tmp_path, TAG="vnext")
         assert mod.main() == 1
         assert tracker.calls == []

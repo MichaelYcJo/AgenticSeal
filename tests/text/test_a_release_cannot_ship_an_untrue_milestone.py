@@ -1,5 +1,6 @@
-"""The release completeness gate's step in the hygiene workflow, which
-these cases read.
+"""The release check's step in the hygiene workflow, which these cases read:
+the step that holds a release pull request to the number its commit subjects
+read and to the `merged: next` labels it carries.
 
 The cases of `.github/scripts/release_completeness_check.py`'s functions
 stand in `tests/github/test_release_completeness_check.py`.
@@ -14,7 +15,7 @@ from workflows import load
 TARGET = ".github/workflows/hygiene.yml"
 
 HYGIENE = os.path.join(ROOT, *TARGET.split("/"))
-STEP = "the milestone this release claims"
+STEP = "the version a release moves to is the number its subjects read"
 
 
 def hygiene_step():
@@ -36,8 +37,8 @@ def guarded_script():
 
 def test_the_gate_runs_only_for_a_release_pull_request():
     """It is the fifth release-only step in this file. A feature pull request
-    carries no milestone of its own and the release branch it targets is not
-    finished, so running it there is noise at best."""
+    moves no version and the release branch it targets is not finished, so
+    running it there is noise at best."""
     step = guarded_script()
     # The condition of the script's base guard, which the runner runs to
     # skip every base but `main`.
@@ -65,19 +66,8 @@ def test_the_gate_runs_only_for_a_release_pull_request():
     )
 
 
-def test_the_head_shape_reaches_the_script_rather_than_the_guard():
-    """A hotfix branch merging into `main` is the other shape that gets here,
-    and what it does about that is a case (S7) rather than a shell condition
-    nothing can test."""
-    env = hygiene_step().get("env", {})
-    assert env.get("HEAD_BRANCH") == "${{ github.head_ref }}", (
-        "the head branch does not reach the script, so the skip it is "
-        "supposed to make is unreachable"
-    )
-
-
 def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
-    """Round 1, finding 6, and the fix for finding 2 is what earns it.
+    """Round 1, finding 6 of #359, and the fix for finding 2 is what earns it.
 
     The round judged this a note rather than a fix: deleting `REPO` from the
     step is a loud `KeyError` at the release pull request, and deleting `BASE`
@@ -85,24 +75,19 @@ def test_every_input_the_script_reads_is_handed_to_it_by_the_step():
     wants anyway. Both true.
 
     `HEAD_SHA` is neither. Losing it falls back to `HEAD`, which in CI is the
-    merge ref — so the step goes green, the range silently collapses to the
-    spelling `questions.md` Q8 rejected, and finding 2 is back with nothing
-    saying so. `HEAD_BRANCH` is silent the same way: `version_of("")` takes
-    the hotfix skip and borrows its log line (#362). A silent entry in the
-    block is what turns the note into a case, and the case covers every entry
-    rather than the silent ones, because a reader deleting a line does not
-    first ask which kind it is.
+    merge ref, so the step goes green, the range silently collapses to the
+    spelling `questions.md` Q8 rejected, the head's `plugin.json` is read at
+    the merge ref, and finding 2 is back with nothing saying so. A silent
+    entry in the block is what turns the note into a case, and the case
+    covers every entry rather than the silent ones, because a reader deleting
+    a line does not first ask which kind it is.
 
-    The boundary is what the step must pass — `GH_TOKEN` included, which
-    reaches the script through `gh` rather than through `os.environ`.
-    Measured one entry removed at a time against a fixture branch name, exit
-    codes read directly: `REPO` 1 (`KeyError`), `HEAD_SHA` 0 (silent),
-    `HEAD_BRANCH` 0 (the *not a release branch* line), `BASE` 0 (the
-    default), `GH_TOKEN` 1 (`gh` fails). The module docstring carries the
-    same table.
+    The boundary is what the step must pass, `GH_TOKEN` included, which
+    reaches the script through `gh` rather than through `os.environ`. The
+    script's docstring gives what each entry's absence does.
     """
     env = hygiene_step().get("env", {})
-    for name in ("GH_TOKEN", "HEAD_BRANCH", "HEAD_SHA", "BASE", "REPO"):
+    for name in ("GH_TOKEN", "HEAD_SHA", "BASE", "REPO"):
         # The environment key the runner hands the script.
         assert name in env, (
             f"the gate step no longer passes {name}. Every one of these is "

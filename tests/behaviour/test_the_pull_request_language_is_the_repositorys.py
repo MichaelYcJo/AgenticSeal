@@ -54,8 +54,7 @@ def test_the_skill_names_the_file_and_the_row():
 
 # The four branch shapes, `<prefix>/<issue number>-<slug>`,
 # `feat/110-117-<slug>`, `<prefix>/<slug>` and `release/vX.Y.Z`, which a
-# session copies when it cuts a branch; the last is the one
-# `.github/scripts/label_merged_on_release_branch.py#RELEASE_BRANCH` matches.
+# session copies when it cuts a branch.
 BRANCH_SHAPES = (
     "A branch cut from an issue is `<prefix>/<issue number>-<slug>`.",
     "A branch for two issues joins their numbers with a hyphen: `feat/110-117-<slug>`.",

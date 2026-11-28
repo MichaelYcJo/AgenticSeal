@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Label the issues a squash into `release/vX.Y.Z` just answered.
+"""Label the issues a squash into `release/next` just answered.
 
-Between a work item squashing into `release/vX.Y.Z` and the release reaching
+Between a work item squashing into `release/next` and the release reaching
 `main`, a finished ticket is indistinguishable from one nobody has started:
 an issue's state does not move until `main` moves, and `main` moves once per
-release. A person reading the milestone mid-release cannot tell the two
-apart.
+release. A person reading the tracker mid-release cannot tell the two apart.
 
-So this runs when a release branch moves. It reads the pull request numbers
-out of the commit subjects that arrived, fetches those pull request bodies,
-and puts `merged: X.Y.Z` on every issue their closing keywords name. The
-version comes from the branch name.
+So this runs when a release branch moves. Where the branch is `release/next`,
+it reads the pull request numbers out of the commit subjects that arrived,
+fetches those pull request bodies, and puts `merged: next` on every issue
+their closing keywords name. The label carries no number, because a release
+takes its number only when it is cut. A push to any other branch under
+`release/*`, such as the numbered branch of a release before #1671, labels
+nothing and says so.
 
 **Nothing here parses anything new.** `MERGED_PR` and `keywords_in` come
 from `lib/closing.py`, whose `HIDDEN` treatment of a quoted keyword is the
@@ -21,13 +23,14 @@ the same three things with them. Importing the closer runs nothing: its
 
 Four things it deliberately does not do.
 
-**It does not close anything.** An issue closed at the release-branch merge
-is closed for something nobody has received yet.
+**It does not close anything.** An issue closed at the squash into
+`release/next` is closed for something nobody has received yet.
 `close_issues_on_release.py` keeps the close, when `main` moves, and this
 adds no second closer.
 
 **It never removes a label and never comments.** The only two writes are
-`gh label create` and `gh issue edit --add-label`.
+`gh label create` and `gh issue edit --add-label`. `merged: next` comes off
+an issue at the close, and that removal is the closer's.
 
 **It writes nothing it has not read first.** The label is created only after
 a read says it is absent, and added to an issue only after a read says that
@@ -49,7 +52,6 @@ Environment: `BRANCH` (`github.ref_name`), `BEFORE`, `AFTER`, `REPO`.
 
 import json
 import os
-import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -57,11 +59,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # loads every other module this script reads.
 sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 import sibling  # noqa: E402
-
-# The branch a release accumulates on. Anything else under `release/*` --
-# `release/next`, a typo -- is a shape this cannot name a version for, and it
-# says so and exits 0 rather than guessing one.
-RELEASE_BRANCH = re.compile(r"^release/v(\d+\.\d+\.\d+)$")
 
 # Loaded through `lib/sibling.py` rather than by `import
 # close_issues_on_release`, so that a test importing THIS module by path gets
@@ -74,28 +71,15 @@ closing = sibling.load("lib/closing.py")
 console = sibling.load("lib/console.py")
 
 
-# --- the name mapping -----------------------------------------------------
+# --- the names --------------------------------------------------------------
 #
-# branch `release/vX.Y.Z` -> version `X.Y.Z` -> milestone `release: X.Y.Z`
-# -> label `merged: X.Y.Z`. Four spellings of one fact, written once: these
-# functions live here, and
-# `release_completeness_check.py` loads them: one source, the way both
-# scripts take their readers from one source.
+# The integration branch work squashes into, and the label a squash there
+# puts on the issues it answered. Each is written once, here:
+# `release_completeness_check.py` reads `MERGED_LABEL` as L, and
+# `close_issues_on_release.py` takes it off an issue it closes.
 
-
-def version_of(branch):
-    """`X.Y.Z` for a release branch, or None for any other name."""
-    found = RELEASE_BRANCH.match((branch or "").strip())
-    return found.group(1) if found else None
-
-
-def milestone_title(version):
-    return f"release: {version}"
-
-
-def label_name(version):
-    return f"merged: {version}"
-
+INTEGRATION_BRANCH = "release/next"
+MERGED_LABEL = "merged: next"
 
 # The most characters GitHub accepts in a label's description. The number is
 # GitHub's, not this repository's: `gh label create` with a longer one is
@@ -110,22 +94,17 @@ def label_name(version):
 # No function here reads it. The case that reads it is in
 # `tests/github/test_label_merged_on_release_branch.py`. It stays in this
 # script rather than in a test because the cap binds the description this
-# script writes: a person editing `label_description` meets it here, where a
+# script writes: a person editing `LABEL_DESCRIPTION` meets it here, where a
 # test would show it only after the edit fails.
 LABEL_DESCRIPTION_LIMIT = 100
 
-
-def label_description(version):
-    """What the label says on the tracker, where a person reads it.
-
-    It has to say WHEN the label stops being the current answer, because the
-    labels accumulate -- one per release, never removed, since deleting a
-    label deletes it from every issue that carried it and falsifies the
-    record it was created to leave.
-    """
-    return (
-        f"Squash-merged into release/v{version}; closes when the release reaches main"
-    )
+# What the label says on the tracker, where a person reads it. The name
+# carries no number, so the description says which branch it records and
+# when it stops being the current answer.
+LABEL_DESCRIPTION = (
+    f"Squash-merged into {INTEGRATION_BRANCH}; comes off when the release that "
+    "ships it closes it"
+)
 
 
 # --- reads ----------------------------------------------------------------
@@ -135,7 +114,7 @@ def issue_labels(repo, number):
     """(label names, exists) for an issue, or ([], False) if there is none.
 
     `close_issues_on_release.py` reads an issue's labels too, to take a
-    spent `size: now` off the issue it is closing, so the reader lives on
+    spent label off the issue it is closing, so the reader lives on
     that module, which owns the 404-tolerant read it is built on, and this
     is the delegation -- one source, the way both scripts take `MERGED_PR`
     and `keywords_in` from `lib/closing.py`, and `pull_request_body` and
@@ -161,16 +140,16 @@ def existing_labels(repo):
 # --- writes ---------------------------------------------------------------
 
 
-def create_label(repo, version):
+def create_label(repo):
     closer.run(
         "gh",
         "label",
         "create",
-        label_name(version),
+        MERGED_LABEL,
         "--repo",
         repo,
         "--description",
-        label_description(version),
+        LABEL_DESCRIPTION,
         # The green the first one was created with by hand, so a label this
         # writes and a label somebody wrote before it look the same.
         "--color",
@@ -178,7 +157,7 @@ def create_label(repo, version):
     )
 
 
-def add_label(repo, number, version):
+def add_label(repo, number):
     closer.run(
         "gh",
         "issue",
@@ -187,7 +166,7 @@ def add_label(repo, number, version):
         "--repo",
         repo,
         "--add-label",
-        label_name(version),
+        MERGED_LABEL,
     )
 
 
@@ -213,9 +192,8 @@ def issues_in(repo, subjects):
 
 def main():
     branch = os.environ.get("BRANCH", "")
-    version = version_of(branch)
-    if version is None:
-        print(f"{branch!r} is not a release/vX.Y.Z branch — nothing to label")
+    if branch != INTEGRATION_BRANCH:
+        print(f"{branch!r} is not {INTEGRATION_BRANCH} — nothing to label")
         return
     before, after = os.environ.get("BEFORE", ""), os.environ["AFTER"]
     repo = os.environ["REPO"]
@@ -223,7 +201,7 @@ def main():
     if dry:
         print("DRY_RUN — nothing will be written")
 
-    label = label_name(version)
+    label = MERGED_LABEL
     wanted = issues_in(repo, closer.arrived(before, after))
     if not wanted:
         print("no closing keyword in any of them — nothing to label")
@@ -234,7 +212,7 @@ def main():
     elif dry:
         print(f"would create label {label!r}")
     else:
-        create_label(repo, version)
+        create_label(repo)
         print(f"created label {label!r}")
 
     for issue, source in sorted(wanted.items()):
@@ -248,7 +226,7 @@ def main():
         if dry:
             print(f"would label #{issue} {label!r}, named by #{source}")
             continue
-        add_label(repo, issue, version)
+        add_label(repo, issue)
         print(f"labelled #{issue} {label!r}, named by #{source}")
 
 

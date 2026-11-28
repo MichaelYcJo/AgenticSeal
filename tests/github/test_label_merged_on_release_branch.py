@@ -1,13 +1,15 @@
 """`.github/scripts/label_merged_on_release_branch.py`, one class per function.
 
-Issue #359, the signal half: a squash into `release/vX.Y.Z` puts
-`merged: X.Y.Z` on the issues its pull requests answered. Until it did, an
-issue's state was the only thing on the tracker that said whether a ticket
-was done, and that state does not move until `main` moves, once per release.
+Issue #359, the signal half, and #1671's name for it: a squash into
+`release/next` puts `merged: next` on the issues its pull requests answered.
+Until it did, an issue's state was the only thing on the tracker that said
+whether a ticket was done, and that state does not move until `main` moves,
+once per release.
 
   S1   a squash labels what its pull requests close, and nothing else
   S2   the label is created when it is absent, before it is added
   S3   re-running changes nothing
+  S7   a push to any other `release/` branch labels nothing, and says why
 
 The cases replace `close_issues_on_release`'s `run`, `arrived` and
 `_issue_api` through `wire`, never the real network. Several are about a
@@ -34,9 +36,8 @@ TARGET = ".github/scripts/label_merged_on_release_branch.py"
 SCRIPTS = os.path.join(ROOT, ".github", "scripts")
 SCRIPT = os.path.join(SCRIPTS, "label_merged_on_release_branch.py")
 
-BRANCH = "release/v1.2.3"
-VERSION = "1.2.3"
-LABEL = "merged: 1.2.3"
+BRANCH = "release/next"
+LABEL = "merged: next"
 REPO = "example/repo"
 
 
@@ -110,45 +111,6 @@ def wire(monkeypatch, module, tracker, subjects, branch=BRANCH, **env):
         monkeypatch.setenv(name, value)
 
 
-class Test_version_of:
-    def test_accepts_a_release_branch_and_names_its_milestone_and_label(self):
-        """One fact spelled four ways, and nothing checked the chain before.
-
-        `docs/releasing/issues-and-milestones.md` and `docs/releasing/release-checklist.md` both write
-        parts of it out in prose; the gate and the signal both have to agree with
-        it and with each other, and a mismatch between `release: X.Y.Z` and
-        `merged: X.Y.Z` is a release blocked on a milestone nothing can satisfy.
-        """
-        m = signal()
-        assert m.version_of("release/v1.2.3") == "1.2.3"
-        assert m.milestone_title("1.2.3") == "release: 1.2.3"
-        assert m.label_name("1.2.3") == "merged: 1.2.3"
-        assert "release/v1.2.3" in m.label_description("1.2.3"), (
-            "the label's description does not name the branch it records, so a "
-            "person reading it on the tracker cannot tell which release it means"
-        )
-
-    @pytest.mark.parametrize(
-        "branch",
-        [
-            "main",
-            "feat/a-thing",
-            "release/next",
-            "release/v1.2",
-            "",
-            "release/v1.2.3.4",
-        ],
-    )
-    def test_refuses_a_branch_that_is_not_a_release(self, branch):
-        """A shape it cannot name a version for is skipped, never guessed.
-
-        The workflow triggers on `release/*`, so `release/next` reaches this and a
-        version read out of it would be invented. `docs/releasing/branch-and-release.md`
-        names only `release/vX.Y.Z`.
-        """
-        assert signal().version_of(branch) is None
-
-
 class PagedTracker(Tracker):
     """`gh label list` as gh answers it: at most `--limit` names, and 30
     where the call names no limit (`gh label list --help`)."""
@@ -163,15 +125,16 @@ class PagedTracker(Tracker):
 
 class Test_existing_labels:
     """Where two cases call `existing_labels` alike, the world differs: the
-    monkeypatched tracker holds forty `merged:` labels, past gh's page of 30,
-    or one other label."""
+    monkeypatched tracker holds forty labels, past gh's page of 30, or one
+    other label."""
 
     def test_accepts_every_label_of_a_tracker_past_thirty(self, monkeypatch):
-        """A tracker grows a `merged:` label per release and keeps every one,
-        so gh's default page of 30 is soon a part of the list. A label read
-        absent past it is created again, and the create is refused."""
+        """A tracker keeps the numbered `merged:` label of each release before
+        #1671 beside its other labels, so gh's default page of 30 is a part of
+        the list. A label read absent past it is created again, and the create
+        is refused."""
         m = signal()
-        names = {f"merged: 0.{n}.0" for n in range(40)}
+        names = {f"merged: 0.{n}.0" for n in range(39)} | {LABEL}
         monkeypatch.setattr(m.closer, "run", PagedTracker(labels=names).run)
         assert m.existing_labels(REPO) == names
 
@@ -189,32 +152,44 @@ class Test_create_label:
         m = signal()
         tracker = Tracker()
         monkeypatch.setattr(m.closer, "run", tracker.run)
-        m.create_label(REPO, VERSION)
+        m.create_label(REPO)
         (created,) = tracker.calls
         assert created[created.index("--color") + 1] == "0E8A16", created
 
-    def test_refuses_to_send_a_name_or_description_of_another_version(
+    def test_accepts_the_name_and_a_description_saying_when_it_comes_off(
         self, monkeypatch
     ):
+        """S7 of #1671. The label carries no number, so its description is
+        what tells a person on the tracker which branch it records and when
+        it stops being the current answer."""
         m = signal()
         tracker = Tracker()
         monkeypatch.setattr(m.closer, "run", tracker.run)
-        m.create_label(REPO, "2.0.0")
+        m.create_label(REPO)
         (created,) = tracker.calls
-        assert created[3] == "merged: 2.0.0", created
+        assert created[3] == LABEL, created
         description = created[created.index("--description") + 1]
-        assert "release/v2.0.0" in description, description
+        assert "release/next" in description, description
+        assert "comes off" in description, description
 
 
 class Test_main:
-    def test_refuses_a_non_release_branch_and_writes_nothing(self, monkeypatch):
-        """The skip is at entry: no range read, no API call, no write."""
+    @pytest.mark.parametrize(
+        "branch", ["release/v1.2.3", "release/next-1", "release/Next", "main", ""]
+    )
+    def test_refuses_a_branch_that_is_not_release_next_and_writes_nothing(
+        self, monkeypatch, capsys, branch
+    ):
+        """S7 of #1671. The workflow triggers on `release/*`, so a numbered
+        branch of a release before #1671 reaches this too. The skip is at
+        entry: no range read, no API call, no write, and the line says why."""
         m = signal()
         tracker = Tracker(issues={88: []}, pulls={100: "Closes #88"})
-        wire(monkeypatch, m, tracker, ["feat: a thing (#100)"], branch="release/next")
+        wire(monkeypatch, m, tracker, ["feat: a thing (#100)"], branch=branch)
         m.main()
-        assert tracker.calls == [], (
-            "a branch with no version in its name still reached the tracker"
+        assert tracker.calls == [], f"a push to {branch!r} still reached the tracker"
+        assert f"{branch!r} is not release/next — nothing to label" in (
+            capsys.readouterr().out
         )
 
     def test_accepts_the_issue_the_keyword_named_and_labels_nothing_else(
@@ -336,9 +311,8 @@ class Test_main:
         assert tracker.issues[88] == [LABEL, "documentation"]
 
     def test_a_push_with_no_claimed_issue_writes_nothing(self, monkeypatch):
-        """Including no label creation. A release branch that moves for a commit
-        claiming nothing must not leave a label behind for a version it has not
-        yet shipped anything of."""
+        """Including no label creation. A push to `release/next` for a commit
+        claiming nothing must not leave behind a label no issue carries."""
         m = signal()
         tracker = Tracker(pulls={100: "Part of #92"}, labels=set())
         wire(monkeypatch, m, tracker, ["feat: a thing (#100)"])
@@ -377,14 +351,12 @@ class Test_module:
             "which is the copied reader coming back"
         )
 
-    def test_the_label_description_fits_the_trackers_cap_for_a_long_version(self):
+    def test_the_label_description_fits_the_trackers_cap(self):
         """#515's class. This description goes to `gh label create`, and the
-        tracker refuses one past its cap with a 422 — in the workflow that runs
-        when a release branch moves, after the merge. The version is the only part
-        that grows, so the case takes one far longer than any this repository will
-        cut: fitting at that length is fitting at every realistic one."""
+        tracker refuses one past its cap with a 422, in the workflow that runs
+        when `release/next` moves, after the merge."""
         m = signal()
-        description = m.label_description("9999.9999.9999")
+        description = m.LABEL_DESCRIPTION
         assert len(description) <= m.LABEL_DESCRIPTION_LIMIT, (
             f"the tracker refuses a label description past "
             f"{m.LABEL_DESCRIPTION_LIMIT} characters, and this one is "
