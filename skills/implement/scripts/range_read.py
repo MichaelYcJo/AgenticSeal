@@ -19,6 +19,14 @@ line naming it:
   command reads the hunks `-U0` prints and HEAD's text and draws the
   bound itself. Hunks whose paragraphs meet print as one, and each printed
   hunk carries a header in git's form with no function line after it;
+- a keep file of the work item, `frame/keep-<N>.txt` or
+  `frame/keep-<N>-paths.txt` under its directory (`lib/optin.py#KEEP`),
+  each hunk as `git diff -U0` prints it, its header with no function line
+  after it, and no line around it (`KEEP_HEAD`). A keep file holds no
+  blank line, so its paragraph is the whole file, and each of its lines is
+  read alone, by its kind. A keep file the range adds prints whole, since
+  each of its lines is new. Another work item's keep file is another text
+  path, and where the root is local no keep file is in the range;
 - every other text path as `git diff -W` prints it, each hunk widened on
   either side to that same blank-line bound wherever `-W` stopped short of
   it (`WHOLE_HEAD`). With no diff driver set, git takes a line that opens
@@ -139,6 +147,7 @@ HUNK = re.compile(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 RANGE_LINE = "range: {start}..{head}"
 PROSE_HEAD = "==> {path}: each hunk with its paragraph at HEAD <=="
+KEEP_HEAD = "==> {path}: keep file, each hunk at its own lines <=="
 WHOLE_HEAD = "==> {path}: git diff -W, each hunk widened to its paragraph at HEAD <=="
 BINARY = "==> {path}: binary, not printed <=="
 SUBMODULE = "==> {path}: submodule, not printed <=="
@@ -374,6 +383,25 @@ def _prose(root, start, head, path, unit=False):
     return header + _paragraphs(new, hunks, units)
 
 
+def _keep(path, rel):
+    """Whether PATH is a keep file of the work item at REL, its `/`-joined
+    path in the tree; never where REL is None, since a local root's records
+    stand outside the tree."""
+    if rel is None or not path.startswith(rel + "/"):
+        return False
+    return optin.KEEP.fullmatch(path[len(rel) + 1 :]) is not None
+
+
+def _own_lines(root, start, head, path):
+    """The lines `git diff -U0` prints for PATH, each hunk unwidened and its
+    header without the function line git puts after it, since that line is
+    one the range did not change."""
+    printed = _lines(
+        _git(root, *DIFF, "-U0", "--inter-hunk-context=0", start, head, "--", path)
+    )
+    return [found.group(0) if (found := HUNK.match(line)) else line for line in printed]
+
+
 def _records(root, head, item, rel):
     """`(lines, absent)`: the lines that print the work item's records whole,
     and the path of each one not there."""
@@ -442,6 +470,8 @@ def _read(item, start, cwd):
         elif path in binary:
             lines.append(BINARY.format(path=path))
             summary.append(NOT_PRINTED.format(path=path, why="binary"))
+        elif _keep(path, rel):
+            lines += [KEEP_HEAD.format(path=path), *_own_lines(root, start, head, path)]
         elif path.endswith(PROSE):
             lines += [PROSE_HEAD.format(path=path), *_prose(root, start, head, path)]
         else:
