@@ -80,6 +80,11 @@ frame/plan.md:48, the Verified by cell, its sentences "M1 prints a total below 4
 M1 prints a total below 4,860. `git grep -n 'NOT for' -- 'skills/*/SKILL.md'` prints one line in each of `skills/code-review/SKILL.md`, `skills/commit-pr-convention/SKILL.md` and `skills/writing-style/SKILL.md`, each opening `NOT for:`, and S3's search prints nothing.
 ```
 
+```iadd
+verdict: fixed efc72d4c
+answer: The finding holds. The framer folded `frame/plan.md` *Phases* row 1 in `efc72d4c`, the orchestrator's fix after the last round: the Delivers cell keeps *Scope* items 2 to 5 and adds that round 1's first finding's fix pass delivers `commit-pr-convention`'s `NOT for:` clause's removal and the total after the work, which that pass's close block records; the Verified by cell states phase 1's S2 result, three lines in `code-review`, `commit-pr-convention` and `writing-style`, and points at round 1's first finding's close block for the S1 and S2 results at the last commit that changes a description. The Status cell stays `ee1c63a3`. The finding's searches, run again at `efc72d4c`: `git grep -n -F 'print what those rows state' -- agentory/threads/1795841829-skill-descriptions` prints this record's own lines alone; `git grep -n -F 'Scope* items 2, 3, 4 and 5' -- agentory/threads/1795841829-skill-descriptions` prints `frame/plan.md:48`, the Delivers cell, whose list stands as phase 1 built it beside the new sentence, and this record's own lines. The change touches the work item's records alone, so the inspector reads it (`skills/core/SKILL.md` *Judgment is not licence to skip a party*, row *No fix that no round reads*).
+```
+
 ## Confirmations
 
 ```iadd
